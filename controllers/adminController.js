@@ -5,6 +5,7 @@ var newOTP = require("otp-generators");
 const User = require("../models/userModel");
 const Category = require("../models/Category")
 const Brand = require('../models/brand');
+const product = require('../models/product');
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -174,6 +175,47 @@ exports.removeBrand = async (req, res) => {
         } else {
                 await Brand.findByIdAndDelete(category._id);
                 return res.status(200).json({ message: "Brand Deleted Successfully !" });
+        }
+};
+exports.createProduct = async (req, res) => {
+        try {
+                const data = await Brand.findById(req.body.brandId);
+                if (!data || data.length === 0) {
+                        return res.status(400).send({ status: 404, msg: "not found" });
+                }
+                let productImages = [], howTouse = [];
+                if (req.files) {
+                        for (let i = 0; i < req.files.length; i++) {
+                                let obj = {
+                                        image: req.files[i].path
+                                }
+                                productImages.push(obj)
+                        }
+                }
+                for (let i = 0; i < req.body.step.length; i++) {
+                        let obj = {
+                                step: req.body.step[i],
+                                description: req.body.stepDescription[i]
+                        }
+                        howTouse.push(obj)
+                }
+
+                if (req.body.quantity > 0) { req.body.status = "STOCK" }
+                if (req.body.quantity <= 0) { req.body.status = "OUTOFSTOCK" }
+                if (req.body.discount == 'true') {
+
+                } else {
+
+                }
+                req.body.howTouse = howTouse;
+                req.body.productImages = productImages;
+                const ProductCreated = await product.create(req.body);
+                if (ProductCreated) {
+                        return res.status(201).send({ status: 200, message: "Product add successfully", data: ProductCreated, });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({ message: "Internal server error while creating Product", });
         }
 };
 const reffralCode = async () => {

@@ -4,7 +4,7 @@ var multer = require("multer");
 const path = require("path");
 const express = require("express");
 const router = express()
-const { productUpload, bannerUpload, blogUpload, aboutusUpload, subCategoryUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
+const { productUpload, upload, bannerUpload, blogUpload, aboutusUpload, subCategoryUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
         app.post("/api/v1/admin/login", auth.signin);
@@ -17,4 +17,5 @@ module.exports = (app) => {
         app.get("/api/v1/admin/Category/allCategory", auth.getCategories);
         app.put("/api/v1/admin/Category/updateCategory/:id", [authJwt.verifyToken], categoryUpload.single('image'), auth.updateCategory);
         app.delete("/api/v1/admin/Category/deleteCategory/:id", [authJwt.verifyToken], auth.removeCategory);
+        app.post("/api/v1/admin/Product/addProduct", [authJwt.verifyToken], upload.array('image'), auth.createProduct);
 }

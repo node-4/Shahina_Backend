@@ -27,4 +27,4 @@ const storage9 = new CloudinaryStorage({ cloudinary: cloudinary, params: { folde
 const E4UUpload = multer({ storage: storage9 });
 const storage10 = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "shahina/offer", allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"], }, });
 const offerUpload = multer({ storage: storage10 });
-module.exports = { productUpload, bannerUpload, blogUpload, aboutusUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };
+module.exports = { upload, productUpload, bannerUpload, blogUpload, aboutusUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };
