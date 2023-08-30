@@ -218,6 +218,195 @@ exports.createProduct = async (req, res) => {
                 return res.status(500).send({ message: "Internal server error while creating Product", });
         }
 };
+exports.paginateProductSearch = async (req, res) => {
+        try {
+                const { search, fromDate, toDate, brandId, quantity, status, page, limit } = req.query;
+                let query = {};
+                if (search) {
+                        query.$or = [
+                                { "name": { $regex: req.query.search, $options: "i" }, },
+                                { "description": { $regex: req.query.search, $options: "i" }, },
+                        ]
+                }
+                if (status) {
+                        query.status = status
+                }
+                if (brandId) {
+                        query.brandId = brandId
+                }
+                if (quantity) {
+                        query.quantity = quantity
+                }
+                if (fromDate && !toDate) {
+                        query.createdAt = { $gte: fromDate };
+                }
+                if (!fromDate && toDate) {
+                        query.createdAt = { $lte: toDate };
+                }
+                if (fromDate && toDate) {
+                        query.$and = [
+                                { createdAt: { $gte: fromDate } },
+                                { createdAt: { $lte: toDate } },
+                        ]
+                }
+                let options = {
+                        page: Number(page) || 1,
+                        limit: Number(limit) || 15,
+                        sort: { createdAt: -1 },
+                        populate: ('brandId')
+                };
+                let data = await product.paginate(query, options);
+                return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.getIdProduct = async (req, res) => {
+        try {
+                const data = await product.findById(req.params.id).populate('brandId')
+                if (!data || data.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                }
+                return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.editProduct = async (req, res) => {
+        try {
+                const data = await product.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        if (req.body.brandId != (null || undefined)) {
+                                const data1 = await Brand.findById(req.body.brandId);
+                                if (!data1 || data1.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: "not found" });
+                                }
+                        }
+                        let productImages = [], howTouse = [];
+                        if (req.files) {
+                                for (let i = 0; i < req.files.length; i++) {
+                                        let obj = {
+                                                image: req.files[i].path
+                                        }
+                                        productImages.push(obj)
+                                }
+                        }
+                        for (let i = 0; i < req.body.step.length; i++) {
+                                let obj = {
+                                        step: req.body.step[i],
+                                        description: req.body.stepDescription[i]
+                                }
+                                howTouse.push(obj)
+                        }
+                        if (req.body.quantity > 0) { req.body.status = "STOCK" }
+                        if (req.body.quantity <= 0) { req.body.status = "OUTOFSTOCK" }
+                        if (req.body.discount == 'true') {
+
+                        } else {
+
+                        }
+                        let productObj = {
+                                brandId: data.brandId,
+                                name: req.body.name || data.name,
+                                description: req.body.description || data.description,
+                                contents: req.body.contents || data.contents,
+                                howTouse: howTouse || data.howTouse,
+                                ingredients: req.body.ingredients || data.ingredients,
+                                price: req.body.price || data.price,
+                                costPrice: req.body.costPrice || data.costPrice,
+                                quantity: req.body.quantity || data.quantity,
+                                discount: req.body.discount || data.discount,
+                                discountPrice: req.body.discountPrice || data.discountPrice,
+                                ratings: data.ratings,
+                                productImages: productImages || data.productImages,
+                                numOfReviews: data.numOfReviews,
+                                reviews: data.reviews,
+                                status: data.status,
+                        }
+                        const data1 = await product.findByIdAndUpdate({ _id: data._id }, { $set: productObj }, { new: true });
+                        return res.status(200).json({ status: 200, message: "Product update successfully.", data: data1 });
+                }
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.deleteProduct = async (req, res) => {
+        try {
+                const data = await product.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        const data1 = await product.findByIdAndDelete(data._id);
+                        return res.status(200).json({ status: 200, message: "Product delete successfully.", data: {} });
+                }
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.createProductReview = async (req, res, next) => {
+        try {
+                const data = await User.findOne({ _id: req.user._id, });
+                if (!data) {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                } else {
+                        const { rating, skinType, acenSeverity, skinTone, skinConcern, comment, productId } = req.body;
+                        const findProducts = await product.findById(productId);
+                        if (findProducts.reviews.length == 0) {
+                                const review = {
+                                        user: req.user._id,
+                                        name: req.user.name,
+                                        rating: Number(rating),
+                                        skinType,
+                                        acenSeverity,
+                                        skinTone,
+                                        skinConcern,
+                                        comment
+                                };
+                                findProducts.reviews.push(review);
+                                findProducts.numOfReviews = findProducts.reviews.length;
+                        } else {
+                                const isReviewed = findProducts.reviews.find((rev) => { rev.user.toString() === req.user._id.toString() });
+                                if (isReviewed) {
+                                        findProducts.reviews.forEach((rev) => {
+                                                if (rev.user.toString() === req.user._id.toString()) (rev.rating = rating), (rev.comment = comment);
+                                        });
+                                } else {
+                                        const review = {
+                                                user: req.user._id,
+                                                name: req.user.name,
+                                                rating: Number(rating),
+                                                skinType,
+                                                acenSeverity,
+                                                skinTone,
+                                                skinConcern,
+                                                comment
+                                        };
+                                        findProducts.reviews.push(review);
+                                        findProducts.numOfReviews = findProducts.reviews.length;
+                                }
+                        }
+                        let avg = 0;
+                        findProducts.reviews.forEach((rev) => { avg += rev.rating; });
+                        findProducts.ratings = avg / findProducts.reviews.length;
+                        await findProducts.save({ validateBeforeSave: false })
+                        const findProduct = await product.findById(productId);
+                        res.status(200).json({ status: 200, data: findProduct.reviews });
+                }
+        } catch (error) {
+                console.log(error);
+                res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getProductReviews = async (req, res, next) => {
+        const findProduct = await product.findById(req.params.id).populate({ path: 'reviews.user', select: 'fullName' });
+        if (!findProduct) {
+                res.status(404).json({ message: "Product not found.", status: 404, data: {} });
+        }
+        return res.status(200).json({ status: 200, reviews: findProduct.reviews, });
+};
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let OTP = '';

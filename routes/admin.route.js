@@ -18,4 +18,10 @@ module.exports = (app) => {
         app.put("/api/v1/admin/Category/updateCategory/:id", [authJwt.verifyToken], categoryUpload.single('image'), auth.updateCategory);
         app.delete("/api/v1/admin/Category/deleteCategory/:id", [authJwt.verifyToken], auth.removeCategory);
         app.post("/api/v1/admin/Product/addProduct", [authJwt.verifyToken], upload.array('image'), auth.createProduct);
+        app.get("/api/v1/Product/all/paginateProductSearch", auth.paginateProductSearch);
+        app.get("/api/v1/Product/:id", auth.getIdProduct);
+        app.put("/api/v1/Product/editProduct/:id", [authJwt.verifyToken], upload.array('image'), auth.editProduct);
+        app.delete("/api/v1/Product/deleteProduct/:id", [authJwt.verifyToken], auth.deleteProduct);
+        app.post("/api/v1/product/createProductReview", [authJwt.verifyToken], auth.createProductReview);
+        app.get("/api/v1/product/getProductReviews/:id", [authJwt.verifyToken], auth.getProductReviews);
 }

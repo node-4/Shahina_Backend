@@ -68,6 +68,18 @@ const productSchema = mongoose.Schema({
                         rating: {
                                 type: Number,
                         },
+                        skinType: {
+                                type: String,
+                        },
+                        acenSeverity: {
+                                type: String,
+                        },
+                        skinTone: {
+                                type: String,
+                        },
+                        skinConcern: {
+                                type: String,
+                        },
                         comment: {
                                 type: String,
                         },
