@@ -24,4 +24,19 @@ module.exports = (app) => {
         app.delete("/api/v1/Product/deleteProduct/:id", [authJwt.verifyToken], auth.deleteProduct);
         app.post("/api/v1/product/createProductReview", [authJwt.verifyToken], auth.createProductReview);
         app.get("/api/v1/product/getProductReviews/:id", [authJwt.verifyToken], auth.getProductReviews);
+        app.post("/api/v1/admin/Service/addService", [authJwt.verifyToken], upload.array('image'), auth.createService);
+        app.get("/api/v1/Service/all/paginateServiceSearch", auth.paginateServiceSearch);
+        app.get("/api/v1/Service/:id", auth.getIdService);
+        app.put("/api/v1/Service/editService/:id", [authJwt.verifyToken], upload.array('image'), auth.editService);
+        app.delete("/api/v1/Service/deleteService/:id", [authJwt.verifyToken], auth.deleteService);
+        app.post("/api/v1/Subscription", auth.createSubscription);
+        app.get("/api/v1/Subscription", auth.getAllSubscription);
+        app.get("/api/v1/Subscription/byId/:id", auth.getSubscriptionById);
+        app.put("/api/v1/Subscription/:id", auth.updateSubscription);
+        app.delete("/api/v1/Subscription/:id", auth.deleteSubscription);
+        app.post("/api/v1/Banner/addBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createBanner);
+        app.get("/api/v1/Banner/getBanner/:type", auth.getBanner);
+        app.get("/api/v1/Banner/:id", auth.getIdBanner);
+        app.delete("/api/v1/Banner/:id", [authJwt.verifyToken], auth.deleteBanner);
+        app.put("/api/v1/Banner/updateBanner/:id", [authJwt.verifyToken], bannerUpload.single('image'), auth.updateBanner);
 }
