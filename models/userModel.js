@@ -38,6 +38,9 @@ var userSchema = new schema(
                         type: String,
                         minLength: 10,
                 },
+                refferalCode: { type: String, },
+                refferUserId: { type: schema.Types.ObjectId, ref: "user" },
+                joinUser: [{ type: schema.Types.ObjectId, ref: "user" }],
                 password: {
                         type: String,
                 },
@@ -54,20 +57,6 @@ var userSchema = new schema(
                 userType: {
                         type: String,
                         enum: ["USER", "ADMIN"],
-                },
-                company: {
-                        type: String,
-                },
-                registrationNo: {
-                        type: String,
-                },
-                vatNumber: {
-                        type: String,
-                        minLength: 5,
-                        maxLength: 17,
-                },
-                vatUsed: {
-                        type: Boolean,
                 },
                 status: {
                         type: String,

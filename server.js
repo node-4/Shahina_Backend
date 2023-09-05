@@ -18,9 +18,9 @@ app.get("/", (req, res) => {
         res.send("Hello World!");
 });
 
-// const user = require('./routes/user.route');
 require('./routes/admin.route')(app);
-// app.use('/api/v1', user);
+require('./routes/user.route')(app);
+
 
 
 mongoose.Promise = global.Promise;
