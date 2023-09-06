@@ -4,7 +4,8 @@ var multer = require("multer");
 const path = require("path");
 const express = require("express");
 const router = express()
-const { productUpload, upload, bannerUpload, blogUpload, aboutusUpload, subCategoryUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
+const { productUpload, upload, bannerUpload, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
+        aboutusUpload, subCategoryUpload, shopPageUpload, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
         app.post("/api/v1/admin/login", auth.signin);
@@ -13,6 +14,22 @@ module.exports = (app) => {
         app.get("/api/v1/admin/Brand/allBrand", auth.getBrands);
         app.put("/api/v1/admin/Brand/updateBrand/:id", [authJwt.verifyToken], BrandUpload.single('image'), auth.updateBrand);
         app.delete("/api/v1/admin/Brand/deleteBrand/:id", [authJwt.verifyToken], auth.removeBrand);
+        app.post("/api/v1/admin/Nutrition/addNutrition", [authJwt.verifyToken], NutritionUpload.single('image'), auth.createNutritions);
+        app.get("/api/v1/admin/Nutrition/allNutrition", auth.getNutritions);
+        app.put("/api/v1/admin/Nutrition/updateNutrition/:id", [authJwt.verifyToken], NutritionUpload.single('image'), auth.updateNutrition);
+        app.delete("/api/v1/admin/Nutrition/deleteNutrition/:id", [authJwt.verifyToken], auth.removeNutrition);
+        app.post("/api/v1/admin/ProductType/addProductType", [authJwt.verifyToken], ProductTypeUpload.single('image'), auth.createProductTypes);
+        app.get("/api/v1/admin/ProductType/allProductType", auth.getProductTypes);
+        app.put("/api/v1/admin/ProductType/updateProductType/:id", [authJwt.verifyToken], ProductTypeUpload.single('image'), auth.updateProductType);
+        app.delete("/api/v1/admin/ProductType/deleteProductType/:id", [authJwt.verifyToken], auth.removeProductType);
+        app.post("/api/v1/admin/SkinCondition/addSkinCondition", [authJwt.verifyToken], SkinConditionUpload.single('image'), auth.createSkinConditions);
+        app.get("/api/v1/admin/SkinCondition/allSkinCondition", auth.getSkinConditions);
+        app.put("/api/v1/admin/SkinCondition/updateSkinCondition/:id", [authJwt.verifyToken], SkinConditionUpload.single('image'), auth.updateSkinCondition);
+        app.delete("/api/v1/admin/SkinCondition/deleteSkinCondition/:id", [authJwt.verifyToken], auth.removeSkinCondition);
+        app.post("/api/v1/admin/SkinType/addSkinType", [authJwt.verifyToken], SkinTypeUpload.single('image'), auth.createSkinTypes);
+        app.get("/api/v1/admin/SkinType/allSkinType", auth.getSkinTypes);
+        app.put("/api/v1/admin/SkinType/updateSkinType/:id", [authJwt.verifyToken], SkinTypeUpload.single('image'), auth.updateSkinType);
+        app.delete("/api/v1/admin/SkinType/deleteSkinType/:id", [authJwt.verifyToken], auth.removeSkinType);
         app.post("/api/v1/admin/Category/addCategory", [authJwt.verifyToken], categoryUpload.single('image'), auth.createCategory);
         app.get("/api/v1/admin/Category/allCategory", auth.getCategories);
         app.put("/api/v1/admin/Category/updateCategory/:id", [authJwt.verifyToken], categoryUpload.single('image'), auth.updateCategory);
@@ -39,4 +56,25 @@ module.exports = (app) => {
         app.get("/api/v1/Banner/:id", auth.getIdBanner);
         app.delete("/api/v1/Banner/:id", [authJwt.verifyToken], auth.deleteBanner);
         app.put("/api/v1/Banner/updateBanner/:id", [authJwt.verifyToken], bannerUpload.single('image'), auth.updateBanner);
+        app.post("/api/v1/Partner/addPartner", [authJwt.verifyToken], bannerUpload.array('images'), auth.createPartner);
+        app.post("/api/v1/ShopPage/addShopPage", [authJwt.verifyToken], shopPageUpload, auth.createShopPage);
+        app.post("/api/v1/ServicePage/addServicePage", [authJwt.verifyToken], servicePageUpload.array('images'), auth.createServicePage);
+        app.post("/api/v1/Gallary/addGallary", [authJwt.verifyToken], gallaryUpload.single('image'), auth.createGallarys);
+        app.get("/api/v1/Gallary/getGallary", auth.getGallarys);
+        app.delete("/api/v1/Gallary/:id", [authJwt.verifyToken], auth.removeGallary);
+        app.put("/api/v1/Gallary/updateGallary/:id", [authJwt.verifyToken], gallaryUpload.single('image'), auth.updateGallary);
+        app.post("/api/v1/ContactDetails/addContactDetails", [authJwt.verifyToken], auth.addContactDetails);
+        app.get("/api/v1/ContactDetails/viewContactDetails", auth.viewContactDetails);
+        app.post("/api/v1/help/addQuery", auth.addQuery);
+        app.get("/api/v1/help/all", auth.getAllHelpandSupport);
+        app.get("/api/v1/help/:id", auth.getHelpandSupportById);
+        app.delete("/api/v1/help/:id", auth.deleteHelpandSupport);
+        app.post("/api/v1/News/addNews", [authJwt.verifyToken], newsUpload.single('image'), auth.createNews);
+        app.get("/api/v1/News/getNews", auth.getNews);
+        app.delete("/api/v1/News/:id", [authJwt.verifyToken], auth.removeNews);
+        app.put("/api/v1/News/updateNews/:id", [authJwt.verifyToken], newsUpload.single('image'), auth.updateNews);
+        app.post("/api/v1/clientReview/addclientReview", [authJwt.verifyToken], auth.createClientReview);
+        app.get("/api/v1/clientReview", auth.getAllClientReviews);
+        app.delete("/api/v1/clientReview/:id", [authJwt.verifyToken], auth.removeClientReview);
+        app.get("/api/v1/clientReview/get/:id", [authJwt.verifyToken], auth.getClientReviewById);
 }

@@ -2,13 +2,22 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const authConfig = require("../configs/auth.config");
 var newOTP = require("otp-generators");
-const User = require("../models/userModel");
-const Category = require("../models/Category")
-const Brand = require('../models/brand');
-const product = require('../models/product');
-const services = require('../models/services');
 const Subscription = require("../models/subscription");
 const banner = require("../models/bannerModel");
+const Gallary = require("../models/gallary");
+const User = require("../models/Auth/userModel");
+const Category = require("../models/Service/Category")
+const services = require('../models/Service/services');
+const Brand = require('../models/Product/brand');
+const Nutrition = require('../models/Product/nutrition');
+const product = require('../models/Product/product');
+const ProductType = require('../models/Product/productType');
+const SkinCondition = require('../models/Product/skinCondition');
+const SkinType = require('../models/Product/skinType');
+const contact = require("../models/contactDetail");
+const helpandSupport = require("../models/helpAndSupport");
+const News = require("../models/news");
+const ClientReview = require("../models/clientReview");
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -180,11 +189,231 @@ exports.removeBrand = async (req, res) => {
                 return res.status(200).json({ message: "Brand Deleted Successfully !" });
         }
 };
+exports.createNutritions = async (req, res) => {
+        try {
+                let findNutrition = await Nutrition.findOne({ name: req.body.name });
+                if (findNutrition) {
+                        return res.status(409).json({ message: "Nutrition already exit.", status: 404, data: {} });
+                } else {
+                        let fileUrl;
+                        if (req.file) {
+                                fileUrl = req.file ? req.file.path : "";
+                        }
+                        const data = { name: req.body.name, image: fileUrl };
+                        const category = await Nutrition.create(data);
+                        return res.status(200).json({ message: "Nutrition add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getNutritions = async (req, res) => {
+        const categories = await Nutrition.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Nutrition Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Nutrition not Found", status: 404, data: {}, });
+
+};
+exports.updateNutrition = async (req, res) => {
+        const { id } = req.params;
+        const category = await Nutrition.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Nutrition Not Found", status: 404, data: {} });
+        }
+        let fileUrl;
+        if (req.file) {
+                fileUrl = req.file ? req.file.path : "";
+        }
+        category.image = fileUrl || category.image;
+        category.name = req.body.name || category.name;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeNutrition = async (req, res) => {
+        const { id } = req.params;
+        const category = await Nutrition.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Nutrition Not Found", status: 404, data: {} });
+        } else {
+                await Nutrition.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Nutrition Deleted Successfully !" });
+        }
+};
+exports.createProductTypes = async (req, res) => {
+        try {
+                let findProductType = await ProductType.findOne({ name: req.body.name });
+                if (findProductType) {
+                        return res.status(409).json({ message: "ProductType already exit.", status: 404, data: {} });
+                } else {
+                        let fileUrl;
+                        if (req.file) {
+                                fileUrl = req.file ? req.file.path : "";
+                        }
+                        const data = { name: req.body.name, image: fileUrl };
+                        const category = await ProductType.create(data);
+                        return res.status(200).json({ message: "ProductType add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getProductTypes = async (req, res) => {
+        const categories = await ProductType.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "ProductType Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "ProductType not Found", status: 404, data: {}, });
+
+};
+exports.updateProductType = async (req, res) => {
+        const { id } = req.params;
+        const category = await ProductType.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "ProductType Not Found", status: 404, data: {} });
+        }
+        let fileUrl;
+        if (req.file) {
+                fileUrl = req.file ? req.file.path : "";
+        }
+        category.image = fileUrl || category.image;
+        category.name = req.body.name || category.name;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeProductType = async (req, res) => {
+        const { id } = req.params;
+        const category = await ProductType.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "ProductType Not Found", status: 404, data: {} });
+        } else {
+                await ProductType.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "ProductType Deleted Successfully !" });
+        }
+};
+exports.createSkinConditions = async (req, res) => {
+        try {
+                let findSkinCondition = await SkinCondition.findOne({ name: req.body.name });
+                if (findSkinCondition) {
+                        return res.status(409).json({ message: "SkinCondition already exit.", status: 404, data: {} });
+                } else {
+                        let fileUrl;
+                        if (req.file) {
+                                fileUrl = req.file ? req.file.path : "";
+                        }
+                        const data = { name: req.body.name, image: fileUrl };
+                        const category = await SkinCondition.create(data);
+                        return res.status(200).json({ message: "SkinCondition add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getSkinConditions = async (req, res) => {
+        const categories = await SkinCondition.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "SkinCondition Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "SkinCondition not Found", status: 404, data: {}, });
+
+};
+exports.updateSkinCondition = async (req, res) => {
+        const { id } = req.params;
+        const category = await SkinCondition.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "SkinCondition Not Found", status: 404, data: {} });
+        }
+        let fileUrl;
+        if (req.file) {
+                fileUrl = req.file ? req.file.path : "";
+        }
+        category.image = fileUrl || category.image;
+        category.name = req.body.name || category.name;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeSkinCondition = async (req, res) => {
+        const { id } = req.params;
+        const category = await SkinCondition.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "SkinCondition Not Found", status: 404, data: {} });
+        } else {
+                await SkinCondition.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "SkinCondition Deleted Successfully !" });
+        }
+};
+exports.createSkinTypes = async (req, res) => {
+        try {
+                let findSkinType = await SkinType.findOne({ name: req.body.name });
+                if (findSkinType) {
+                        return res.status(409).json({ message: "SkinType already exit.", status: 404, data: {} });
+                } else {
+                        let fileUrl;
+                        if (req.file) {
+                                fileUrl = req.file ? req.file.path : "";
+                        }
+                        const data = { name: req.body.name, image: fileUrl };
+                        const category = await SkinType.create(data);
+                        return res.status(200).json({ message: "SkinType add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getSkinTypes = async (req, res) => {
+        const categories = await SkinType.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "SkinType Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "SkinType not Found", status: 404, data: {}, });
+
+};
+exports.updateSkinType = async (req, res) => {
+        const { id } = req.params;
+        const category = await SkinType.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "SkinType Not Found", status: 404, data: {} });
+        }
+        let fileUrl;
+        if (req.file) {
+                fileUrl = req.file ? req.file.path : "";
+        }
+        category.image = fileUrl || category.image;
+        category.name = req.body.name || category.name;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeSkinType = async (req, res) => {
+        const { id } = req.params;
+        const category = await SkinType.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "SkinType Not Found", status: 404, data: {} });
+        } else {
+                await SkinType.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "SkinType Deleted Successfully !" });
+        }
+};
 exports.createProduct = async (req, res) => {
         try {
                 const data = await Brand.findById(req.body.brandId);
                 if (!data || data.length === 0) {
-                        return res.status(400).send({ status: 404, msg: "not found" });
+                        return res.status(400).send({ status: 404, msg: "Brand not found" });
+                }
+                const data1 = await Nutrition.findById(req.body.nutritionId);
+                if (!data1 || data1.length === 0) {
+                        return res.status(400).send({ status: 404, msg: "Nutrition not found" });
+                }
+                const data2 = await ProductType.findById(req.body.productTypeId);
+                if (!data2 || data2.length === 0) {
+                        return res.status(400).send({ status: 404, msg: "ProductType not found" });
+                }
+                const data3 = await SkinCondition.findById(req.body.skinConditionId);
+                if (!data3 || data3.length === 0) {
+                        return res.status(400).send({ status: 404, msg: "SkinCondition not found" });
+                }
+                const data4 = await SkinType.findById(req.body.skinTypeId);
+                if (!data4 || data4.length === 0) {
+                        return res.status(400).send({ status: 404, msg: "SkinType not found" });
                 }
                 let productImages = [], howTouse = [];
                 if (req.files) {
@@ -283,9 +512,33 @@ exports.editProduct = async (req, res) => {
                         return res.status(400).send({ msg: "not found" });
                 } else {
                         if (req.body.brandId != (null || undefined)) {
-                                const data1 = await Brand.findById(req.body.brandId);
+                                const data0 = await Brand.findById(req.body.brandId);
+                                if (!data0 || data0.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: "Brand not found" });
+                                }
+                        }
+                        if (req.body.nutritionId != (null || undefined)) {
+                                const data1 = await Nutrition.findById(req.body.nutritionId);
                                 if (!data1 || data1.length === 0) {
-                                        return res.status(400).send({ status: 404, msg: "not found" });
+                                        return res.status(400).send({ status: 404, msg: "Nutrition not found" });
+                                }
+                        }
+                        if (req.body.productTypeId != (null || undefined)) {
+                                const data2 = await ProductType.findById(req.body.productTypeId);
+                                if (!data2 || data2.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: "ProductType not found" });
+                                }
+                        }
+                        if (req.body.skinConditionId != (null || undefined)) {
+                                const data3 = await SkinCondition.findById(req.body.skinConditionId);
+                                if (!data3 || data3.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: "SkinCondition not found" });
+                                }
+                        }
+                        if (req.body.skinTypeId != (null || undefined)) {
+                                const data4 = await SkinType.findById(req.body.skinTypeId);
+                                if (!data4 || data4.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: "SkinType not found" });
                                 }
                         }
                         let productImages = [], howTouse = [];
@@ -312,7 +565,11 @@ exports.editProduct = async (req, res) => {
 
                         }
                         let productObj = {
-                                brandId: data.brandId,
+                                brandId: req.body.brandId || data.brandId,
+                                nutritionId: req.body.nutritionId || data.nutritionId,
+                                productTypeId: req.body.productTypeId || data.productTypeId,
+                                skinConditionId: req.body.skinConditionId || data.skinConditionId,
+                                skinTypeId: req.body.skinTypeId || data.skinTypeId,
                                 name: req.body.name || data.name,
                                 description: req.body.description || data.description,
                                 contents: req.body.contents || data.contents,
@@ -329,8 +586,8 @@ exports.editProduct = async (req, res) => {
                                 reviews: data.reviews,
                                 status: data.status,
                         }
-                        const data1 = await product.findByIdAndUpdate({ _id: data._id }, { $set: productObj }, { new: true });
-                        return res.status(200).json({ status: 200, message: "Product update successfully.", data: data1 });
+                        const data5 = await product.findByIdAndUpdate({ _id: data._id }, { $set: productObj }, { new: true });
+                        return res.status(200).json({ status: 200, message: "Product update successfully.", data: data5 });
                 }
         } catch (err) {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
@@ -617,6 +874,147 @@ exports.deleteSubscription = async (req, res) => {
                 return res.status(500).json({ status: 500, error: "Internal Server Error" });
         }
 };
+exports.createPartner = async (req, res) => {
+        try {
+                const findData = await banner.findOne({ type: "Partner" });
+                if (!findData) {
+                        let partnerImage, data;
+                        if (req.files) {
+                                for (let i = 0; i < req.files.length; i++) {
+                                        partnerImage.push(req.files[i].path)
+                                }
+                        }
+                        data = {
+                                title: req.body.title,
+                                desc: req.body.desc,
+                                partnerImage: partnerImage,
+                                type: "Partner"
+                        };
+                        const Banner = await banner.create(data);
+                        return res.status(200).json({ message: "Partner add successfully.", status: 200, data: Banner });
+                } else {
+                        let partnerImage, data;
+                        if (req.files) {
+                                for (let i = 0; i < req.files.length; i++) {
+                                        partnerImage.push(req.files[i].path)
+                                }
+                        }
+                        data = {
+                                title: req.body.title || findData.title,
+                                desc: req.body.desc || findData.desc,
+                                partnerImage: partnerImage || findData.partnerImage,
+                                type: "Partner"
+                        };
+                        const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
+                        return res.status(200).json({ message: "Partner update successfully.", status: 200, data: Banner });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.createShopPage = async (req, res) => {
+        try {
+                const findData = await banner.findOne({ type: "shopPage" });
+                if (!findData) {
+                        let shopImage = [], data, shopDetails = [];
+                        if (req.files['shopImage'] != (null || undefined)) {
+                                let docs = req.files['shopImage'];
+                                console.log(docs);
+                                for (let i = 0; i < docs.length; i++) {
+                                        shopImage.push(docs[i].path)
+                                }
+                        }
+                        if ((req.files['images'].length == req.body.title.length) && (req.files['images'].length == req.body.desc.length)) {
+                                if (req.files['images'] != (null || undefined)) {
+                                        let image = req.files['images'];
+                                        console.log(image);
+                                        for (let i = 0; i < image.length; i++) {
+                                                let obj = {
+                                                        title: req.body.title[i],
+                                                        desc: req.body.desc[i],
+                                                        image: image[i].path,
+                                                }
+                                                shopDetails.push(obj)
+                                        }
+                                }
+                        }
+                        data = {
+                                shopDetails: shopDetails,
+                                shopImage: shopImage,
+                                type: "shopPage"
+                        };
+                        const Banner = await banner.create(data);
+                        return res.status(200).json({ message: "ShopPage data add successfully.", status: 200, data: Banner });
+                } else {
+                        let shopImage = [], data, shopDetails = [];
+                        if (req.files['shopImage'] != (null || undefined)) {
+                                let docs = req.files['shopImage'];
+                                console.log(docs);
+                                for (let i = 0; i < docs.length; i++) {
+                                        shopImage.push(docs[i].path)
+                                }
+                        }
+                        if ((req.files['images'].length == req.body.title.length) && (req.files['images'].length == req.body.desc.length)) {
+                                if (req.files['images'] != (null || undefined)) {
+                                        let image = req.files['images'];
+                                        console.log(image);
+                                        for (let i = 0; i < image.length; i++) {
+                                                let obj = {
+                                                        title: req.body.title[i],
+                                                        desc: req.body.desc[i],
+                                                        image: image[i].path,
+                                                }
+                                                shopDetails.push(obj)
+                                        }
+                                }
+                        }
+                        data = {
+                                shopDetails: req.body.shopDetails || findData.shopDetails,
+                                shopImage: req.body.shopImage || findData.shopImage,
+                                type: "shopPage"
+                        };
+                        const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
+                        return res.status(200).json({ message: "Partner update successfully.", status: 200, data: Banner });
+
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.createServicePage = async (req, res) => {
+        try {
+                const findData = await banner.findOne({ type: "servicePage" });
+                if (!findData) {
+                        let serviceImage, data;
+                        if (req.files) {
+                                for (let i = 0; i < req.files.length; i++) {
+                                        serviceImage.push(req.files[i].path)
+                                }
+                        }
+                        data = {
+                                serviceImage: serviceImage,
+                                type: "servicePage"
+                        };
+                        const Banner = await banner.create(data);
+                        return res.status(200).json({ message: "servicePage add successfully.", status: 200, data: Banner });
+                } else {
+                        let serviceImage, data;
+                        if (req.files) {
+                                for (let i = 0; i < req.files.length; i++) {
+                                        serviceImage.push(req.files[i].path)
+                                }
+                        }
+                        data = {
+                                serviceImage: serviceImage || findData.serviceImage,
+                                type: "servicePage"
+                        };
+                        const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
+                        return res.status(200).json({ message: "servicePage update successfully.", status: 200, data: Banner });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
 exports.createBanner = async (req, res) => {
         try {
                 let bannerImage, data;
@@ -624,6 +1022,8 @@ exports.createBanner = async (req, res) => {
                         bannerImage = req.file.path
                 }
                 data = {
+                        title: req.body.title,
+                        desc: req.body.desc,
                         bannerName: req.body.bannerName,
                         bannerImage: bannerImage,
                         type: req.body.type
@@ -680,6 +1080,8 @@ exports.updateBanner = async (req, res) => {
                         bannerImage = req.file.path
                 }
                 data = {
+                        title: req.body.title || findData.title,
+                        desc: req.body.desc || findData.desc,
                         bannerName: req.body.bannerName || findData.bannerName,
                         bannerImage: bannerImage || findData.bannerImage,
                         type: req.body.type || findData.type,
@@ -688,6 +1090,243 @@ exports.updateBanner = async (req, res) => {
                 return res.status(200).json({ message: "Banner update successfully.", status: 200, data: Banner });
         } catch (error) {
                 return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.createGallarys = async (req, res) => {
+        try {
+                let findGallary = await Gallary.findOne({ name: req.body.name });
+                if (findGallary) {
+                        return res.status(409).json({ message: "Gallary already exit.", status: 404, data: {} });
+                } else {
+                        let fileUrl;
+                        if (req.file) {
+                                fileUrl = req.file ? req.file.path : "";
+                        }
+                        const data = { description: req.body.description, image: fileUrl };
+                        const category = await Gallary.create(data);
+                        return res.status(200).json({ message: "Gallary add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getGallarys = async (req, res) => {
+        const categories = await Gallary.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Gallary Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Gallary not Found", status: 404, data: {}, });
+
+};
+exports.updateGallary = async (req, res) => {
+        const { id } = req.params;
+        const category = await Gallary.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Gallary Not Found", status: 404, data: {} });
+        }
+        let fileUrl;
+        if (req.file) {
+                fileUrl = req.file ? req.file.path : "";
+        }
+        category.image = fileUrl || category.image;
+        category.description = req.body.description || category.description;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeGallary = async (req, res) => {
+        const { id } = req.params;
+        const category = await Gallary.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Gallary Not Found", status: 404, data: {} });
+        } else {
+                await Gallary.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Gallary Deleted Successfully !" });
+        }
+};
+exports.addContactDetails = async (req, res) => {
+        try {
+                const user = await User.findById(req.user._id);
+                if (!user) {
+                        return res.status(404).send({ message: "not found" });
+                } else {
+                        let findContact = await contact.findOne();
+                        if (findContact) {
+                                let obj = {
+                                        fb: req.body.fb || findContact.fb,
+                                        twitter: req.body.twitter || findContact.twitter,
+                                        google: req.body.google || findContact.google,
+                                        instagram: req.body.instagram || findContact.instagram,
+                                        map: req.body.map || findContact.map,
+                                        address: req.body.address || findContact.address,
+                                        phone: req.body.phone || findContact.phone,
+                                        email: req.body.email || findContact.email,
+                                }
+                                let updateContact = await contact.findByIdAndUpdate({ _id: findContact._id }, { $set: obj }, { new: true });
+                                if (updateContact) {
+                                        return res.status(200).json({ message: "Contact detail update successfully.", status: 200, data: updateContact });
+                                }
+                        } else {
+                                let result2 = await contact.create(req.body);
+                                if (result2) {
+                                        return res.status(200).json({ message: "Contact detail add successfully.", status: 200, data: result2 });
+                                }
+                        }
+                }
+        } catch (err) {
+                console.log(err.message);
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.viewContactDetails = async (req, res) => {
+        try {
+                let findcontactDetails = await contact.findOne({});
+                if (!findcontactDetails) {
+                        return res.status(404).json({ message: "Contact detail not found.", status: 404, data: {} });
+                } else {
+                        return res.status(200).json({ message: "Contact detail found successfully.", status: 200, data: findcontactDetails });
+                }
+        } catch (err) {
+                console.log(err.message);
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.addQuery = async (req, res) => {
+        try {
+                if ((req.body.name == (null || undefined)) || (req.body.email == (null || undefined)) || (req.body.name == "") || (req.body.email == "")) {
+                        return res.status(404).json({ message: "name and email provide!", status: 404, data: {} });
+                } else {
+                        const Data = await helpandSupport.create(req.body);
+                        return res.status(200).json({ message: "Help and Support  create.", status: 200, data: Data });
+                }
+
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.getAllHelpandSupport = async (req, res) => {
+        try {
+                const data = await helpandSupport.find();
+                if (data.length == 0) {
+                        return res.status(404).json({ message: "Help and Support not found.", status: 404, data: {} });
+                }
+                return res.status(200).json({ message: "Help and Support  found.", status: 200, data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.getHelpandSupportById = async (req, res) => {
+        try {
+                const data = await helpandSupport.findById(req.params.id);
+                if (!data) {
+                        return res.status(404).json({ message: "Help and Support not found.", status: 404, data: {} });
+                }
+                return res.status(200).json({ message: "Help and Support  found.", status: 200, data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.deleteHelpandSupport = async (req, res) => {
+        try {
+                const data = await helpandSupport.findById(req.params.id);
+                if (!data) {
+                        return res.status(404).json({ message: "Help and Support not found.", status: 404, data: {} });
+                }
+                await helpandSupport.deleteOne({ _id: req.params.id });
+                return res.status(200).json({ message: "Help and Support  delete.", status: 200, data: {} });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.createNews = async (req, res) => {
+        try {
+                let fileUrl;
+                if (req.file) {
+                        fileUrl = req.file ? req.file.path : "";
+                }
+                const data = { description: req.body.description, title: req.body.title, image: fileUrl };
+                const category = await News.create(data);
+                return res.status(200).json({ message: "News add successfully.", status: 200, data: category });
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getNews = async (req, res) => {
+        const categories = await News.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "News Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "News not Found", status: 404, data: {}, });
+
+};
+exports.updateNews = async (req, res) => {
+        const { id } = req.params;
+        const category = await News.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "News Not Found", status: 404, data: {} });
+        }
+        let fileUrl;
+        if (req.file) {
+                fileUrl = req.file ? req.file.path : "";
+        }
+        category.image = fileUrl || category.image;
+        category.title = req.body.title || category.title;
+        category.description = req.body.description || category.description;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeNews = async (req, res) => {
+        const { id } = req.params;
+        const category = await News.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "News Not Found", status: 404, data: {} });
+        } else {
+                await News.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "News Deleted Successfully !" });
+        }
+};
+exports.createClientReview = async (req, res) => {
+        try {
+                const { userName, title, description } = req.body;
+                const findReview = new ClientReview({ userName, title, description, });
+                const savedClientReview = await findReview.save();
+                return res.status(201).json({ status: 201, data: savedClientReview });
+        } catch (error) {
+                console.error(error);
+                return res.status(500).json({ error: "Failed to create clientReview" });
+        }
+};
+exports.getAllClientReviews = async (req, res) => {
+        try {
+                const findReview = await ClientReview.find();
+                if (findReview.length > 0) {
+                        return res.status(201).json({ message: "clientReview Found", status: 200, data: findReview, });
+                }
+                return res.status(201).json({ message: "clientReview not Found", status: 404, data: {}, });
+        } catch (error) {
+                console.error(error);
+                return res.status(500).json({ error: "Failed to retrieve clientReviews" });
+        }
+};
+exports.getClientReviewById = async (req, res) => {
+        try {
+                const findReview = await ClientReview.findById(req.params.id);
+                if (findReview) {
+                        return res.status(201).json({ message: "clientReview Found", status: 200, data: findReview, });
+                }
+                return res.status(201).json({ message: "clientReview not Found", status: 404, data: {}, });
+        } catch (error) {
+                console.error(error);
+                return res.status(500).json({ error: "Failed to retrieve clientReview" });
+        }
+};
+exports.removeClientReview = async (req, res) => {
+        const { id } = req.params;
+        const findReview = await ClientReview.findById(id);
+        if (!findReview) {
+                return res.status(404).json({ message: "clientReview Not Found", status: 404, data: {} });
+        } else {
+                await ClientReview.findByIdAndDelete(findReview._id);
+                return res.status(200).json({ message: "clientReview Deleted Successfully !" });
         }
 };
 const reffralCode = async () => {
