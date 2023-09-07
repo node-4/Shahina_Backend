@@ -28,9 +28,46 @@ const productSchema = mongoose.Schema({
         description: {
                 type: String,
         },
+        size: {
+                type: String,
+        },
+        sizePrice: [{
+                size: {
+                        type: String,
+                },
+                price: {
+                        type: String,
+                },
+                stock: {
+                        type: Number,
+                        default: 0,
+                },
+                status: {
+                        type: String,
+                        enum: ["OUTOFSTOCK", "STOCK"],
+                },
+        }],
+        multipleSize: {
+                type: Boolean,
+                default: false
+        },
         contents: {
                 type: Array,
         },
+        result: {
+                type: Array,
+        },
+        benfit: {
+                type: Array,
+        },
+        additionalInfo: [{
+                title: {
+                        type: String,
+                },
+                description: {
+                        type: String,
+                },
+        }],
         howTouse: [{
                 step: {
                         type: String,
@@ -39,24 +76,29 @@ const productSchema = mongoose.Schema({
                         type: String,
                 },
         }],
+        methodToUse: {
+                type: String,
+        },
+        returnPolicy: {
+                type: String,
+        },
+        keyIngredients: {
+                type: Array,
+        },
         ingredients: {
                 type: String,
         },
         price: {
                 type: String,
         },
-        costPrice: {
+        discountPrice: {
                 type: String,
         },
-        quantity: {
-                type: Number,
-                default: 0,
-        },
-        discount: {
+        discountAllow: {
                 type: Boolean,
                 default: false
         },
-        discountPrice: {
+        discount: {
                 type: Number,
         },
         ratings: {
@@ -68,42 +110,50 @@ const productSchema = mongoose.Schema({
                         type: String
                 },
         }],
+        stock: {
+                type: Number,
+                default: 0,
+        },
         numOfReviews: {
                 type: Number,
                 default: 0,
         },
-        reviews: [
-                {
-                        user: {
-                                type: mongoose.Schema.ObjectId,
-                                ref: "user",
-                        },
-                        name: {
-                                type: String,
-                        },
-                        rating: {
-                                type: Number,
-                        },
-                        skinType: {
-                                type: String,
-                        },
-                        acenSeverity: {
-                                type: String,
-                        },
-                        skinTone: {
-                                type: String,
-                        },
-                        skinConcern: {
-                                type: String,
-                        },
-                        comment: {
-                                type: String,
-                        },
+        reviews: [{
+                user: {
+                        type: mongoose.Schema.ObjectId,
+                        ref: "user",
                 },
-        ],
+                name: {
+                        type: String,
+                },
+                rating: {
+                        type: Number,
+                },
+                skinType: {
+                        type: String,
+                },
+                acenSeverity: {
+                        type: String,
+                },
+                skinTone: {
+                        type: String,
+                },
+                skinConcern: {
+                        type: String,
+                },
+                comment: {
+                        type: String,
+                },
+        }],
         status: {
                 type: String,
                 enum: ["OUTOFSTOCK", "STOCK"],
+        },
+        acneType: {
+                type: String,
+        },
+        considerAcne: {
+                type: String,
         },
 },
         { timestamps: true });

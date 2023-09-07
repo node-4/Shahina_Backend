@@ -69,6 +69,18 @@ var userSchema = new schema(
                         type: Number,
                         default: 0,
                 },
+                firstVisit: {
+                        type: Number,
+                        default: 0,
+                },
+                appOrder: {
+                        type: Number,
+                        default: 0,
+                },
+                websiteOrder: {
+                        type: Number,
+                        default: 0,
+                },
         },
         { timestamps: true }
 );

@@ -415,7 +415,7 @@ exports.createProduct = async (req, res) => {
                 if (!data4 || data4.length === 0) {
                         return res.status(400).send({ status: 404, msg: "SkinType not found" });
                 }
-                let productImages = [], howTouse = [];
+                let productImages = [], howTouse = [], additionalInfo = [], sizePrice = [];
                 if (req.files) {
                         for (let i = 0; i < req.files.length; i++) {
                                 let obj = {
@@ -431,15 +431,38 @@ exports.createProduct = async (req, res) => {
                         }
                         howTouse.push(obj)
                 }
-
-                if (req.body.quantity > 0) { req.body.status = "STOCK" }
-                if (req.body.quantity <= 0) { req.body.status = "OUTOFSTOCK" }
-                if (req.body.discount == 'true') {
-
+                for (let i = 0; i < req.body.title.length; i++) {
+                        let obj = {
+                                title: req.body.title[i],
+                                addDescription: req.body.addDescription[i]
+                        }
+                        howTouse.push(obj)
+                }
+                if (req.body.stock > 0) { req.body.status = "STOCK" }
+                if (req.body.stock <= 0) { req.body.status = "OUTOFSTOCK" }
+                if (req.body.discountAllow == 'true') {
+                        req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
                 } else {
-
+                        req.body.discountPrice = 0;
+                }
+                if (req.body.multipleSize == 'true') {
+                        for (let i = 0; i < req.body.sizes.length; i++) {
+                                let status;
+                                if (req.body.multipleStock[i] > 0) { status = "STOCK" }
+                                if (req.body.multipleStock[i] <= 0) { status = "OUTOFSTOCK" }
+                                let obj = {
+                                        size: req.body.sizes[i],
+                                        price: req.body.multiplePrice[i],
+                                        stock: req.body.multipleStock[i],
+                                        status: status
+                                }
+                                sizePrice.push(obj)
+                        }
+                } else {
+                        req.body.size = req.body.size;
                 }
                 req.body.howTouse = howTouse;
+                req.body.additionalInfo = additionalInfo;
                 req.body.productImages = productImages;
                 const ProductCreated = await product.create(req.body);
                 if (ProductCreated) {
