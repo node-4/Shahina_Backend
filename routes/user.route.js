@@ -16,4 +16,12 @@ module.exports = (app) => {
         app.get("/api/v1/user/getProfile", [authJwt.verifyToken], auth.getProfile);
         app.put("/api/v1/user/updateProfile", [authJwt.verifyToken], userProfileUpload.single('image'), auth.updateProfile);
         app.post("/api/v1/user/social/Login", auth.socialLogin);
+        app.post("/api/v1/user/address/new", [authJwt.verifyToken], auth.createAddress);
+        app.get("/api/v1/user/getAddress", [authJwt.verifyToken], auth.getallAddress);
+        app.delete('/api/v1/user/address/:id', [authJwt.verifyToken], auth.deleteAddress);
+        app.get('/api/v1/user/address/:id', [authJwt.verifyToken], auth.getAddressbyId);        
+        app.post('/api/v1/cart/:id', [authJwt.verifyToken], auth.addToCart)
+        app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
+        app.post('/api/v1/cart/service/:id', [authJwt.verifyToken], auth.addServiceToCart)
+
 }

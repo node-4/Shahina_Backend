@@ -44,6 +44,14 @@ var userSchema = new schema(
                 refferalCode: { type: String, },
                 refferUserId: { type: schema.Types.ObjectId, ref: "user" },
                 joinUser: [{ type: schema.Types.ObjectId, ref: "user" }],
+                subscriptionId: { type: mongoose.Schema.ObjectId, ref: "subscription", },
+                subscriptionExpiration: {
+                        type: Date,
+                },
+                isSubscription: {
+                        type: Boolean,
+                        default: false,
+                },
                 password: {
                         type: String,
                 },
