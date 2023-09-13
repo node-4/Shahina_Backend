@@ -1175,7 +1175,13 @@ exports.addContactDetails = async (req, res) => {
                 } else {
                         let findContact = await contact.findOne();
                         if (findContact) {
+                                let image;
+                                if (req.file) {
+                                        image = req.file ? req.file.path : "";
+                                }
                                 let obj = {
+                                        image: image|| findContact.image,
+                                        name: req.body.name || findContact.name,
                                         fb: req.body.fb || findContact.fb,
                                         twitter: req.body.twitter || findContact.twitter,
                                         google: req.body.google || findContact.google,
@@ -1190,6 +1196,9 @@ exports.addContactDetails = async (req, res) => {
                                         return res.status(200).json({ message: "Contact detail update successfully.", status: 200, data: updateContact });
                                 }
                         } else {
+                                if (req.file) {
+                                        req.body.image = req.file ? req.file.path : "";
+                                }
                                 let result2 = await contact.create(req.body);
                                 if (result2) {
                                         return res.status(200).json({ message: "Contact detail add successfully.", status: 200, data: result2 });

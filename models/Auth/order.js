@@ -108,6 +108,17 @@ const DocumentSchema = schema({
                         type: String,
                 },
         },
+        serviceAddresss: {
+                houseFlat: {
+                        type: String,
+                },
+                appartment: {
+                        type: String,
+                },
+                landMark: {
+                        type: String,
+                },
+        },
         orderType: {
                 type: String,
                 enum: ["Product", "Service"],

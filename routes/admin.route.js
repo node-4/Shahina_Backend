@@ -5,7 +5,7 @@ const path = require("path");
 const express = require("express");
 const router = express()
 const { productUpload, upload, bannerUpload, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
-        aboutusUpload, subCategoryUpload, shopPageUpload, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
+        aboutusUpload, subCategoryUpload, shopPageUpload, upload20, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
         app.post("/api/v1/admin/login", auth.signin);
@@ -63,7 +63,7 @@ module.exports = (app) => {
         app.get("/api/v1/Gallary/getGallary", auth.getGallarys);
         app.delete("/api/v1/Gallary/:id", [authJwt.verifyToken], auth.removeGallary);
         app.put("/api/v1/Gallary/updateGallary/:id", [authJwt.verifyToken], gallaryUpload.single('image'), auth.updateGallary);
-        app.post("/api/v1/ContactDetails/addContactDetails", [authJwt.verifyToken], auth.addContactDetails);
+        app.post("/api/v1/ContactDetails/addContactDetails", [authJwt.verifyToken], upload20.single('image'), auth.addContactDetails);
         app.get("/api/v1/ContactDetails/viewContactDetails", auth.viewContactDetails);
         app.post("/api/v1/help/addQuery", auth.addQuery);
         app.get("/api/v1/help/all", auth.getAllHelpandSupport);

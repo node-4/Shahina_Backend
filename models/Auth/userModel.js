@@ -81,6 +81,10 @@ var userSchema = new schema(
                         type: Number,
                         default: 0,
                 },
+                totalVisit: {
+                        type: Number,
+                        default: 0,
+                },
                 appOrder: {
                         type: Number,
                         default: 0,

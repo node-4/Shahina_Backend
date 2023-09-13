@@ -49,7 +49,7 @@ exports.registration = async (req, res) => {
                                 req.body.password = bcrypt.hashSync(req.body.password, 8);
                                 const userCreate = await User.create(req.body);
                                 if (userCreate) {
-                                        let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id } }, { new: true });
+                                        let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id }, $set: { wallet: findUser.wallet + 300 } }, { new: true });
                                         return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
                                 }
                         } else {
@@ -442,7 +442,8 @@ exports.addServiceToCart = async (req, res, next) => {
                                 const productIndex = cart.services.findIndex((cartService) => { return cartService.serviceId.toString() == serviceId; });
                                 console.log(productIndex);
                                 if (productIndex < 0) {
-                                        cart.services.push({ services });
+                                        let obj = { serviceId: serviceId, quantity: 1 };
+                                        cart.services.push(obj);
                                 } else {
                                         cart.services[productIndex].quantity++;
                                 }
@@ -519,10 +520,20 @@ exports.checkoutForProduct = async (req, res) => {
                         if (findCart) {
                                 const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
                                 const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
+                                const data3 = await User.findOne({ _id: req.user._id })
+                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
+                                if (data3) {
+                                        if (data3.isSubscription == true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        memberShipPer = findSubscription.discount
+                                                }
+                                        } else {
+                                                memberShipPer = 0;
+                                        }
+                                }
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer = 10;
-                                let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
                                 cartResponse.products.forEach((cartProduct) => {
                                         if (cartProduct.productId.discountActive == true) {
                                                 cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
@@ -543,7 +554,6 @@ exports.checkoutForProduct = async (req, res) => {
                                 cartResponse.total = total;
                                 cartResponse.discount = discount;
                                 cartResponse.coupan = coupan;
-                                cartResponse.subTotal = subTotal;
                                 if (findCart.pickupFromStore == true) {
                                         cartResponse.pickUp = data1;
                                         total1 = subTotal - coupan;
@@ -572,10 +582,20 @@ exports.checkoutForProduct = async (req, res) => {
                         if (findCart) {
                                 const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
                                 const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
+                                const data3 = await User.findOne({ _id: req.user._id })
+                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
+                                if (data3) {
+                                        if (data3.isSubscription == true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        memberShipPer = findSubscription.discount
+                                                }
+                                        } else {
+                                                memberShipPer = 0;
+                                        }
+                                }
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer = 10;
-                                let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
                                 cartResponse.products.forEach((cartProduct) => {
                                         if (cartProduct.productId.discountActive == true) {
                                                 cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
@@ -695,13 +715,13 @@ exports.cancelOrder = async (req, res) => {
         try {
                 let findUserOrder = await order.findOne({ orderId: req.params.orderId });
                 if (findUserOrder) {
-                        res.status(201).json({ message: "Payment failed.", status: 201, orderId: req.params.orderId });
+                        return res.status(201).json({ message: "Payment failed.", status: 201, orderId: req.params.orderId });
                 } else {
                         return res.status(404).json({ message: "No data found", data: {} });
                 }
         } catch (error) {
                 console.log(error);
-                res.status(501).send({ status: 501, message: "server error.", data: {}, });
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 exports.successOrder = async (req, res) => {
@@ -734,7 +754,7 @@ exports.getOrders = async (req, res, next) => {
                 return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
         } catch (error) {
                 console.log(error);
-                res.status(501).send({ status: 501, message: "server error.", data: {}, });
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 exports.getOrderbyId = async (req, res, next) => {
@@ -746,7 +766,7 @@ exports.getOrderbyId = async (req, res, next) => {
                 return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
         } catch (error) {
                 console.log(error);
-                res.status(501).send({ status: 501, message: "server error.", data: {}, });
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 exports.checkoutForService = async (req, res) => {
@@ -759,10 +779,21 @@ exports.checkoutForService = async (req, res) => {
                         }
                         let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
-                                const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
+                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
+                                const data3 = await User.findOne({ _id: req.user._id })
+                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer;
+                                if (data3) {
+                                        if (data3.isSubscription == true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        memberShipPer = findSubscription.discount
+                                                }
+                                        } else {
+                                                memberShipPer = 0;
+                                        }
+                                }
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer = 10;
                                 let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
                                 cartResponse.services.forEach((cartProduct) => {
                                         if (cartProduct.serviceId.discountActive == true) {
@@ -788,7 +819,6 @@ exports.checkoutForService = async (req, res) => {
                                 cartResponse.discount = discount;
                                 cartResponse.coupan = coupan;
                                 cartResponse.subTotal = subTotal;
-                                cartResponse.deliveryAddresss = data2;
                                 cartResponse.shipping = shipping;
                                 total1 = subTotal - coupan + shipping;
                                 memberShip = (total1 * memberShipPer) / 100;
@@ -798,16 +828,30 @@ exports.checkoutForService = async (req, res) => {
                                 cartResponse.grandTotal = grandTotal;
                                 cartResponse.orderId = await reffralCode();
                                 cartResponse.orderType = "Service";
+                                if (cartResponse.services.length > 0) {
+                                        cartResponse.serviceAddresss = data1;
+                                }
                                 let saveOrder = await order.create(cartResponse);
                                 return res.status(200).json({ msg: "Order create successfully", data: saveOrder });
                         }
                 } else {
                         let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
-                                const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
+                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
+                                const data3 = await User.findOne({ _id: req.user._id })
+                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer;
+                                if (data3) {
+                                        if (data3.isSubscription == true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        memberShipPer = findSubscription.discount
+                                                }
+                                        } else {
+                                                memberShipPer = 0;
+                                        }
+                                }
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer = 10;
                                 let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
                                 cartResponse.services.forEach((cartProduct) => {
                                         if (cartProduct.serviceId.discountActive == true) {
@@ -833,7 +877,6 @@ exports.checkoutForService = async (req, res) => {
                                 cartResponse.discount = discount;
                                 cartResponse.coupan = coupan;
                                 cartResponse.subTotal = subTotal;
-                                cartResponse.deliveryAddresss = data2;
                                 cartResponse.shipping = shipping;
                                 total1 = subTotal - coupan + shipping;
                                 memberShip = (total1 * memberShipPer) / 100;
@@ -843,6 +886,9 @@ exports.checkoutForService = async (req, res) => {
                                 cartResponse.grandTotal = grandTotal;
                                 cartResponse.orderType = "Service";
                                 cartResponse.orderId = await reffralCode();
+                                if (cartResponse.services.length > 0) {
+                                        cartResponse.serviceAddresss = data1;
+                                }
                                 let saveOrder = await order.create(cartResponse);
                                 return res.status(200).json({ msg: "Order create successfully", data: saveOrder });
                         }
@@ -975,9 +1021,21 @@ const getCartResponse = async (cart, userId) => {
                 await cart.populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                 const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
                 const data2 = await Address.findOne({ user: userId }).select('houseFlat appartment landMark -_id');
+                const data3 = await User.findOne({ _id: userId })
+                const data4 = await contact.findOne().select('name image phone email numOfReviews ratings -_id');
+                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer;
+                if (data3) {
+                        if (data3.isSubscription == true) {
+                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                if (findSubscription) {
+                                        memberShipPer = findSubscription.discount
+                                }
+                        } else {
+                                memberShipPer = 0;
+                        }
+                }
                 if (cart.coupon && moment().isAfter(cart.coupon.expirationDate, "day")) { cart.coupon = undefined; cart.save(); }
                 const cartResponse = cart.toObject();
-                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer = 10;
                 let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
                 cartResponse.products.forEach((cartProduct) => {
                         if (cartProduct.productId.discountActive == true) {
@@ -1021,10 +1079,16 @@ const getCartResponse = async (cart, userId) => {
                 cartResponse.memberShipPer = memberShipPer;
                 grandTotal = total1 - memberShip;
                 cartResponse.grandTotal = grandTotal;
-                if (cart.pickupFromStore == true) {
-                        cartResponse.pickUp = data1;
-                } else {
-                        cartResponse.deliveryAddresss = data2;
+                cartResponse.contactDetail = data4;
+                if (cartResponse.products.length > 0) {
+                        if (cart.pickupFromStore == true) {
+                                cartResponse.pickUp = data1;
+                        } else {
+                                cartResponse.deliveryAddresss = data2;
+                        }
+                }
+                if (cartResponse.services.length > 0) {
+                        cartResponse.serviceAddresss = data1;
                 }
                 return cartResponse;
         } catch (error) {
@@ -1099,25 +1163,17 @@ exports.verifySubscription = async (req, res) => {
                                         if (update) {
                                                 const findSubscription = await Subscription.findById(update.subscriptionId);
                                                 if (findSubscription) {
-                                                        if (findSubscription.name == "Monthly") {
-                                                                let updateUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { subscriptionId: findTransaction.subscriptionId, subscriptionStatus: true, subscriptionExpire: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) } }, { new: true })
-                                                                res.json({ status: 200, message: 'subscription subscribe successfully.', data: update });
-                                                        }
-                                                        if (findSubscription.name == "Week") {
-                                                                let updateUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { subscriptionId: findTransaction.subscriptionId, subscriptionStatus: true, subscriptionExpire: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) } }, { new: true })
-                                                                res.json({ status: 200, message: 'subscription subscribe successfully.', data: update });
-                                                        }
-                                                        if (findSubscription.name == "Yearly") {
-                                                                let updateUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { subscriptionId: findTransaction.subscriptionId, subscriptionStatus: true, subscriptionExpire: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) } }, { new: true })
-                                                                res.json({ status: 200, message: 'subscription subscribe successfully.', data: update });
-                                                        }
+                                                        let subscriptionExpiration = new Date(Date.now() + (findSubscription.month * 30 * 24 * 60 * 60 * 1000))
+                                                        console.log(subscriptionExpiration);
+                                                        let updateUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { subscriptionId: findTransaction.subscriptionId, isSubscription: true, subscriptionExpiration: subscriptionExpiration } }, { new: true })
+                                                        return res.status(200).send({ status: 200, message: 'subscription subscribe successfully.', data: update })
                                                 }
                                         }
                                 }
                                 if (req.body.Status == "failed") {
                                         let update = await transactionModel.findByIdAndUpdate({ _id: findTransaction._id }, { $set: { Status: "failed" } }, { new: true });
                                         if (update) {
-                                                res.json({ status: 200, message: 'subscription not subscribe successfully.', data: update });
+                                                return res.status(200).send({ status: 200, message: 'subscription not subscribe successfully.', data: update });
                                         }
                                 }
                         } else {
@@ -1127,6 +1183,100 @@ exports.verifySubscription = async (req, res) => {
         } catch (error) {
                 console.error(error);
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.cartData = async (req, res, next) => {
+        try {
+                const productsCount = await services.count();
+                const apiFeature = await services.aggregate([
+                        { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "categoryId" } },
+                        { $unwind: "$categoryId" },
+                ]);
+                const userCart = await Cart.findOne({ userId: req.user._id });
+                if (userCart) {
+                        const categoriesWithServicesInCart = {};
+                        apiFeature.forEach((product) => {
+                                const cartItem = userCart.services.find((cartItem) => cartItem.serviceId?.equals(product._id));
+                                if (cartItem) {
+                                        if (!categoriesWithServicesInCart[product.categoryId._id]) {
+                                                categoriesWithServicesInCart[product.categoryId._id] = {
+                                                        category: product.categoryId,
+                                                        services: [],
+                                                };
+                                        }
+                                        categoriesWithServicesInCart[product.categoryId._id].services.push({
+                                                ...product,
+                                                isInCart: true,
+                                                quantityInCart: 1,
+                                        });
+                                } else {
+                                        if (!categoriesWithServicesInCart[product.categoryId._id]) {
+                                                categoriesWithServicesInCart[product.categoryId._id] = {
+                                                        category: product.categoryId,
+                                                        services: [],
+                                                };
+                                        }
+                                        categoriesWithServicesInCart[product.categoryId._id].services.push({
+                                                ...product,
+                                                isInCart: false,
+                                                quantityInCart: 0,
+                                        });
+                                }
+                        });
+                        const result = Object.values(categoriesWithServicesInCart);
+                        return res.status(200).json({ status: 200, message: "Service data found.", data: result, count: productsCount });
+                } else {
+                        const categoriesWithServicesInCart = {};
+                        apiFeature.forEach((product) => {
+                                if (!categoriesWithServicesInCart[product.categoryId._id]) {
+                                        categoriesWithServicesInCart[product.categoryId._id] = {
+                                                category: product.categoryId,
+                                                services: [],
+                                        };
+                                }
+                                categoriesWithServicesInCart[product.categoryId._id].services.push({
+                                        ...product,
+                                        isInCart: false,
+                                        quantityInCart: 0,
+                                });
+                        });
+                        const result = Object.values(categoriesWithServicesInCart);
+                        return res.status(200).json({ status: 200, message: "Service data found.", data: result, count: productsCount });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({ message: "Internal server error while creating Product" });
+        }
+};
+exports.deletecartItem = async (req, res) => {
+        try {
+                let findCart = await Cart.findOne({ user: req.user._id });
+                if (findCart) {
+                        for (let i = 0; i < findCart.services.length; i++) {
+                                if (findCart.services.length > 1) {
+                                        if (((findCart.services[i].serviceId).toString() == req.params.id) == true) {
+                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'services.product': req.params.id }, { $pull: { 'services': { serviceId: req.params.id, quantity: findCart.services[i].quantity, } } }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "Service delete from cart.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+                                        let updateProject = await Cart.findByIdAndDelete({ _id: findCart._id });
+                                        if (updateProject) {
+                                                let findCart1 = await Cart.findOne({ user: req.user._id });
+                                                if (!findCart1) {
+                                                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                                                }
+                                        }
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                }
+
+        } catch (error) {
+                console.log("353====================>", error)
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 const reffralCode = async () => {

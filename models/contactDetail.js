@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 const DocumentSchema = schema({
+        image: {
+                type: String
+        },
+        name: {
+                type: String
+        },
         fb: {
                 type: String
         },
