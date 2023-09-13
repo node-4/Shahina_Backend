@@ -31,6 +31,15 @@ const CartSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    date: {
+        type: Date,
+    },
+    time: {
+        type: String,
+    },
+    suggesstion: {
+        type: String,
+    },
     products: {
         type: [cartProductsSchema]
     },

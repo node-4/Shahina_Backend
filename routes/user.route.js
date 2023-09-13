@@ -19,9 +19,23 @@ module.exports = (app) => {
         app.post("/api/v1/user/address/new", [authJwt.verifyToken], auth.createAddress);
         app.get("/api/v1/user/getAddress", [authJwt.verifyToken], auth.getallAddress);
         app.delete('/api/v1/user/address/:id', [authJwt.verifyToken], auth.deleteAddress);
-        app.get('/api/v1/user/address/:id', [authJwt.verifyToken], auth.getAddressbyId);        
+        app.get('/api/v1/user/address/:id', [authJwt.verifyToken], auth.getAddressbyId);
         app.post('/api/v1/cart/:id', [authJwt.verifyToken], auth.addToCart)
         app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
+        app.put('/api/v1/updatePickupFromStore', [authJwt.verifyToken], auth.updatePickupFromStore);
+        app.put("/api/v1/cart/addDateAndtimetoCart", [authJwt.verifyToken], auth.addDateAndtimetoCart);
+        app.put("/api/v1/cart/addSuggestionToCart", [authJwt.verifyToken], auth.addSuggestionToCart);
         app.post('/api/v1/cart/service/:id', [authJwt.verifyToken], auth.addServiceToCart)
-
+        app.post('/api/v1/checkout', [authJwt.verifyToken], auth.checkoutForProduct);
+        app.post("/api/v1/placeOrder/:orderId", [authJwt.verifyToken], auth.placeOrderForProduct);
+        app.get("/api/v1/successOrder/:orderId", [authJwt.verifyToken], auth.successOrder);
+        app.get("/api/v1/cancelOrder/:orderId", [authJwt.verifyToken], auth.cancelOrder);
+        app.get("/api/v1/Orders", [authJwt.verifyToken], auth.getOrders);
+        app.get("/api/v1/viewOrder/:id", [authJwt.verifyToken], auth.getOrderbyId);
+        app.post('/api/v1/checkoutForService', [authJwt.verifyToken], auth.checkoutForService);
+        app.post("/api/v1/placeOrderForService/:orderId", [authJwt.verifyToken], auth.placeOrderForService);
+        app.get("/api/v1/Service/getOnSale/Service", auth.getOnSaleService);
+        app.get('/api/v1/getSubscription', auth.getSubscription);
+        app.post("/api/v1/takeSubscription/:id", [authJwt.verifyToken], auth.takeSubscription);
+        app.post("/api/v1/verifySubscription/:transactionId", [authJwt.verifyToken], auth.verifySubscription);
 }

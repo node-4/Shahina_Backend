@@ -77,4 +77,5 @@ module.exports = (app) => {
         app.get("/api/v1/clientReview", auth.getAllClientReviews);
         app.delete("/api/v1/clientReview/:id", [authJwt.verifyToken], auth.removeClientReview);
         app.get("/api/v1/clientReview/get/:id", [authJwt.verifyToken], auth.getClientReviewById);
+        app.get("/api/v1/admin/Orders", [authJwt.verifyToken], auth.getOrders);
 }

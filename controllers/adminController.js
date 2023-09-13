@@ -18,6 +18,7 @@ const contact = require("../models/contactDetail");
 const helpandSupport = require("../models/helpAndSupport");
 const News = require("../models/news");
 const ClientReview = require("../models/clientReview");
+const order = require("../models/Auth/order");
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -1350,6 +1351,18 @@ exports.removeClientReview = async (req, res) => {
         } else {
                 await ClientReview.findByIdAndDelete(findReview._id);
                 return res.status(200).json({ message: "clientReview Deleted Successfully !" });
+        }
+};
+exports.getOrders = async (req, res, next) => {
+        try {
+                const orders = await order.find({ orderStatus: "confirmed" }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }]);
+                if (orders.length == 0) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 const reffralCode = async () => {
