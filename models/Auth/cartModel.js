@@ -10,7 +10,16 @@ const cartProductsSchema = new Schema({
         default: 1
     }
 }, { _id: false })
-
+const cartGiftsSchema = new Schema({
+    giftId: {
+        type: Schema.Types.ObjectId,
+        ref: "gift"
+    },
+    quantity: {
+        type: Number,
+        default: 1
+    }
+}, { _id: false })
 const cartServiceSchema = new Schema({
     serviceId: {
         type: Schema.Types.ObjectId,
@@ -42,6 +51,9 @@ const CartSchema = new Schema({
     },
     products: {
         type: [cartProductsSchema]
+    },
+    gifts: {
+        type: [cartGiftsSchema]
     },
     services: {
         type: [cartServiceSchema]

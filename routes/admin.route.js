@@ -78,4 +78,15 @@ module.exports = (app) => {
         app.delete("/api/v1/clientReview/:id", [authJwt.verifyToken], auth.removeClientReview);
         app.get("/api/v1/clientReview/get/:id", [authJwt.verifyToken], auth.getClientReviewById);
         app.get("/api/v1/admin/Orders", [authJwt.verifyToken], auth.getOrders);
+        app.post("/api/v1/admin/Ingredient/addIngredient", [authJwt.verifyToken], auth.createIngredients);
+        app.get("/api/v1/admin/Ingredient/allIngredient", auth.getIngredients);
+        app.get("/api/v1/admin/Ingredient/allIngredientbyType/:type", auth.getIngredientsBytype);
+        app.put("/api/v1/admin/Ingredient/updateIngredient/:id", [authJwt.verifyToken], auth.updateIngredients);
+        app.delete("/api/v1/admin/Ingredient/deleteIngredient/:id", [authJwt.verifyToken], auth.removeIngredients);
+        app.get("/api/v1/admin/Ingredient/checkIngredient/:name", auth.checkIngredient);
+        app.post("/api/v1/admin/GiftCards/addgiftCard", [authJwt.verifyToken], upload.single('image'), auth.createGiftCard);
+        app.get("/api/v1/admin/GiftCards/allgiftCard", auth.getGiftCards);
+        app.get("/api/v1/GiftCards/:id", auth.getIdGiftCard);
+        app.put("/api/v1/GiftCards/editgiftCard/:id", [authJwt.verifyToken], upload.single('image'), auth.editGiftCard);
+        app.delete("/api/v1/GiftCards/deletegiftCard/:id", [authJwt.verifyToken], auth.deleteGiftCard);
 }

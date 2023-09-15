@@ -22,6 +22,16 @@ const orderServiceSchema = new schema({
                 default: 1
         }
 }, { _id: false })
+const cartGiftsSchema = new schema({
+        giftId: {
+                type: schema.Types.ObjectId,
+                ref: "gift"
+        },
+        quantity: {
+                type: Number,
+                default: 1
+        }
+}, { _id: false })
 const DocumentSchema = schema({
         orderId: {
                 type: String,
@@ -44,6 +54,9 @@ const DocumentSchema = schema({
         },
         services: {
                 type: [orderServiceSchema]
+        },
+        gifts: {
+                type: [cartGiftsSchema]
         },
         coupon: {
                 type: schema.Types.ObjectId,

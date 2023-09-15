@@ -19,6 +19,8 @@ const helpandSupport = require("../models/helpAndSupport");
 const News = require("../models/news");
 const ClientReview = require("../models/clientReview");
 const order = require("../models/Auth/order");
+const ingredients = require("../models/ingredients");
+const giftCard = require("../models/giftCard");
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -583,10 +585,10 @@ exports.editProduct = async (req, res) => {
                         }
                         if (req.body.quantity > 0) { req.body.status = "STOCK" }
                         if (req.body.quantity <= 0) { req.body.status = "OUTOFSTOCK" }
-                        if (req.body.discount == 'true') {
-
+                        if (req.body.discountAllow == 'true') {
+                                req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
                         } else {
-
+                                req.body.discountPrice = 0;
                         }
                         let productObj = {
                                 brandId: req.body.brandId || data.brandId,
@@ -1180,7 +1182,7 @@ exports.addContactDetails = async (req, res) => {
                                         image = req.file ? req.file.path : "";
                                 }
                                 let obj = {
-                                        image: image|| findContact.image,
+                                        image: image || findContact.image,
                                         name: req.body.name || findContact.name,
                                         fb: req.body.fb || findContact.fb,
                                         twitter: req.body.twitter || findContact.twitter,
@@ -1372,6 +1374,154 @@ exports.getOrders = async (req, res, next) => {
         } catch (error) {
                 console.log(error);
                 res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.createIngredients = async (req, res) => {
+        try {
+                let findIngredients = await ingredients.findOne({ name: req.body.name, type: req.body.type });
+                if (findIngredients) {
+                        return res.status(409).json({ message: "Ingredients already exit.", status: 404, data: {} });
+                } else {
+                        const data = { name: req.body.name, type: req.body.type, };
+                        const category = await ingredients.create(data);
+                        return res.status(200).json({ message: "Ingredients add successfully.", status: 200, data: {} });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getIngredients = async (req, res) => {
+        const categories = await ingredients.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Ingredients Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Ingredients not Found", status: 404, data: {}, });
+
+};
+exports.updateIngredients = async (req, res) => {
+        const { id } = req.params;
+        const category = await ingredients.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Ingredients Not Found", status: 404, data: {} });
+        }
+        category.type = req.body.type || category.type;
+        category.name = req.body.name || category.name;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeIngredients = async (req, res) => {
+        const { id } = req.params;
+        const category = await ingredients.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Ingredients Not Found", status: 404, data: {} });
+        } else {
+                await ingredients.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Ingredients Deleted Successfully !" });
+        }
+};
+exports.getIngredientsBytype = async (req, res) => {
+        const categories = await ingredients.find({ type: req.params.type });
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Ingredients Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Ingredients not Found", status: 404, data: {}, });
+
+};
+exports.checkIngredient = async (req, res) => {
+        const categories = await ingredients.findOne({ name: req.params.name });
+        if (categories) {
+                return res.status(200).json({ message: "A Unfortunately, there is a comedogenic ingredient.", status: 200, data: categories, });
+        } else {
+                return res.status(200).json({ message: "Congratuations! This product does not have any comedogenic ingredient.", status: 200, data: {}, });
+        }
+
+};
+exports.createGiftCard = async (req, res) => {
+        try {
+                console.log(req.file);
+                if (req.file) {
+                        req.body.image = req.file.path
+                }
+                if (req.body.discountActive == 'true') {
+                        req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
+                        req.body.saved = Number(req.body.price) - req.body.discountPrice;
+                        req.body.discountActive = true;
+                } else {
+                        req.body.discountPrice = 0;
+                        req.body.discountActive = false;
+                }
+                const ProductCreated = await giftCard.create(req.body);
+                if (ProductCreated) {
+                        return res.status(201).send({ status: 200, message: "GiftCard add successfully", data: ProductCreated, });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({ message: "Internal server error while creating Product", });
+        }
+};
+exports.getIdGiftCard = async (req, res) => {
+        try {
+                const data = await giftCard.findById(req.params.id)
+                if (!data || data.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                }
+                return res.status(200).json({ status: 200, message: "GiftCard data found.", data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.getGiftCards = async (req, res) => {
+        const categories = await giftCard.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "GiftCard Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Ingredients not Found", status: 404, data: {}, });
+};
+exports.editGiftCard = async (req, res) => {
+        try {
+                const data = await giftCard.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        if (req.file) {
+                                req.body.image = req.file.path
+                        }
+                        if (req.body.discountActive == 'true') {
+                                req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
+                                req.body.saved = Number(req.body.price) - req.body.discountPrice;
+                                req.body.discountActive = true;
+                        } else {
+                                req.body.discountPrice = 0;
+                                req.body.discountActive = false;
+                        }
+                        let productObj = {
+                                name: req.body.name || data.name,
+                                image: image || data.image,
+                                price: req.body.price || data.price,
+                                description: req.body.description || data.description,
+                                discountPrice: req.body.discountPrice || data.discountPrice,
+                                saved: req.body.saved || data.saved,
+                                discount: req.body.discount || data.discount,
+                                discountActive: req.body.discountActive || data.discountActive,
+                        }
+                        const data5 = await giftCard.findByIdAndUpdate({ _id: data._id }, { $set: productObj }, { new: true });
+                        return res.status(200).json({ status: 200, message: "GiftCard update successfully.", data: data5 });
+                }
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.deleteGiftCard = async (req, res) => {
+        try {
+                const data = await giftCard.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        const data1 = await giftCard.findByIdAndDelete(data._id);
+                        return res.status(200).json({ status: 200, message: "GiftCard delete successfully.", data: {} });
+                }
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
 const reffralCode = async () => {
