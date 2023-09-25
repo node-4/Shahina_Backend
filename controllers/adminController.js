@@ -21,6 +21,12 @@ const ClientReview = require("../models/clientReview");
 const order = require("../models/Auth/order");
 const ingredients = require("../models/ingredients");
 const giftCard = require("../models/giftCard");
+const axios = require('axios');
+const SENDLE_API_KEY = 'WSRnKJtXs5X5CCbFHDFHvwy7';
+const SENDLE_API_BASE_URL = 'https://api.sendle.com/api/';
+const sendleApiKey = 'WSRnKJtXs5X5CCbFHDFHvwy7';
+const sendleApiBaseUrl = 'https://api.sendle.com';
+
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -1524,6 +1530,86 @@ exports.deleteGiftCard = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
+exports.createShipment = async (req, res) => {
+        try {
+                createSendleOrder(orderData)
+                        .then((orderResponse) => {
+                                console.log('Order created successfully:', orderResponse);
+                        })
+                        .catch((error) => {
+                                console.error('Error creating order:', error);
+                        });
+
+        } catch (error) {
+                console.error('Error creating shipment:', error.response ? error.response.data : error.message);
+                throw error;
+        }
+}
+
+
+// Initialize Axios with your API key
+const sendleApi = axios.create({
+        baseURL: sendleApiBaseUrl,
+        headers: {
+                Authorization: `Bearer ${sendleApiKey}`,
+                'Content-Type': 'application/json',
+        },
+});
+
+async function createSendleOrder(orderData) {
+        try {
+                const response = await sendleApi.post('/api/orders', orderData);
+                return response.data;
+        } catch (error) {
+                throw error;
+        }
+}
+const orderData = {
+        sender: {
+                contact: {
+                        name: 'Sender Name',
+                        email: 'sender@example.com',
+                        phone: '1234567890',
+                        company: 'Sender Company',
+                },
+                address: {
+                        country: 'AU',
+                        address_line1: 'Sender Address Line 1',
+                        address_line2: 'Sender Address Line 2',
+                        suburb: 'Sender Suburb',
+                        postcode: '12345',
+                        state_name: 'Sender State',
+                },
+                instructions: 'Sender Instructions',
+        },
+        receiver: {
+                contact: {
+                        name: 'Receiver Name',
+                        email: 'receiver@example.com',
+                        phone: '9876543210',
+                        company: 'Receiver Company',
+                },
+                address: {
+                        country: 'AU',
+                        address_line1: 'Receiver Address Line 1',
+                        address_line2: 'Receiver Address Line 2',
+                        suburb: 'Receiver Suburb',
+                        postcode: '54321',
+                        state_name: 'Receiver State',
+                },
+                instructions: 'Receiver Instructions',
+        },
+        weight: { units: 'kg', value: '2' },
+        volume: { value: '10', units: 'l' },
+        dimensions: { units: 'cm', length: '20', width: '10', height: '15' },
+        description: 'Sample Package',
+        customer_reference: 'Order123',
+        product_code: 'S2D',
+        pickup_date: '2023-09-25',
+        hide_pickup_address: true,
+        first_mile_option: 'pickup',
+};
+
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let OTP = '';

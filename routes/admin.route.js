@@ -89,4 +89,7 @@ module.exports = (app) => {
         app.get("/api/v1/GiftCards/:id", auth.getIdGiftCard);
         app.put("/api/v1/GiftCards/editgiftCard/:id", [authJwt.verifyToken], upload.single('image'), auth.editGiftCard);
         app.delete("/api/v1/GiftCards/deletegiftCard/:id", [authJwt.verifyToken], auth.deleteGiftCard);
+
+        app.post("/api/v1/admin/createShipment", auth.createShipment);
+
 }
