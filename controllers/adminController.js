@@ -21,6 +21,8 @@ const ClientReview = require("../models/clientReview");
 const order = require("../models/Auth/order");
 const ingredients = require("../models/ingredients");
 const giftCard = require("../models/giftCard");
+const slot = require("../models/slot");
+const shippingCharges = require("../models/shippingCharges");
 const axios = require('axios');
 const SENDLE_API_KEY = 'WSRnKJtXs5X5CCbFHDFHvwy7';
 const SENDLE_API_BASE_URL = 'https://api.sendle.com/api/';
@@ -1545,6 +1547,95 @@ exports.createShipment = async (req, res) => {
                 throw error;
         }
 }
+exports.createSlot = async (req, res) => {
+        try {
+                let findSlot = await slot.findOne({ date: req.body.date, from: req.body.from, to: req.body.to, });
+                if (findSlot) {
+                        return res.status(409).json({ message: "Slot already exit.", status: 404, data: {} });
+                } else {
+                        const data = { date: req.body.date, from: req.body.from, to: req.body.to, };
+                        const category = await slot.create(data);
+                        return res.status(200).json({ message: "Slot add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getSlot = async (req, res) => {
+        const categories = await slot.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+
+};
+exports.updateSlot = async (req, res) => {
+        const { id } = req.params;
+        const category = await slot.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
+        }
+        category.date = req.body.date || category.date;
+        category.from = req.body.from || category.from;
+        category.to = req.body.to || category.to;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeSlot = async (req, res) => {
+        const { id } = req.params;
+        const category = await slot.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
+        } else {
+                await slot.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Slot Deleted Successfully !" });
+        }
+};
+
+exports.createShippingCharges = async (req, res) => {
+        try {
+                let findShippingCharges = await shippingCharges.findOne({ date: req.body.date, from: req.body.from, to: req.body.to, });
+                if (findShippingCharges) {
+                        return res.status(409).json({ message: "Shipping Charges already exit.", status: 404, data: {} });
+                } else {
+                        const data = { date: req.body.date, from: req.body.from, to: req.body.to, };
+                        const category = await shippingCharges.create(data);
+                        return res.status(200).json({ message: "Shipping Charges add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getShippingCharges = async (req, res) => {
+        const categories = await shippingCharges.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Shipping Charges Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Shipping Charges not Found", status: 404, data: {}, });
+
+};
+exports.updateShippingCharges = async (req, res) => {
+        const { id } = req.params;
+        const category = await shippingCharges.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Shipping Charges Not Found", status: 404, data: {} });
+        }
+        category.date = req.body.date || category.date;
+        category.from = req.body.from || category.from;
+        category.to = req.body.to || category.to;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeShippingCharges = async (req, res) => {
+        const { id } = req.params;
+        const category = await shippingCharges.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Shipping Charges Not Found", status: 404, data: {} });
+        } else {
+                await shippingCharges.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Shipping Charges Deleted Successfully !" });
+        }
+};
 
 
 // Initialize Axios with your API key

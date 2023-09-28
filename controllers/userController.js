@@ -102,13 +102,13 @@ exports.forgetPassword = async (req, res) => {
                         // var transporter = nodemailer.createTransport({
                         //         service: 'gmail',
                         //         auth: {
-                        //                 "user": "krishvapes@gmail.com",
-                        //                 "pass": "fggmdyhrilxhmyig"
+                        //                 "user": "info@shahinahoja.com",
+                        //                 "pass": "gganlypsemwqhwlh"
                         //         }
                         // });
                         // let mailOptions;
                         // mailOptions = {
-                        //         from: 'krishvapes@gmail.com',
+                        //         from: 'info@shahinahoja.com',
                         //         to: req.body.email,
                         //         subject: 'Forget password verification',
                         //         text: `Your Account Verification Code is ${otp}`,
