@@ -19,39 +19,55 @@ const helpandSupport = require("../models/helpAndSupport");
 const News = require("../models/news");
 const ClientReview = require("../models/clientReview");
 const Cart = require("../models/Auth/cartModel");
+const cartService = require("../models/Auth/cartService");
 const coupan = require("../models/Auth/coupan");
 const Address = require("../models/Auth/addrees");
-const order = require("../models/Auth/order");
+const serviceOrder = require("../models/Auth/serviceOrder");
+const productOrder = require("../models/Auth/productOrder");
 const transactionModel = require("../models/transactionModel");
+const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
+const addOnservices = require("../models/Service/addOnservices");
 const giftCard = require("../models/giftCard");
 const moment = require("moment")
-const stripe = require("stripe")('sk_test_51NYCJcArS6Dr0SQY0UJ5ZOoiPHQ8R5jNOyCMOkjxpl4BHkG4DcAGAU8tjBw6TSOSfimDSELa6BVyCVSo9CGLXlyX00GkGDAQFo'); // test
-
+const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // test
+//  Publish key:- pk_live_51Kr67EJsxpRH9smizUjNERPVsq1hlJBnnJsfCOqNTPL6HKgsG9YTOOcA5yYk38O7Wz2NILGPvIKkxe3rU90iix610049htYt1w
+//  pk_test_51Kr67EJsxpRH9smiVHbxmogutwO92w8dmTUErkRtIsIo0lR7kyfyeVnULRoQlry9byYbS8Uhk5Mq4xegT2bB9n9F00hv3OFGM5
+//  sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS
 exports.registration = async (req, res) => {
         try {
                 if (req.body.refferalCode == null || req.body.refferalCode == undefined) {
-                        req.body.otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
-                        req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
-                        req.body.accountVerification = false;
-                        req.body.refferalCode = await reffralCode();
-                        req.body.password = bcrypt.hashSync(req.body.password, 8);
-                        req.body.userType = "USER";
-                        const userCreate = await User.create(req.body);
-                        return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
-                } else {
-                        const findUser = await User.findOne({ refferalCode: req.body.refferalCode });
+                        let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
                         if (findUser) {
+                                return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
+                        } else {
                                 req.body.otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
                                 req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
                                 req.body.accountVerification = false;
-                                req.body.userType = "USER";
                                 req.body.refferalCode = await reffralCode();
-                                req.body.refferUserId = findUser._id;
                                 req.body.password = bcrypt.hashSync(req.body.password, 8);
+                                req.body.userType = "USER";
                                 const userCreate = await User.create(req.body);
-                                if (userCreate) {
-                                        let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id }, $set: { wallet: findUser.wallet + 300 } }, { new: true });
-                                        return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                                return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                        }
+                } else {
+                        const findUser = await User.findOne({ refferalCode: req.body.refferalCode });
+                        if (findUser) {
+                                let findUser1 = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
+                                if (findUser1) {
+                                        return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
+                                } else {
+                                        req.body.otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
+                                        req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
+                                        req.body.accountVerification = false;
+                                        req.body.userType = "USER";
+                                        req.body.refferalCode = await reffralCode();
+                                        req.body.refferUserId = findUser._id;
+                                        req.body.password = bcrypt.hashSync(req.body.password, 8);
+                                        const userCreate = await User.create(req.body);
+                                        if (userCreate) {
+                                                let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id }, $set: { wallet: findUser.wallet + 300 } }, { new: true });
+                                                return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                                        }
                                 }
                         } else {
                                 return res.status(404).send({ status: 404, message: "Invalid refferal code", data: {} });
@@ -382,6 +398,7 @@ exports.getAddressbyId = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+/////////////////////////////////////////////////////////////////////////////////////////// Product Cart Start ////////////////////////////////////////////////////////////////////
 exports.addToCart = async (req, res, next) => {
         try {
                 const productId = req.params.id;
@@ -397,18 +414,42 @@ exports.addToCart = async (req, res, next) => {
                         cart = await Cart.create({ user: req.user._id, products: products });
                         return res.status(200).json({ msg: "product added to cart", data: cart });
                 } else {
-                        if (cart.services.length == 0) {
-                                const productIndex = cart.products.findIndex((cartProduct) => { return cartProduct.product.toString() == productId; });
-                                if (productIndex < 0) {
-                                        cart.products.push({ productId });
-                                } else {
-                                        cart.products[productIndex].quantity++;
-                                }
-                                await cart.save();
-                                return res.status(200).json({ msg: "product added to cart", });
+                        const productIndex = cart.products.findIndex((cartProduct) => { return cartProduct.productId.toString() == productId; });
+                        if (productIndex < 0) {
+                                cart.products.push({ productId });
                         } else {
-                                return res.status(200).json({ msg: "First Remove service from cart.", });
+                                cart.products[productIndex].quantity++;
                         }
+                        await cart.save();
+                        return res.status(200).json({ msg: "product added to cart", data: cart });
+                }
+        } catch (error) {
+                next(error);
+        }
+};
+exports.addFBPToCart = async (req, res, next) => {
+        try {
+                const frequentlyBuyProductId = req.params.id;
+                const data = await frequentlyBuyProduct.findById(req.params.id)
+                if (!data || data.length === 0) {
+                        return res.status(400).send({ msg: "Frequently Buy Product not found" });
+                }
+                let cart = await Cart.findOne({ user: req.user._id, });
+                if (!cart) {
+                        let frequentlyBuyProductSchema = [];
+                        let obj = { frequentlyBuyProductId: data._id, quantity: 1 };
+                        frequentlyBuyProductSchema.push(obj)
+                        cart = await Cart.create({ user: req.user._id, frequentlyBuyProductSchema: frequentlyBuyProductSchema });
+                        return res.status(200).json({ msg: "Frequently Buy Product added to cart", data: cart });
+                } else {
+                        const productIndex = cart.frequentlyBuyProductSchema.findIndex((cartProduct) => { return cartProduct.frequentlyBuyProductId.toString() == frequentlyBuyProductId; });
+                        if (productIndex < 0) {
+                                cart.frequentlyBuyProductSchema.push({ frequentlyBuyProductId });
+                        } else {
+                                cart.frequentlyBuyProductSchema[productIndex].quantity++;
+                        }
+                        await cart.save();
+                        return res.status(200).json({ msg: "Frequently Buy Product added to cart", data: cart });
                 }
         } catch (error) {
                 next(error);
@@ -429,18 +470,14 @@ exports.addGiftCardToCart = async (req, res, next) => {
                         cart = await Cart.create({ user: req.user._id, gifts: gifts });
                         return res.status(200).json({ msg: "GiftCard added to cart", data: cart });
                 } else {
-                        if (cart.services.length == 0) {
-                                const giftIndex = cart.gifts.findIndex((cartGift) => { return cartGift.giftId.toString() == giftId; });
-                                if (giftIndex < 0) {
-                                        cart.gifts.push({ giftId });
-                                } else {
-                                        cart.gifts[giftIndex].quantity++;
-                                }
-                                await cart.save();
-                                return res.status(200).json({ msg: "GiftCard added to cart", });
+                        const giftIndex = cart.gifts.findIndex((cartGift) => { return cartGift.giftId.toString() == giftId; });
+                        if (giftIndex < 0) {
+                                cart.gifts.push({ giftId });
                         } else {
-                                return res.status(200).json({ msg: "First Remove service from cart.", });
+                                cart.gifts[giftIndex].quantity++;
                         }
+                        await cart.save();
+                        return res.status(200).json({ msg: "GiftCard added to cart", });
                 }
         } catch (error) {
                 next(error);
@@ -460,64 +497,6 @@ exports.getCart = async (req, res, next) => {
                 next(error);
         }
 }
-exports.addServiceToCart = async (req, res, next) => {
-        try {
-                const serviceId = req.params.id;
-                let cart = await Cart.findOne({ user: req.user._id, });
-                if (!cart) {
-                        let services = [];
-                        let obj = { serviceId: serviceId, quantity: 1 };
-                        services.push(obj)
-                        cart = await Cart.create({ user: req.user._id, services: services });
-                        return res.status(200).json({ msg: "service added to cart", data: cart });
-                } else {
-                        if (cart.products.length == 0) {
-                                const productIndex = cart.services.findIndex((cartService) => { return cartService.serviceId.toString() == serviceId; });
-                                console.log(productIndex);
-                                if (productIndex < 0) {
-                                        let obj = { serviceId: serviceId, quantity: 1 };
-                                        cart.services.push(obj);
-                                } else {
-                                        cart.services[productIndex].quantity++;
-                                }
-                                await cart.save();
-                                return res.status(200).json({ msg: "service added to cart", data: cart });
-                        } else {
-                                return res.status(200).json({ msg: "First Remove Product from cart.", });
-                        }
-                }
-
-        } catch (error) {
-                next(error);
-        }
-};
-exports.addDateAndtimetoCart = async (req, res) => {
-        try {
-                let userData = await User.findOne({ _id: req.user._id });
-                if (!userData) {
-                        return res.status(404).send({ status: 404, message: "User not found" });
-                } else {
-                        let findCart = await Cart.findOne({ user: userData._id });
-                        if (findCart) {
-                                if (findCart.services.length == 0) {
-                                        return res.status(404).send({ status: 404, message: "Your cart have no service found." });
-                                } else {
-                                        const d = new Date(req.body.date);
-                                        let text = d.toISOString();
-                                        let update = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $set: { date: text, time: req.body.time } }, { new: true });
-                                        if (update) {
-                                                return res.status(200).send({ status: 200, message: "Cart update successfully.", data: update });
-                                        }
-                                }
-                        } else {
-                                return res.status(404).send({ status: 404, message: "Your cart is not found." });
-                        }
-                }
-        } catch (error) {
-                console.error(error);
-                return res.status(500).send({ status: 500, message: "Server error" + error.message });
-        }
-};
 exports.updatePickupFromStore = async (req, res) => {
         try {
                 const findUser = await User.findById({ _id: req.user._id });
@@ -543,13 +522,13 @@ exports.updatePickupFromStore = async (req, res) => {
 }
 exports.checkoutForProduct = async (req, res) => {
         try {
-                let findOrder = await order.find({ user: req.user._id, orderStatus: "unconfirmed" });
+                let findOrder = await productOrder.find({ user: req.user._id, orderStatus: "unconfirmed" });
                 if (findOrder.length > 0) {
                         for (let i = 0; i < findOrder.length; i++) {
                                 console.log("-----------");
-                                await order.findByIdAndDelete({ _id: findOrder[i]._id });
+                                await productOrder.findByIdAndDelete({ _id: findOrder[i]._id });
                         }
-                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
                                 const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
                                 const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
@@ -595,81 +574,13 @@ exports.checkoutForProduct = async (req, res) => {
                                         discount += cartGift.discount;
                                         total += cartGift.total;
                                 });
-                                if (cartResponse.coupon) {
-                                        coupan = 0.01 * findCart.coupon.discount * subTotal;
-                                }
-                                cartResponse.total = total;
-                                cartResponse.discount = discount;
-                                cartResponse.coupan = coupan;
-                                if (findCart.pickupFromStore == true) {
-                                        cartResponse.pickUp = data1;
-                                        total1 = subTotal - coupan;
-                                        memberShip = (total1 * memberShipPer) / 100;
-                                        cartResponse.memberShip = memberShip;
-                                        cartResponse.memberShipPer = memberShipPer;
-                                        grandTotal = total1 - memberShip;
-                                        cartResponse.grandTotal = grandTotal;
-                                } else {
-                                        cartResponse.deliveryAddresss = data2;
-                                        cartResponse.shipping = shipping;
-                                        total1 = subTotal - coupan + shipping;
-                                        memberShip = (total1 * memberShipPer) / 100;
-                                        cartResponse.memberShip = memberShip;
-                                        cartResponse.memberShipPer = memberShipPer;
-                                        grandTotal = total1 - memberShip;
-                                        cartResponse.grandTotal = grandTotal;
-                                }
-                                cartResponse.orderId = await reffralCode();
-                                cartResponse.orderType = "Product";
-                                let saveOrder = await order.create(cartResponse);
-                                return res.status(200).json({ msg: "product added to cart", data: saveOrder });
-                        }
-                } else {
-                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                        if (findCart) {
-                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
-                                const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
-                                const data3 = await User.findOne({ _id: req.user._id })
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
-                                if (data3) {
-                                        if (data3.isSubscription == true) {
-                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                if (findSubscription) {
-                                                        memberShipPer = findSubscription.discount
-                                                }
-                                        } else {
-                                                memberShipPer = 0;
-                                        }
-                                }
-                                if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
-                                const cartResponse = findCart.toObject();
-                                cartResponse.products.forEach((cartProduct) => {
-                                        if (cartProduct.productId.discountActive == true) {
-                                                cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.productId.discountPrice * cartProduct.quantity;
-                                                cartProduct.discount = (cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity;
-                                        } else {
-                                                cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.productId.price * cartProduct.quantity;
-                                                cartProduct.discount = 0;
-                                        }
+                                cartResponse.frequentlyBuyProductSchema.forEach((cartProduct) => {
+                                        cartProduct.total = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                        cartProduct.subTotal = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                        cartProduct.discount = 0;
                                         subTotal += cartProduct.subTotal;
                                         discount += cartProduct.discount;
                                         total += cartProduct.total;
-                                });
-                                cartResponse.gifts.forEach((cartGift) => {
-                                        if (cartGift.giftId.discountActive == true) {
-                                                cartGift.total = cartGift.giftId.price * cartGift.quantity;
-                                                cartGift.subTotal = cartGift.giftId.discountPrice * cartGift.quantity;
-                                                cartGift.discount = (cartGift.giftId.price - cartGift.giftId.discountPrice) * cartGift.quantity;
-                                        } else {
-                                                cartGift.total = cartGift.giftId.price * cartGift.quantity;
-                                                cartGift.subTotal = cartGift.giftId.price * cartGift.quantity;
-                                                cartGift.discount = 0;
-                                        }
-                                        subTotal += cartGift.subTotal;
-                                        discount += cartGift.discount;
-                                        total += cartGift.total;
                                 });
                                 if (cartResponse.coupon) {
                                         coupan = 0.01 * findCart.coupon.discount * subTotal;
@@ -696,9 +607,92 @@ exports.checkoutForProduct = async (req, res) => {
                                         grandTotal = total1 - memberShip;
                                         cartResponse.grandTotal = grandTotal;
                                 }
-                                cartResponse.orderType = "Product";
                                 cartResponse.orderId = await reffralCode();
-                                let saveOrder = await order.create(cartResponse);
+                                let saveOrder = await productOrder.create(cartResponse);
+                                return res.status(200).json({ msg: "product added to cart", data: saveOrder });
+                        }
+                } else {
+                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (findCart) {
+                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
+                                const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
+                                const data3 = await User.findOne({ _id: req.user._id })
+                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
+                                if (data3) {
+                                        if (data3.isSubscription == true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        memberShipPer = findSubscription.discount
+                                                }
+                                        } else {
+                                                memberShipPer = 0;
+                                        }
+                                }
+                                if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
+                                const cartResponse = findCart.toObject();
+                                cartResponse.products.forEach((cartProduct) => {
+                                        if (cartProduct.productId.discountActive == true) {
+                                                cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.productId.discountPrice * cartProduct.quantity;
+                                                cartProduct.discount = (cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity;
+                                        } else {
+                                                cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.productId.price * cartProduct.quantity;
+                                                cartProduct.discount = 0;
+                                        }
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                });
+                                cartResponse.gifts.forEach((cartGift) => {
+                                        if (cartGift.giftId.discountActive == true) {
+                                                cartGift.total = cartGift.giftId.price * cartGift.quantity;
+                                                cartGift.subTotal = cartGift.giftId.discountPrice * cartGift.quantity;
+                                                cartGift.discount = (cartGift.giftId.price - cartGift.giftId.discountPrice) * cartGift.quantity;
+                                        } else {
+                                                cartGift.total = cartGift.giftId.price * cartGift.quantity;
+                                                cartGift.subTotal = cartGift.giftId.price * cartGift.quantity;
+                                                cartGift.discount = 0;
+                                        }
+                                        subTotal += cartGift.subTotal;
+                                        discount += cartGift.discount;
+                                        total += cartGift.total;
+                                });
+                                cartResponse.frequentlyBuyProductSchema.forEach((cartProduct) => {
+                                        cartProduct.total = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                        cartProduct.subTotal = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                        cartProduct.discount = 0;
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                });
+                                if (cartResponse.coupon) {
+                                        coupan = 0.01 * findCart.coupon.discount * subTotal;
+                                }
+                                cartResponse.total = total;
+                                cartResponse.discount = discount;
+                                cartResponse.coupan = coupan;
+                                cartResponse.subTotal = subTotal;
+                                if (findCart.pickupFromStore == true) {
+                                        cartResponse.pickUp = data1;
+                                        total1 = subTotal - coupan;
+                                        memberShip = (total1 * memberShipPer) / 100;
+                                        cartResponse.memberShip = memberShip;
+                                        cartResponse.memberShipPer = memberShipPer;
+                                        grandTotal = total1 - memberShip;
+                                        cartResponse.grandTotal = grandTotal;
+                                } else {
+                                        cartResponse.deliveryAddresss = data2;
+                                        cartResponse.shipping = shipping;
+                                        total1 = subTotal - coupan + shipping;
+                                        memberShip = (total1 * memberShipPer) / 100;
+                                        cartResponse.memberShip = memberShip;
+                                        cartResponse.memberShipPer = memberShipPer;
+                                        grandTotal = total1 - memberShip;
+                                        cartResponse.grandTotal = grandTotal;
+                                }
+                                cartResponse.orderId = await reffralCode();
+                                let saveOrder = await productOrder.create(cartResponse);
                                 return res.status(200).json({ msg: "product added to cart", data: saveOrder });
                         }
                 }
@@ -709,7 +703,7 @@ exports.checkoutForProduct = async (req, res) => {
 };
 exports.placeOrderForProduct = async (req, res) => {
         try {
-                let findUserOrder = await order.findOne({ orderId: req.params.orderId }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                let findUserOrder = await productOrder.findOne({ orderId: req.params.orderId }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (findUserOrder) {
                         let line_items = [];
                         const cartResponse = findUserOrder.toObject();
@@ -770,252 +764,20 @@ exports.placeOrderForProduct = async (req, res) => {
                                 }
                                 line_items.push(obj2)
                         });
-                        let delivery = Number(findUserOrder.shipping);
-                        let obj3 = {
-                                price_data: {
-                                        currency: "inr",
-                                        product_data: {
-                                                name: `Delivery Charge`,
-                                        },
-                                        unit_amount: `${Math.round(delivery * 100)}`,
-                                },
-                                quantity: 1,
-                        }
-                        line_items.push(obj3)
-                        const session = await stripe.checkout.sessions.create({
-                                payment_method_types: ["card"],
-                                success_url: `https://krishwholesale.co.uk/order-success/${findUserOrder.orderId}`,
-                                cancel_url: `https://krishwholesale.co.uk/order-failure/${findUserOrder.orderId}`,
-                                customer_email: req.user.email,
-                                client_reference_id: findUserOrder.orderId,
-                                line_items: line_items,
-                                mode: "payment",
-                        });
-                        return res.status(200).json({ status: "success", session: session, });
-                } else {
-                        return res.status(404).json({ message: "No data found", data: {} });
-                }
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-};
-exports.cancelOrder = async (req, res) => {
-        try {
-                let findUserOrder = await order.findOne({ orderId: req.params.orderId });
-                if (findUserOrder) {
-                        return res.status(201).json({ message: "Payment failed.", status: 201, orderId: req.params.orderId });
-                } else {
-                        return res.status(404).json({ message: "No data found", data: {} });
-                }
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-};
-exports.successOrder = async (req, res) => {
-        try {
-                let findUserOrder = await order.findOne({ orderId: req.params.orderId });
-                if (findUserOrder) {
-                        const user = await User.findById({ _id: findUserOrder.user });
-                        if (!user) {
-                                return res.status(404).send({ status: 404, message: "User not found or token expired." });
-                        }
-                        let update = await order.findByIdAndUpdate({ _id: findUserOrder._id }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-                        let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.user });
-                        if (deleteCart) {
-                                return res.status(200).json({ message: "Payment success.", status: 200, data: update });
-                        }
-                } else {
-                        return res.status(404).json({ message: "No data found", data: {} });
-                }
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-};
-exports.getOrders = async (req, res, next) => {
-        try {
-                const orders = await order.find({ user: req.user._id, orderStatus: "confirmed" }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }]);
-                if (orders.length == 0) {
-                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
-                }
-                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-};
-exports.getOrderbyId = async (req, res, next) => {
-        try {
-                const orders = await order.findById({ _id: req.params.id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }]);
-                if (!orders) {
-                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
-                }
-                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-};
-exports.checkoutForService = async (req, res) => {
-        try {
-                let findOrder = await order.find({ user: req.user._id, orderStatus: "unconfirmed" });
-                if (findOrder.length > 0) {
-                        for (let i = 0; i < findOrder.length; i++) {
-                                console.log("-----------");
-                                await order.findByIdAndDelete({ _id: findOrder[i]._id });
-                        }
-                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                        if (findCart) {
-                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
-                                const data3 = await User.findOne({ _id: req.user._id })
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer;
-                                if (data3) {
-                                        if (data3.isSubscription == true) {
-                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                if (findSubscription) {
-                                                        memberShipPer = findSubscription.discount
-                                                }
-                                        } else {
-                                                memberShipPer = 0;
-                                        }
-                                }
-                                if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
-                                const cartResponse = findCart.toObject();
-                                let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
-                                cartResponse.services.forEach((cartProduct) => {
-                                        if (cartProduct.serviceId.discountActive == true) {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
-                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                                        } else {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.discount = 0;
-                                        }
-                                        subTotal += cartProduct.subTotal;
-                                        discount += cartProduct.discount;
-                                        total += cartProduct.total;
-                                });
-                                if (cartResponse.coupon) {
-                                        coupan = 0.01 * findCart.coupon.discount * subTotal;
-                                }
-                                cartResponse.date = findCart.date;
-                                cartResponse.time = findCart.time;
-                                cartResponse.suggesstion = findCart.suggesstion;
-                                cartResponse.total = total;
-                                cartResponse.discount = discount;
-                                cartResponse.coupan = coupan;
-                                cartResponse.subTotal = subTotal;
-                                cartResponse.shipping = shipping;
-                                total1 = subTotal - coupan + shipping;
-                                memberShip = (total1 * memberShipPer) / 100;
-                                cartResponse.memberShip = memberShip;
-                                cartResponse.memberShipPer = memberShipPer;
-                                grandTotal = total1 - memberShip;
-                                cartResponse.grandTotal = grandTotal;
-                                cartResponse.orderId = await reffralCode();
-                                cartResponse.orderType = "Service";
-                                if (cartResponse.services.length > 0) {
-                                        cartResponse.serviceAddresss = data1;
-                                }
-                                let saveOrder = await order.create(cartResponse);
-                                return res.status(200).json({ msg: "Order create successfully", data: saveOrder });
-                        }
-                } else {
-                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                        if (findCart) {
-                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
-                                const data3 = await User.findOne({ _id: req.user._id })
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer;
-                                if (data3) {
-                                        if (data3.isSubscription == true) {
-                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                if (findSubscription) {
-                                                        memberShipPer = findSubscription.discount
-                                                }
-                                        } else {
-                                                memberShipPer = 0;
-                                        }
-                                }
-                                if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
-                                const cartResponse = findCart.toObject();
-                                let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
-                                cartResponse.services.forEach((cartProduct) => {
-                                        if (cartProduct.serviceId.discountActive == true) {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
-                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                                        } else {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.discount = 0;
-                                        }
-                                        subTotal += cartProduct.subTotal;
-                                        discount += cartProduct.discount;
-                                        total += cartProduct.total;
-                                });
-                                if (cartResponse.coupon) {
-                                        coupan = 0.01 * findCart.coupon.discount * subTotal;
-                                }
-                                cartResponse.date = findCart.date;
-                                cartResponse.time = findCart.time;
-                                cartResponse.suggesstion = findCart.suggesstion;
-                                cartResponse.total = total;
-                                cartResponse.discount = discount;
-                                cartResponse.coupan = coupan;
-                                cartResponse.subTotal = subTotal;
-                                cartResponse.shipping = shipping;
-                                total1 = subTotal - coupan + shipping;
-                                memberShip = (total1 * memberShipPer) / 100;
-                                cartResponse.memberShip = memberShip;
-                                cartResponse.memberShipPer = memberShipPer;
-                                grandTotal = total1 - memberShip;
-                                cartResponse.grandTotal = grandTotal;
-                                cartResponse.orderType = "Service";
-                                cartResponse.orderId = await reffralCode();
-                                if (cartResponse.services.length > 0) {
-                                        cartResponse.serviceAddresss = data1;
-                                }
-                                let saveOrder = await order.create(cartResponse);
-                                return res.status(200).json({ msg: "Order create successfully", data: saveOrder });
-                        }
-                }
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-};
-exports.placeOrderForService = async (req, res) => {
-        try {
-                let findUserOrder = await order.findOne({ orderId: req.params.orderId }).populate([{ path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                if (findUserOrder) {
-                        let line_items = [];
-                        const cartResponse = findUserOrder.toObject();
-                        let discount = 0, total = 0, subTotal = 0;
-                        cartResponse.services.forEach((cartProduct) => {
-                                console.log(cartProduct);
+                        cartResponse.frequentlyBuyProductSchema.forEach((cartProduct) => {
                                 let price;
-                                if (cartProduct.serviceId.discountActive == true) {
-                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                        cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
-                                        cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                                        price = cartProduct.serviceId.discountPrice * cartProduct.quantity
-                                } else {
-                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                        cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                        cartProduct.discount = 0;
-                                        price = cartProduct.serviceId.price * cartProduct.quantity
-                                }
+                                cartProduct.total = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                cartProduct.subTotal = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                cartProduct.discount = 0;
                                 subTotal += cartProduct.subTotal;
                                 discount += cartProduct.discount;
                                 total += cartProduct.total;
+                                price = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity
                                 let obj2 = {
                                         price_data: {
                                                 currency: "inr",
                                                 product_data: {
-                                                        name: `${cartProduct.serviceId.name}`,
+                                                        name: `Frequently`,
                                                 },
                                                 unit_amount: `${Math.round(price * 100)}`,
                                         },
@@ -1053,61 +815,69 @@ exports.placeOrderForService = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-exports.addSuggestionToCart = async (req, res) => {
+exports.cancelOrderForProduct = async (req, res) => {
         try {
-                let findCart = await Cart.findOne({ user: req.user._id });
-                if (findCart) {
-                        if (findCart.services.length == 0) {
-                                return res.status(404).json({ status: 404, message: "First add service in your cart.", data: {} });
-                        } else {
-                                let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $set: { suggesstion: req.body.suggestion }, }, { new: true });
-                                return res.status(200).json({ status: 200, message: "suggestion add to cart Successfully.", data: update1 })
-                        }
+                let findUserOrder = await productOrder.findOne({ orderId: req.params.orderId });
+                if (findUserOrder) {
+                        return res.status(201).json({ message: "Payment failed.", status: 201, orderId: req.params.orderId });
                 } else {
-                        return res.status(404).json({ status: 404, message: "Cart is empty.", data: {} });
+                        return res.status(404).json({ message: "No data found", data: {} });
                 }
         } catch (error) {
-                console.error(error);
-                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-exports.getOnSaleService = async (req, res, next) => {
+exports.successOrderForProduct = async (req, res) => {
         try {
-                const productsCount = await services.count();
-                if (req.query.search != (null || undefined)) {
-                        let apiFeature = await services.aggregate([
-                                {
-                                        $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "categoryId" },
-                                },
-                                { $unwind: "$categoryId" },
-                                {
-                                        $match: {
-                                                $or: [
-                                                        { "categoryId.name": { $regex: req.query.search, $options: "i" }, },
-                                                        { "name": { $regex: req.query.search, $options: "i" }, },
-                                                        { "description": { $regex: req.query.search, $options: "i" }, },
-                                                ]
-                                        },
-                                        $match: { "discountActive": true },
-                                },
-                        ]);
-                        return res.status(200).json({ status: 200, message: "Product data found.", data: apiFeature, count: productsCount });
+                let findUserOrder = await productOrder.findOne({ orderId: req.params.orderId });
+                if (findUserOrder) {
+                        const user = await User.findById({ _id: findUserOrder.user });
+                        if (!user) {
+                                return res.status(404).send({ status: 404, message: "User not found or token expired." });
+                        }
+                        let update = await productOrder.findByIdAndUpdate({ _id: findUserOrder._id }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+                        let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.user });
+                        if (deleteCart) {
+                                return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                        }
                 } else {
-                        let apiFeature = await services.aggregate([
-                                { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "categoryId" } },
-                                { $unwind: "$categoryId" },
-                                { $match: { "discountActive": true } },
-                        ]);
-                        return res.status(200).json({ status: 200, message: "Product data found.", data: apiFeature, count: productsCount });
+                        return res.status(404).json({ message: "No data found", data: {} });
                 }
-        } catch (err) {
-                console.log(err);
-                return res.status(500).send({ message: "Internal server error while creating Product", });
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getProductOrders = async (req, res, next) => {
+        try {
+                const orders = await productOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (orders.length == 0) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getProductOrderbyId = async (req, res, next) => {
+        try {
+                const orders = await productOrder.findById({ _id: req.params.id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 const getCartResponse = async (cart, userId) => {
         try {
-                await cart.populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                await cart.populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } },
+                { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
+                { path: "coupon", select: "couponCode discount expirationDate" },]);
                 const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
                 const data2 = await Address.findOne({ user: userId }).select('houseFlat appartment landMark -_id');
                 const data3 = await User.findOne({ _id: userId })
@@ -1154,16 +924,10 @@ const getCartResponse = async (cart, userId) => {
                         discount += cartGift.discount;
                         total += cartGift.total;
                 });
-                cartResponse.services.forEach((cartProduct) => {
-                        if (cartProduct.serviceId.discountActive == true) {
-                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
-                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                        } else {
-                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                cartProduct.discount = 0;
-                        }
+                cartResponse.frequentlyBuyProductSchema.forEach((cartProduct) => {
+                        cartProduct.total = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                        cartProduct.subTotal = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                        cartProduct.discount = 0;
                         subTotal += cartProduct.subTotal;
                         discount += cartProduct.discount;
                         total += cartProduct.total;
@@ -1183,21 +947,602 @@ const getCartResponse = async (cart, userId) => {
                 grandTotal = total1 - memberShip;
                 cartResponse.grandTotal = grandTotal;
                 cartResponse.contactDetail = data4;
-                if (cartResponse.products.length > 0) {
-                        if (cart.pickupFromStore == true) {
-                                cartResponse.pickUp = data1;
-                        } else {
-                                cartResponse.deliveryAddresss = data2;
-                        }
-                }
-                if (cartResponse.services.length > 0) {
-                        cartResponse.serviceAddresss = data1;
+                if (cart.pickupFromStore == true) {
+                        cartResponse.pickUp = data1;
+                } else {
+                        cartResponse.deliveryAddresss = data2;
                 }
                 return cartResponse;
         } catch (error) {
                 throw error;
         }
 };
+/////////////////////////////////////////////////////////////////////////////////////////// Product  Cart End ////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////// service Cart Start ////////////////////////////////////////////////////////////////////
+exports.addServiceToCart = async (req, res, next) => {
+        try {
+                const serviceId = req.params.id;
+                let cart = await cartService.findOne({ user: req.user._id, });
+                if (!cart) {
+                        let services = [];
+                        let obj = { serviceId: serviceId, quantity: 1 };
+                        services.push(obj)
+                        cart = await cartService.create({ user: req.user._id, services: services });
+                        return res.status(200).json({ msg: "service added to cart", data: cart });
+                } else {
+                        const productIndex = cart.services.findIndex((cartService) => { return cartService.serviceId.toString() == serviceId; });
+                        if (productIndex < 0) {
+                                let obj = { serviceId: serviceId, quantity: 1 };
+                                cart.services.push(obj);
+                        } else {
+                                cart.services[productIndex].quantity++;
+                        }
+                        await cart.save();
+                        return res.status(200).json({ msg: "service added to cart", data: cart });
+                }
+        } catch (error) {
+                next(error);
+        }
+};
+exports.addOnServiceToCart = async (req, res, next) => {
+        try {
+                const addOnservicesId = req.params.id;
+                let cart = await cartService.findOne({ user: req.user._id, });
+                if (!cart) {
+                        let services = [];
+                        let obj = { addOnservicesId: addOnservicesId, quantity: 1 };
+                        services.push(obj)
+                        cart = await cartService.create({ user: req.user._id, AddOnservicesSchema: services });
+                        return res.status(200).json({ msg: "Add On Service added to cart", data: cart });
+                } else {
+                        const productIndex = cart.AddOnservicesSchema.findIndex((cartService) => { return cartService.addOnservicesId.toString() == addOnservicesId; });
+                        if (productIndex < 0) {
+                                let obj = { addOnservicesId: addOnservicesId, quantity: 1 };
+                                cart.AddOnservicesSchema.push(obj);
+                        } else {
+                                cart.AddOnservicesSchema[productIndex].quantity++;
+                        }
+                        await cart.save();
+                        return res.status(200).json({ msg: "Add On Service added to cart", data: cart });
+                }
+        } catch (error) {
+                next(error);
+        }
+};
+exports.getServiceCart = async (req, res, next) => {
+        try {
+                const cart = await cartService.findOne({ user: req.user._id });
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "cart", cart: {} })
+                } else {
+                        const cartResponse = await getServiceCartResponse(cart, req.user._id);
+                        return res.status(200).json({ success: true, msg: "cart", cart: cartResponse })
+                }
+        } catch (error) {
+                console.log(error)
+                next(error);
+        }
+}
+exports.addDateAndtimetoServiceCart = async (req, res) => {
+        try {
+                let userData = await User.findOne({ _id: req.user._id });
+                if (!userData) {
+                        return res.status(404).send({ status: 404, message: "User not found" });
+                } else {
+                        let findCart = await cartService.findOne({ user: userData._id });
+                        if (findCart) {
+                                const d = new Date(req.body.date);
+                                let text = d.toISOString();
+                                let update = await cartService.findByIdAndUpdate({ _id: findCart._id }, { $set: { date: text, time: req.body.time } }, { new: true });
+                                if (update) {
+                                        return res.status(200).send({ status: 200, message: "Cart update successfully.", data: update });
+                                }
+                        } else {
+                                return res.status(404).send({ status: 404, message: "Your cart is not found." });
+                        }
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.addSuggestionToServiceCart = async (req, res) => {
+        try {
+                let findCart = await cartService.findOne({ user: req.user._id });
+                if (findCart) {
+                        let update1 = await cartService.findByIdAndUpdate({ _id: findCart._id }, { $set: { suggesstion: req.body.suggestion }, }, { new: true });
+                        return res.status(200).json({ status: 200, message: "suggestion add to cart Successfully.", data: update1 })
+                } else {
+                        return res.status(404).json({ status: 404, message: "Cart is empty.", data: {} });
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.deleteServicefromcart = async (req, res) => {
+        try {
+                let findCart = await cartService.findOne({ user: req.user._id });
+                if (findCart) {
+                        for (let i = 0; i < findCart.services.length; i++) {
+                                if (findCart.services.length > 1) {
+                                        if (((findCart.services[i].serviceId).toString() == req.params.id) == true) {
+                                                let updateCart = await cartService.findByIdAndUpdate({ _id: findCart._id, 'services.serviceId': req.params.id }, { $pull: { 'services': { serviceId: req.params.id, quantity: findCart.services[i].quantity, } } }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "Service delete from cart.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+                                        let updateProject = await cartService.findByIdAndDelete({ _id: findCart._id });
+                                        if (updateProject) {
+                                                let findCart1 = await cartService.findOne({ user: req.user._id });
+                                                if (!findCart1) {
+                                                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                                                }
+                                        }
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                }
+
+        } catch (error) {
+                console.log("353====================>", error)
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.checkoutForService = async (req, res) => {
+        try {
+                let findOrder = await serviceOrder.find({ user: req.user._id, orderStatus: "unconfirmed" });
+                if (findOrder.length > 0) {
+                        for (let i = 0; i < findOrder.length; i++) {
+                                await serviceOrder.findByIdAndDelete({ _id: findOrder[i]._id });
+                        }
+                        let findCart = await cartService.findOne({ user: req.user._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (findCart) {
+                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
+                                const data3 = await User.findOne({ _id: req.user._id })
+                                let discount = 0, coupan = 0, memberShip = 0, serviceCharge = 10, memberShipPer;
+                                if (data3) {
+                                        if (data3.isSubscription == true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        memberShipPer = findSubscription.discount
+                                                }
+                                        } else {
+                                                memberShipPer = 0;
+                                        }
+                                }
+                                if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
+                                const cartResponse = findCart.toObject();
+                                let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
+                                cartResponse.services.forEach((cartProduct) => {
+                                        if (cartProduct.serviceId.discountActive == true) {
+                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                                        } else {
+                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.discount = 0;
+                                        }
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                });
+                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                        cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                                        cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                                        cartGift.discount = 0;
+                                        subTotal += cartGift.subTotal;
+                                        discount += cartGift.discount;
+                                        total += cartGift.total;
+                                });
+                                if (cartResponse.coupon) {
+                                        coupan = 0.01 * findCart.coupon.discount * subTotal;
+                                }
+                                cartResponse.date = findCart.date;
+                                cartResponse.time = findCart.time;
+                                cartResponse.suggesstion = findCart.suggesstion;
+                                cartResponse.total = total;
+                                cartResponse.discount = discount;
+                                cartResponse.coupan = coupan;
+                                cartResponse.subTotal = subTotal;
+                                cartResponse.serviceCharge = serviceCharge;
+                                total1 = subTotal - coupan + serviceCharge;
+                                memberShip = (total1 * memberShipPer) / 100;
+                                cartResponse.memberShip = memberShip;
+                                cartResponse.memberShipPer = memberShipPer;
+                                grandTotal = total1 - memberShip;
+                                cartResponse.grandTotal = grandTotal;
+                                cartResponse.orderId = await reffralCode();
+                                cartResponse.serviceAddresss = data1;
+                                let saveOrder = await serviceOrder.create(cartResponse);
+                                return res.status(200).json({ msg: "Order create successfully", data: saveOrder });
+                        }
+                } else {
+                        let findCart = await cartService.findOne({ user: req.user._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (findCart) {
+                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
+                                const data3 = await User.findOne({ _id: req.user._id })
+                                let discount = 0, coupan = 0, memberShip = 0, serviceCharge = 10, memberShipPer;
+                                if (data3) {
+                                        if (data3.isSubscription == true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        memberShipPer = findSubscription.discount
+                                                }
+                                        } else {
+                                                memberShipPer = 0;
+                                        }
+                                }
+                                if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
+                                const cartResponse = findCart.toObject();
+                                let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
+                                cartResponse.services.forEach((cartProduct) => {
+                                        if (cartProduct.serviceId.discountActive == true) {
+                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                                        } else {
+                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.discount = 0;
+                                        }
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                });
+                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                        cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                                        cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                                        cartGift.discount = 0;
+                                        subTotal += cartGift.subTotal;
+                                        discount += cartGift.discount;
+                                        total += cartGift.total;
+                                });
+                                if (cartResponse.coupon) {
+                                        coupan = 0.01 * findCart.coupon.discount * subTotal;
+                                }
+                                cartResponse.date = findCart.date;
+                                cartResponse.time = findCart.time;
+                                cartResponse.suggesstion = findCart.suggesstion;
+                                cartResponse.total = total;
+                                cartResponse.discount = discount;
+                                cartResponse.coupan = coupan;
+                                cartResponse.subTotal = subTotal;
+                                cartResponse.serviceCharge = serviceCharge;
+                                total1 = subTotal - coupan + serviceCharge;
+                                memberShip = (total1 * memberShipPer) / 100;
+                                cartResponse.memberShip = memberShip;
+                                cartResponse.memberShipPer = memberShipPer;
+                                grandTotal = total1 - memberShip;
+                                cartResponse.grandTotal = grandTotal;
+                                cartResponse.orderId = await reffralCode();
+                                cartResponse.serviceAddresss = data1;
+                                let saveOrder = await serviceOrder.create(cartResponse);
+                                return res.status(200).json({ msg: "Order create successfully", data: saveOrder });
+                        }
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.placeOrderForService = async (req, res) => {
+        try {
+                let findUserOrder = await serviceOrder.findOne({ orderId: req.params.orderId }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (findUserOrder) {
+                        let line_items = [];
+                        const cartResponse = findUserOrder.toObject();
+                        let discount = 0, total = 0, subTotal = 0;
+                        cartResponse.services.forEach((cartProduct) => {
+                                let price;
+                                if (cartProduct.serviceId.discountActive == true) {
+                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                        cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                        cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                                        price = cartProduct.serviceId.discountPrice * cartProduct.quantity
+                                } else {
+                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                        cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                        cartProduct.discount = 0;
+                                        price = cartProduct.serviceId.price * cartProduct.quantity
+                                }
+                                subTotal += cartProduct.subTotal;
+                                discount += cartProduct.discount;
+                                total += cartProduct.total;
+                                let obj2 = {
+                                        price_data: {
+                                                currency: "inr",
+                                                product_data: {
+                                                        name: `${cartProduct.serviceId.name}`,
+                                                },
+                                                unit_amount: `${Math.round(price * 100)}`,
+                                        },
+                                        quantity: 1,
+                                }
+                                line_items.push(obj2)
+                        });
+                        cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                let price;
+                                cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                                cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                                cartGift.discount = 0;
+                                subTotal += cartGift.subTotal;
+                                discount += cartGift.discount;
+                                total += cartGift.total;
+                                price = cartGift.addOnservicesId.price * cartGift.quantity
+                                let obj2 = {
+                                        price_data: {
+                                                currency: "inr",
+                                                product_data: {
+                                                        name: `${cartGift.addOnservicesId.name}`,
+                                                },
+                                                unit_amount: `${Math.round(price * 100)}`,
+                                        },
+                                        quantity: 1,
+                                }
+                                line_items.push(obj2)
+                        });
+                        let delivery = Number(findUserOrder.serviceCharge);
+                        let obj3 = {
+                                price_data: {
+                                        currency: "inr",
+                                        product_data: {
+                                                name: `Service Charge`,
+                                        },
+                                        unit_amount: `${Math.round(delivery * 100)}`,
+                                },
+                                quantity: 1,
+                        }
+                        line_items.push(obj3)
+                        const session = await stripe.checkout.sessions.create({
+                                payment_method_types: ["card"],
+                                success_url: `https://krishwholesale.co.uk/order-success/${findUserOrder.orderId}`,
+                                cancel_url: `https://krishwholesale.co.uk/order-failure/${findUserOrder.orderId}`,
+                                customer_email: req.user.email,
+                                client_reference_id: findUserOrder.orderId,
+                                line_items: line_items,
+                                mode: "payment",
+                        });
+                        return res.status(200).json({ status: "success", session: session, });
+                } else {
+                        return res.status(404).json({ message: "No data found", data: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.cancelOrderForService = async (req, res) => {
+        try {
+                let findUserOrder = await serviceOrder.findOne({ orderId: req.params.orderId });
+                if (findUserOrder) {
+                        return res.status(201).json({ message: "Payment failed.", status: 201, orderId: req.params.orderId });
+                } else {
+                        return res.status(404).json({ message: "No data found", data: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.successOrderForService = async (req, res) => {
+        try {
+                let findUserOrder = await serviceOrder.findOne({ orderId: req.params.orderId });
+                if (findUserOrder) {
+                        const user = await User.findById({ _id: findUserOrder.user });
+                        if (!user) {
+                                return res.status(404).send({ status: 404, message: "User not found or token expired." });
+                        }
+                        let update = await serviceOrder.findByIdAndUpdate({ _id: findUserOrder._id }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+                        let deleteCart = await cartService.findOneAndDelete({ user: findUserOrder.user });
+                        if (deleteCart) {
+                                return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                        }
+                } else {
+                        return res.status(404).json({ message: "No data found", data: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.cartData = async (req, res, next) => {
+        try {
+                const productsCount = await services.count();
+                const apiFeature = await services.aggregate([
+                        { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "categoryId" } },
+                        { $unwind: "$categoryId" },
+                ]);
+                const userCart = await cartService.findOne({ userId: req.user._id });
+                if (userCart) {
+                        const categoriesWithServicesInCart = {};
+                        apiFeature.forEach((product) => {
+                                const cartItem = userCart.services.find((cartItem) => cartItem.serviceId?.equals(product._id));
+                                if (cartItem) {
+                                        if (!categoriesWithServicesInCart[product.categoryId._id]) {
+                                                categoriesWithServicesInCart[product.categoryId._id] = {
+                                                        category: product.categoryId,
+                                                        services: [],
+                                                };
+                                        }
+                                        categoriesWithServicesInCart[product.categoryId._id].services.push({
+                                                ...product,
+                                                isInCart: true,
+                                                quantityInCart: 1,
+                                        });
+                                } else {
+                                        if (!categoriesWithServicesInCart[product.categoryId._id]) {
+                                                categoriesWithServicesInCart[product.categoryId._id] = {
+                                                        category: product.categoryId,
+                                                        services: [],
+                                                };
+                                        }
+                                        categoriesWithServicesInCart[product.categoryId._id].services.push({
+                                                ...product,
+                                                isInCart: false,
+                                                quantityInCart: 0,
+                                        });
+                                }
+                        });
+                        const result = Object.values(categoriesWithServicesInCart);
+                        return res.status(200).json({ status: 200, message: "Service data found.", data: result, count: productsCount });
+                } else {
+                        const categoriesWithServicesInCart = {};
+                        apiFeature.forEach((product) => {
+                                if (!categoriesWithServicesInCart[product.categoryId._id]) {
+                                        categoriesWithServicesInCart[product.categoryId._id] = {
+                                                category: product.categoryId,
+                                                services: [],
+                                        };
+                                }
+                                categoriesWithServicesInCart[product.categoryId._id].services.push({
+                                        ...product,
+                                        isInCart: false,
+                                        quantityInCart: 0,
+                                });
+                        });
+                        const result = Object.values(categoriesWithServicesInCart);
+                        return res.status(200).json({ status: 200, message: "Service data found.", data: result, count: productsCount });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({ message: "Internal server error while creating Product" });
+        }
+};
+exports.getServiceOrders = async (req, res, next) => {
+        try {
+                const orders = await serviceOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (orders.length == 0) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getServiceOrderbyId = async (req, res, next) => {
+        try {
+                const orders = await serviceOrder.findById({ _id: req.params.id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+const getServiceCartResponse = async (cartService, userId) => {
+        try {
+                console.log(cartService);
+                await cartService.populate([
+                        { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
+                        { path: "services.serviceId", select: { reviews: 0 } },
+                        { path: "coupon", select: "couponCode discount expirationDate" },
+                ]);
+                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
+                const data2 = await Address.findOne({ user: userId }).select('houseFlat appartment landMark -_id');
+                const data3 = await User.findOne({ _id: userId })
+                const data4 = await contact.findOne().select('name image phone email numOfReviews ratings -_id');
+                let discount = 0, coupan = 0, memberShip = 0, serviceCharge = 10, memberShipPer;
+                if (data3) {
+                        if (data3.isSubscription == true) {
+                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                if (findSubscription) {
+                                        memberShipPer = findSubscription.discount
+                                }
+                        } else {
+                                memberShipPer = 0;
+                        }
+                }
+                if (cartService.coupon && moment().isAfter(cartService.coupon.expirationDate, "day")) { cartService.coupon = undefined; cartService.save(); }
+                const cartResponse = cartService.toObject();
+                let total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
+                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                        cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                        cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                        cartGift.discount = 0;
+                        subTotal += cartGift.subTotal;
+                        discount += cartGift.discount;
+                        total += cartGift.total;
+                });
+                cartResponse.services.forEach((cartProduct) => {
+                        if (cartProduct.serviceId.discountActive == true) {
+                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                        } else {
+                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                cartProduct.discount = 0;
+                        }
+                        subTotal += cartProduct.subTotal;
+                        discount += cartProduct.discount;
+                        total += cartProduct.total;
+                });
+                if (cartResponse.coupon) {
+                        coupan = 0.01 * cartService.coupon.discount * subTotal;
+                }
+                cartResponse.total = total;
+                cartResponse.discount = discount;
+                cartResponse.coupan = coupan;
+                cartResponse.subTotal = subTotal;
+                cartResponse.serviceCharge = serviceCharge;
+                total1 = subTotal - coupan + serviceCharge;
+                memberShip = (total1 * memberShipPer) / 100;
+                cartResponse.memberShip = memberShip;
+                cartResponse.memberShipPer = memberShipPer;
+                grandTotal = total1 - memberShip;
+                cartResponse.grandTotal = grandTotal;
+                cartResponse.contactDetail = data4;
+                cartResponse.serviceAddresss = data1;
+
+                return cartResponse;
+        } catch (error) {
+                throw error;
+        }
+};
+exports.getOnSaleService = async (req, res, next) => {
+        try {
+                const productsCount = await services.count();
+                if (req.query.search != (null || undefined)) {
+                        let apiFeature = await services.aggregate([
+                                {
+                                        $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "categoryId" },
+                                },
+                                { $unwind: "$categoryId" },
+                                {
+                                        $match: {
+                                                $or: [
+                                                        { "categoryId.name": { $regex: req.query.search, $options: "i" }, },
+                                                        { "name": { $regex: req.query.search, $options: "i" }, },
+                                                        { "description": { $regex: req.query.search, $options: "i" }, },
+                                                ]
+                                        },
+                                        $match: { "discountActive": true },
+                                },
+                        ]);
+                        return res.status(200).json({ status: 200, message: "Product data found.", data: apiFeature, count: productsCount });
+                } else {
+                        let apiFeature = await services.aggregate([
+                                { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "categoryId" } },
+                                { $unwind: "$categoryId" },
+                                { $match: { "discountActive": true } },
+                        ]);
+                        return res.status(200).json({ status: 200, message: "Product data found.", data: apiFeature, count: productsCount });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({ message: "Internal server error while creating Product", });
+        }
+};
+/////////////////////////////////////////////////////////////////////////////////////////// service Cart End ////////////////////////////////////////////////////////////////////
 exports.getSubscription = async (req, res) => {
         try {
                 const findSubscription = await Subscription.find();
@@ -1288,100 +1633,7 @@ exports.verifySubscription = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
-exports.cartData = async (req, res, next) => {
-        try {
-                const productsCount = await services.count();
-                const apiFeature = await services.aggregate([
-                        { $lookup: { from: "categories", localField: "categoryId", foreignField: "_id", as: "categoryId" } },
-                        { $unwind: "$categoryId" },
-                ]);
-                const userCart = await Cart.findOne({ userId: req.user._id });
-                if (userCart) {
-                        const categoriesWithServicesInCart = {};
-                        apiFeature.forEach((product) => {
-                                const cartItem = userCart.services.find((cartItem) => cartItem.serviceId?.equals(product._id));
-                                if (cartItem) {
-                                        if (!categoriesWithServicesInCart[product.categoryId._id]) {
-                                                categoriesWithServicesInCart[product.categoryId._id] = {
-                                                        category: product.categoryId,
-                                                        services: [],
-                                                };
-                                        }
-                                        categoriesWithServicesInCart[product.categoryId._id].services.push({
-                                                ...product,
-                                                isInCart: true,
-                                                quantityInCart: 1,
-                                        });
-                                } else {
-                                        if (!categoriesWithServicesInCart[product.categoryId._id]) {
-                                                categoriesWithServicesInCart[product.categoryId._id] = {
-                                                        category: product.categoryId,
-                                                        services: [],
-                                                };
-                                        }
-                                        categoriesWithServicesInCart[product.categoryId._id].services.push({
-                                                ...product,
-                                                isInCart: false,
-                                                quantityInCart: 0,
-                                        });
-                                }
-                        });
-                        const result = Object.values(categoriesWithServicesInCart);
-                        return res.status(200).json({ status: 200, message: "Service data found.", data: result, count: productsCount });
-                } else {
-                        const categoriesWithServicesInCart = {};
-                        apiFeature.forEach((product) => {
-                                if (!categoriesWithServicesInCart[product.categoryId._id]) {
-                                        categoriesWithServicesInCart[product.categoryId._id] = {
-                                                category: product.categoryId,
-                                                services: [],
-                                        };
-                                }
-                                categoriesWithServicesInCart[product.categoryId._id].services.push({
-                                        ...product,
-                                        isInCart: false,
-                                        quantityInCart: 0,
-                                });
-                        });
-                        const result = Object.values(categoriesWithServicesInCart);
-                        return res.status(200).json({ status: 200, message: "Service data found.", data: result, count: productsCount });
-                }
-        } catch (err) {
-                console.log(err);
-                return res.status(500).send({ message: "Internal server error while creating Product" });
-        }
-};
-exports.deletecartItem = async (req, res) => {
-        try {
-                let findCart = await Cart.findOne({ user: req.user._id });
-                if (findCart) {
-                        for (let i = 0; i < findCart.services.length; i++) {
-                                if (findCart.services.length > 1) {
-                                        if (((findCart.services[i].serviceId).toString() == req.params.id) == true) {
-                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'services.product': req.params.id }, { $pull: { 'services': { serviceId: req.params.id, quantity: findCart.services[i].quantity, } } }, { new: true })
-                                                if (updateCart) {
-                                                        return res.status(200).send({ message: "Service delete from cart.", data: updateCart, });
-                                                }
-                                        }
-                                } else {
-                                        let updateProject = await Cart.findByIdAndDelete({ _id: findCart._id });
-                                        if (updateProject) {
-                                                let findCart1 = await Cart.findOne({ user: req.user._id });
-                                                if (!findCart1) {
-                                                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
-                                                }
-                                        }
-                                }
-                        }
-                } else {
-                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
-                }
 
-        } catch (error) {
-                console.log("353====================>", error)
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-};
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let OTP = '';

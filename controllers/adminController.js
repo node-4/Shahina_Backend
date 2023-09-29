@@ -18,17 +18,19 @@ const contact = require("../models/contactDetail");
 const helpandSupport = require("../models/helpAndSupport");
 const News = require("../models/news");
 const ClientReview = require("../models/clientReview");
-const order = require("../models/Auth/order");
+const serviceOrder = require("../models/Auth/serviceOrder");
+const productOrder = require("../models/Auth/productOrder");
 const ingredients = require("../models/ingredients");
 const giftCard = require("../models/giftCard");
 const slot = require("../models/slot");
 const shippingCharges = require("../models/shippingCharges");
+const acneQuiz = require("../models/acneQuiz");
+const acneQuizSuggession = require("../models/acneQuizSuggession");
+const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
+const addOnservices = require("../models/Service/addOnservices");
 const axios = require('axios');
-const SENDLE_API_KEY = 'WSRnKJtXs5X5CCbFHDFHvwy7';
-const SENDLE_API_BASE_URL = 'https://api.sendle.com/api/';
 const sendleApiKey = 'WSRnKJtXs5X5CCbFHDFHvwy7';
 const sendleApiBaseUrl = 'https://api.sendle.com';
-
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -100,6 +102,26 @@ exports.update = async (req, res) => {
                 return res.status(500).send({
                         message: "internal server error " + err.message,
                 });
+        }
+};
+exports.clientRegistration = async (req, res) => {
+        try {
+                let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
+                if (findUser) {
+                        return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
+                } else {
+                        req.body.otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
+                        req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
+                        req.body.accountVerification = false;
+                        req.body.refferalCode = await reffralCode();
+                        req.body.password = bcrypt.hashSync(req.body.password, 8);
+                        req.body.userType = "USER";
+                        const userCreate = await User.create(req.body);
+                        return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).json({ message: "Server error" });
         }
 };
 exports.createCategory = async (req, res) => {
@@ -1126,6 +1148,45 @@ exports.updateBanner = async (req, res) => {
                 return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
         }
 };
+exports.createPromotionBanner = async (req, res) => {
+        try {
+                let bannerImage, data;
+                const findData = await banner.findOne({ type: "Promotion" })
+                if (findData) {
+                        if (req.file.path) {
+                                bannerImage = req.file.path
+                        }
+                        data = {
+                                title: req.body.title || findData.title,
+                                desc: req.body.desc || findData.desc,
+                                off: req.body.off || findData.off,
+                                appleLink: req.body.appleLink || findData.appleLink,
+                                playstoreLink: req.body.playstoreLink || findData.playstoreLink,
+                                bannerImage: bannerImage || findData.bannerImage,
+                                type: 'Promotion'
+                        };
+                        const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
+                        return res.status(200).json({ message: "Banner update successfully.", status: 200, data: Banner });
+                } else {
+                        if (req.file.path) {
+                                bannerImage = req.file.path
+                        }
+                        data = {
+                                title: req.body.title,
+                                desc: req.body.desc,
+                                off: req.body.off,
+                                appleLink: req.body.appleLink,
+                                playstoreLink: req.body.playstoreLink,
+                                bannerImage: bannerImage,
+                                type: 'Promotion'
+                        };
+                        const Banner = await banner.create(data);
+                        return res.status(200).json({ message: "Banner add successfully.", status: 200, data: Banner });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
 exports.createGallarys = async (req, res) => {
         try {
                 let findGallary = await Gallary.findOne({ name: req.body.name });
@@ -1372,9 +1433,23 @@ exports.removeClientReview = async (req, res) => {
                 return res.status(200).json({ message: "clientReview Deleted Successfully !" });
         }
 };
-exports.getOrders = async (req, res, next) => {
+exports.getProductOrder = async (req, res, next) => {
         try {
-                const orders = await order.find({ orderStatus: "confirmed" }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }]);
+                const orders = await productOrder.find({ orderStatus: "confirmed" }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } },
+                { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
+                { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (orders.length == 0) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getServiceOrders = async (req, res, next) => {
+        try {
+                const orders = await serviceOrder.find({ orderStatus: "confirmed" }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (orders.length == 0) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
@@ -1591,14 +1666,13 @@ exports.removeSlot = async (req, res) => {
                 return res.status(200).json({ message: "Slot Deleted Successfully !" });
         }
 };
-
 exports.createShippingCharges = async (req, res) => {
         try {
-                let findShippingCharges = await shippingCharges.findOne({ date: req.body.date, from: req.body.from, to: req.body.to, });
+                let findShippingCharges = await shippingCharges.findOne({ from: req.body.from, to: req.body.to, charges: req.body.charges, });
                 if (findShippingCharges) {
                         return res.status(409).json({ message: "Shipping Charges already exit.", status: 404, data: {} });
                 } else {
-                        const data = { date: req.body.date, from: req.body.from, to: req.body.to, };
+                        const data = { from: req.body.from, to: req.body.to, charges: req.body.charges, };
                         const category = await shippingCharges.create(data);
                         return res.status(200).json({ message: "Shipping Charges add successfully.", status: 200, data: category });
                 }
@@ -1620,9 +1694,9 @@ exports.updateShippingCharges = async (req, res) => {
         if (!category) {
                 return res.status(404).json({ message: "Shipping Charges Not Found", status: 404, data: {} });
         }
-        category.date = req.body.date || category.date;
         category.from = req.body.from || category.from;
         category.to = req.body.to || category.to;
+        category.charges = req.body.charges || category.charges;
         let update = await category.save();
         return res.status(200).json({ message: "Updated Successfully", data: update });
 };
@@ -1636,9 +1710,269 @@ exports.removeShippingCharges = async (req, res) => {
                 return res.status(200).json({ message: "Shipping Charges Deleted Successfully !" });
         }
 };
+exports.createAcneQuiz = async (req, res) => {
+        try {
+                let option1image, option2image, option3image, option4image;
+                if (req.files['option1image']) {
+                        option1image = req.files['option1image'];
+                        req.body.option1image = option1image[0].path;
+                } else {
+                        return res.status(404).json({ message: "Provide option 1 image.", status: 404, data: {} });
+                }
+                if (req.files['option2image']) {
+                        option2image = req.files['option2image'];
+                        req.body.option2image = option2image[0].path;
+                } else {
+                        return res.status(404).json({ message: "Provide option 2 image.", status: 404, data: {} });
+                }
+                if (req.files['option3image']) {
+                        option3image = req.files['option3image'];
+                        req.body.option3image = option3image[0].path;
+                }
+                if (req.files['option4image']) {
+                        option4image = req.files['option4image'];
+                        req.body.option4image = option4image[0].path;
+                }
+                const Banner = await acneQuiz.create(req.body);
+                return res.status(200).json({ message: "Acne Quiz create successfully.", status: 200, data: Banner });
+        } catch (error) {
+                console.log(error);
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getAcneQuiz = async (req, res) => {
+        const categories = await acneQuiz.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Acne Quiz Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Acne Quiz not Found", status: 404, data: {}, });
 
+};
+exports.removeAcneQuiz = async (req, res) => {
+        const { id } = req.params;
+        const category = await acneQuiz.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Acne Quiz Not Found", status: 404, data: {} });
+        } else {
+                await acneQuiz.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Acne Quiz Deleted Successfully !" });
+        }
+};
+exports.updateAcneQuiz = async (req, res) => {
+        const { id } = req.params;
+        const category = await acneQuiz.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Acne Quiz Not Found", status: 404, data: {} });
+        }
+        let option1image, option2image, option3image, option4image;
+        if (req.files['option1image']) {
+                option1image = req.files['option1image'];
+                req.body.option1image = option1image[0].path;
+        }
+        if (req.files['option2image']) {
+                option2image = req.files['option2image'];
+                req.body.option2image = option2image[0].path;
+        }
+        if (req.files['option3image']) {
+                option3image = req.files['option3image'];
+                req.body.option3image = option3image[0].path;
+        }
+        if (req.files['option4image']) {
+                option4image = req.files['option4image'];
+                req.body.option4image = option4image[0].path;
+        }
+        category.question = req.body.question || category.question;
+        category.option1 = req.body.option1 || category.option1;
+        category.option1image = req.body.option1image || category.option1image;
+        category.option2 = req.body.option2 || category.option2;
+        category.option2image = req.body.option2image || category.option2image;
+        category.option3 = req.body.option3 || category.option3;
+        category.option3image = req.body.option3image || category.option3image;
+        category.option4 = req.body.option4 || category.option4;
+        category.option4image = req.body.option4image || category.option4image;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.createAcneQuizSuggession = async (req, res) => {
+        try {
+                let findAcneQuizSuggession = await acneQuizSuggession.findOne({ answer1: req.body.answer1, answer2: req.body.answer2, answer3: req.body.answer3, answer4: req.body.answer4, });
+                if (findAcneQuizSuggession) {
+                        return res.status(409).json({ message: "Acne Quiz Suggession already exit.", status: 404, data: {} });
+                } else {
+                        const findProduct = await product.findById({ _id: req.body.productId })
+                        if (!findProduct || findProduct.length === 0) {
+                                return res.status(400).send({ msg: "not found" });
+                        }
+                        const data = { answer1: req.body.answer1, answer2: req.body.answer2, answer3: req.body.answer3, answer4: req.body.answer4, productId: findProduct._id };
+                        const category = await acneQuizSuggession.create(data);
+                        return res.status(200).json({ message: "Acne Quiz Suggession add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getAcneQuizSuggession = async (req, res) => {
+        const categories = await acneQuizSuggession.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Acne Quiz Suggession Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Acne Quiz Suggession not Found", status: 404, data: {}, });
 
-// Initialize Axios with your API key
+};
+exports.updateAcneQuizSuggession = async (req, res) => {
+        const { id } = req.params;
+        const category = await acneQuizSuggession.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Acne Quiz Suggession Not Found", status: 404, data: {} });
+        }
+        let productId;
+        if (req.body.productId != (null || undefined)) {
+                const findProduct = await product.findById({ _id: req.body.productId })
+                if (!findProduct || findProduct.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        productId = findProduct._id;
+                }
+        } else {
+                productId = category.productId;
+        }
+        category.productId = productId;
+        category.answer1 = req.body.answer1 || category.answer1;
+        category.answer2 = req.body.answer2 || category.answer2;
+        category.answer3 = req.body.answer3 || category.answer3;
+        category.answer4 = req.body.answer4 || category.answer4;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeAcneQuizSuggession = async (req, res) => {
+        const { id } = req.params;
+        const category = await acneQuizSuggession.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Acne Quiz Suggession Not Found", status: 404, data: {} });
+        } else {
+                await acneQuizSuggession.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Acne Quiz Suggession Deleted Successfully !" });
+        }
+};
+exports.getAcneQuizSuggessionByAnswer = async (req, res) => {
+        const categories = await acneQuizSuggession.findOne({ answer1: req.query.answer1, answer2: req.query.answer2, answer3: req.query.answer3, answer4: req.query.answer4, }).select('productId').populate({ path: 'productId' })
+        if (categories) {
+                return res.status(201).json({ message: "Acne Quiz Suggession Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Acne Quiz Suggession not Found", status: 404, data: {}, });
+
+};
+exports.createFrequentlyBuyProduct = async (req, res) => {
+        try {
+                for (let i = 0; i < req.body.products.length; i++) {
+                        const findProduct = await product.findById({ _id: req.body.products[i] })
+                        if (!findProduct || findProduct.length === 0) {
+                                return res.status(400).send({ msg: "not found", data: {} });
+                        }
+                }
+                const data = { price: req.body.price, products: req.body.products };
+                const category = await frequentlyBuyProduct.create(data);
+                return res.status(200).json({ message: "Frequently Buy Product add successfully.", status: 200, data: category });
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getFrequentlyBuyProduct = async (req, res) => {
+        const categories = await frequentlyBuyProduct.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "Frequently Buy Product Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Frequently Buy Product not Found", status: 404, data: {}, });
+
+};
+exports.updateFrequentlyBuyProduct = async (req, res) => {
+        const { id } = req.params;
+        const category = await frequentlyBuyProduct.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Frequently Buy Product Not Found", status: 404, data: {} });
+        }
+        if (req.body.products != (null || undefined)) {
+                for (let i = 0; i < req.body.products.length; i++) {
+                        const findProduct = await product.findById({ _id: req.body.products[i] })
+                        if (!findProduct || findProduct.length === 0) {
+                                return res.status(400).send({ msg: "not found", data: {} });
+                        }
+                }
+        } else {
+                req.body.products = category.products;
+        }
+        category.price = req.body.price || category.price;
+        category.products = req.body.products || category.products;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeFrequentlyBuyProduct = async (req, res) => {
+        const { id } = req.params;
+        const category = await frequentlyBuyProduct.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Frequently Buy Product Not Found", status: 404, data: {} });
+        } else {
+                await frequentlyBuyProduct.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Frequently Buy Product Deleted Successfully !" });
+        }
+};
+exports.getFrequentlyBuyProductbyProductId = async (req, res) => {
+        const categories = await frequentlyBuyProduct.findOne({ products: { $in: req.params.productId } });
+        if (categories) {
+                return res.status(201).json({ message: "Frequently Buy Product Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "Frequently Buy Product not Found", status: 404, data: {}, });
+
+};
+exports.createAddOnServices = async (req, res) => {
+        try {
+                let findSlot = await addOnservices.findOne({ name: req.body.name });
+                if (findSlot) {
+                        return res.status(409).json({ message: "AddOnServices already exit.", status: 404, data: {} });
+                } else {
+                        const data = { name: req.body.name, price: req.body.price, time: req.body.time, description: req.body.description, };
+                        const category = await addOnservices.create(data);
+                        return res.status(200).json({ message: "AddOnServices add successfully.", status: 200, data: category });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
+exports.getAddOnServices = async (req, res) => {
+        const categories = await addOnservices.find({});
+        if (categories.length > 0) {
+                return res.status(201).json({ message: "AddOnServices Found", status: 200, data: categories, });
+        }
+        return res.status(201).json({ message: "AddOnServices not Found", status: 404, data: {}, });
+
+};
+exports.updateAddOnServices = async (req, res) => {
+        const { id } = req.params;
+        const category = await addOnservices.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "AddOnServices Not Found", status: 404, data: {} });
+        }
+        const category1 = await addOnservices.findOne({ _id: { $ne: id }, name: req.body.name });
+        if (!category1) {
+                return res.status(404).json({ message: "AddOnServices already exit", status: 404, data: {} });
+        }
+        category.name = req.body.name || category.name;
+        category.price = req.body.price || category.price;
+        category.time = req.body.time || category.time;
+        category.description = req.body.description || category.description;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeAddOnServices = async (req, res) => {
+        const { id } = req.params;
+        const category = await addOnservices.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "AddOnServices Not Found", status: 404, data: {} });
+        } else {
+                await addOnservices.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "AddOnServices Deleted Successfully !" });
+        }
+};
 const sendleApi = axios.create({
         baseURL: sendleApiBaseUrl,
         headers: {
@@ -1646,7 +1980,6 @@ const sendleApi = axios.create({
                 'Content-Type': 'application/json',
         },
 });
-
 async function createSendleOrder(orderData) {
         try {
                 const response = await sendleApi.post('/api/orders', orderData);
@@ -1700,7 +2033,6 @@ const orderData = {
         hide_pickup_address: true,
         first_mile_option: 'pickup',
 };
-
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let OTP = '';

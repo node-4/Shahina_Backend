@@ -20,17 +20,16 @@ const cartGiftsSchema = new Schema({
         default: 1
     }
 }, { _id: false })
-const cartServiceSchema = new Schema({
-    serviceId: {
+const cartfrequentlyBuyProductSchema = new Schema({
+    frequentlyBuyProductId: {
         type: Schema.Types.ObjectId,
-        ref: "services"
+        ref: "frequentlyBuyProduct"
     },
     quantity: {
         type: Number,
         default: 1
     }
 }, { _id: false })
-
 const CartSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
@@ -55,8 +54,8 @@ const CartSchema = new Schema({
     gifts: {
         type: [cartGiftsSchema]
     },
-    services: {
-        type: [cartServiceSchema]
+    frequentlyBuyProductSchema: {
+        type: [cartfrequentlyBuyProductSchema]
     },
     coupon: {
         type: Schema.Types.ObjectId,
@@ -66,5 +65,4 @@ const CartSchema = new Schema({
 }, {
     timestamps: true
 })
-
 module.exports = mongoose.model("cart", CartSchema)

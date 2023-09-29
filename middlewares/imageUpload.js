@@ -47,5 +47,13 @@ const shopPageUpload = upload18.fields([{ name: 'shopImage', maxCount: 10 }, { n
 const storage19 = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "shahina/news", allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"], }, });
 const servicePageUpload = multer({ storage: storage19 })
 const storage20 = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "shahina/contactDetail", allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"], }, });
-const upload20= multer({ storage: storage20 });
-module.exports = { upload, productUpload, newsUpload, bannerUpload, aboutUs, servicePageUpload, upload20,shopPageUpload, blogUpload, aboutusUpload, gallaryUpload, NutritionUpload, SkinTypeUpload, ProductTypeUpload, SkinConditionUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };
+const upload20 = multer({ storage: storage20 });
+const storage120 = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "shahina/shopPage", allowed_formats: ["jpg", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"], }, });
+const upload22 = multer({ storage: storage120 });
+const quiz = upload22.fields([
+        { name: 'option1image', maxCount: 1 },
+        { name: 'option2image', maxCount: 1 },
+        { name: 'option3image', maxCount: 1 },
+        { name: 'option4image', maxCount: 1 },]);
+
+module.exports = { upload, productUpload, quiz, newsUpload, bannerUpload, aboutUs, servicePageUpload, upload20, shopPageUpload, blogUpload, aboutusUpload, gallaryUpload, NutritionUpload, SkinTypeUpload, ProductTypeUpload, SkinConditionUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };

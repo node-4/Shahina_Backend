@@ -2,20 +2,10 @@ const mongoose = require('mongoose');
 const mongoosePaginate = require("mongoose-paginate");
 const mongooseAggregatePaginate = require("mongoose-aggregate-paginate");
 const schema = mongoose.Schema;
-const orderProductsSchema = new schema({
+const cartProductsSchema = new schema({
         productId: {
                 type: schema.Types.ObjectId,
                 ref: "Product"
-        },
-        quantity: {
-                type: Number,
-                default: 1
-        }
-}, { _id: false })
-const orderServiceSchema = new schema({
-        serviceId: {
-                type: schema.Types.ObjectId,
-                ref: "services"
         },
         quantity: {
                 type: Number,
@@ -26,6 +16,16 @@ const cartGiftsSchema = new schema({
         giftId: {
                 type: schema.Types.ObjectId,
                 ref: "gift"
+        },
+        quantity: {
+                type: Number,
+                default: 1
+        }
+}, { _id: false })
+const cartfrequentlyBuyProductSchema = new schema({
+        frequentlyBuyProductId: {
+                type: schema.Types.ObjectId,
+                ref: "frequentlyBuyProduct"
         },
         quantity: {
                 type: Number,
@@ -50,13 +50,13 @@ const DocumentSchema = schema({
                 type: String,
         },
         products: {
-                type: [orderProductsSchema]
-        },
-        services: {
-                type: [orderServiceSchema]
+                type: [cartProductsSchema]
         },
         gifts: {
                 type: [cartGiftsSchema]
+        },
+        frequentlyBuyProductSchema: {
+                type: [cartfrequentlyBuyProductSchema]
         },
         coupon: {
                 type: schema.Types.ObjectId,
@@ -121,21 +121,6 @@ const DocumentSchema = schema({
                         type: String,
                 },
         },
-        serviceAddresss: {
-                houseFlat: {
-                        type: String,
-                },
-                appartment: {
-                        type: String,
-                },
-                landMark: {
-                        type: String,
-                },
-        },
-        orderType: {
-                type: String,
-                enum: ["Product", "Service"],
-        },
         orderStatus: {
                 type: String,
                 enum: ["unconfirmed", "confirmed"],
@@ -149,4 +134,4 @@ const DocumentSchema = schema({
 }, { timestamps: true });
 DocumentSchema.plugin(mongoosePaginate);
 DocumentSchema.plugin(mongooseAggregatePaginate);
-module.exports = mongoose.model("order", DocumentSchema);
+module.exports = mongoose.model("productOrder", DocumentSchema);

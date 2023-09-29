@@ -4,10 +4,11 @@ var multer = require("multer");
 const path = require("path");
 const express = require("express");
 const router = express()
-const { productUpload, upload, bannerUpload, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
+const { productUpload, quiz, upload, bannerUpload, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
         aboutusUpload, subCategoryUpload, shopPageUpload, upload20, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
+        app.post("/api/v1/admin/clientRegistration", [authJwt.verifyToken], auth.clientRegistration);
         app.post("/api/v1/admin/login", auth.signin);
         app.put("/api/v1/admin/update", [authJwt.verifyToken], auth.update);
         app.post("/api/v1/admin/Brand/addBrand", [authJwt.verifyToken], BrandUpload.single('image'), auth.createBrands);
@@ -52,6 +53,7 @@ module.exports = (app) => {
         app.put("/api/v1/Subscription/:id", auth.updateSubscription);
         app.delete("/api/v1/Subscription/:id", auth.deleteSubscription);
         app.post("/api/v1/Banner/addBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createBanner);
+        app.post("/api/v1/Banner/createPromotionBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createPromotionBanner);
         app.get("/api/v1/Banner/getBanner/:type", auth.getBanner);
         app.get("/api/v1/Banner/:id", auth.getIdBanner);
         app.delete("/api/v1/Banner/:id", [authJwt.verifyToken], auth.deleteBanner);
@@ -77,7 +79,8 @@ module.exports = (app) => {
         app.get("/api/v1/clientReview", auth.getAllClientReviews);
         app.delete("/api/v1/clientReview/:id", [authJwt.verifyToken], auth.removeClientReview);
         app.get("/api/v1/clientReview/get/:id", [authJwt.verifyToken], auth.getClientReviewById);
-        app.get("/api/v1/admin/Orders", [authJwt.verifyToken], auth.getOrders);
+        app.get("/api/v1/admin/ProductOrder", [authJwt.verifyToken], auth.getProductOrder);
+        app.get("/api/v1/admin/ServiceOrders", [authJwt.verifyToken], auth.getServiceOrders);
         app.post("/api/v1/admin/Ingredient/addIngredient", [authJwt.verifyToken], auth.createIngredients);
         app.get("/api/v1/admin/Ingredient/allIngredient", auth.getIngredients);
         app.get("/api/v1/admin/Ingredient/allIngredientbyType/:type", auth.getIngredientsBytype);
@@ -93,6 +96,28 @@ module.exports = (app) => {
         app.get("/api/v1/admin/Slot/allSlot", auth.getSlot);
         app.put("/api/v1/admin/Slot/updateSlot/:id", [authJwt.verifyToken], auth.updateSlot);
         app.delete("/api/v1/admin/Slot/deleteSlot/:id", [authJwt.verifyToken], auth.removeSlot);
+        app.post("/api/v1/admin/ShippingCharges/addShippingCharges", [authJwt.verifyToken], auth.createShippingCharges);
+        app.get("/api/v1/admin/ShippingCharges/allShippingCharges", auth.getShippingCharges);
+        app.put("/api/v1/admin/ShippingCharges/updateShippingCharges/:id", [authJwt.verifyToken], auth.updateShippingCharges);
+        app.delete("/api/v1/admin/ShippingCharges/deleteShippingCharges/:id", [authJwt.verifyToken], auth.removeShippingCharges);
+        app.post("/api/v1/AcneQuiz/addAcneQuiz", [authJwt.verifyToken], quiz, auth.createAcneQuiz);
+        app.get("/api/v1/AcneQuiz", auth.getAcneQuiz);
+        app.put("/api/v1/AcneQuiz/updateAcneQuiz/:id", [authJwt.verifyToken], quiz, auth.updateAcneQuiz);
+        app.delete("/api/v1/admin/AcneQuiz/deleteAcneQuiz/:id", [authJwt.verifyToken], auth.removeAcneQuiz);
+        app.post("/api/v1/AcneQuizSuggession/addAcneQuizSuggession", [authJwt.verifyToken], auth.createAcneQuizSuggession);
+        app.get("/api/v1/AcneQuizSuggession", auth.getAcneQuizSuggession);
+        app.put("/api/v1/AcneQuizSuggession/updateAcneQuiz/:id", [authJwt.verifyToken], auth.updateAcneQuizSuggession);
+        app.delete("/api/v1/admin/AcneQuizSuggession/deleteAcneQuizSuggession/:id", [authJwt.verifyToken], auth.removeAcneQuizSuggession);
+        app.get("/api/v1/AcneQuizSuggession/getAcneQuizSuggessionByAnswer", [authJwt.verifyToken], auth.getAcneQuizSuggessionByAnswer);
+        app.post("/api/v1/FrequentlyBuyProduct/addFrequentlyBuyProduct", [authJwt.verifyToken], auth.createFrequentlyBuyProduct);
+        app.get("/api/v1/FrequentlyBuyProduct", auth.getFrequentlyBuyProduct);
+        app.put("/api/v1/FrequentlyBuyProduct/updateFrequentlyBuyProduct/:id", [authJwt.verifyToken], auth.updateFrequentlyBuyProduct);
+        app.delete("/api/v1/admin/FrequentlyBuyProduct/deleteFrequentlyBuyProduct/:id", [authJwt.verifyToken], auth.removeFrequentlyBuyProduct);
+        app.get("/api/v1/FrequentlyBuyProduct/byProduct/:productId", auth.getFrequentlyBuyProductbyProductId);
+        app.post("/api/v1/admin/AddOnServices/addAddOnServices", [authJwt.verifyToken], auth.createAddOnServices);
+        app.get("/api/v1/admin/AddOnServices/allAddOnServices", auth.getAddOnServices);
+        app.put("/api/v1/admin/AddOnServices/updateAddOnServices/:id", [authJwt.verifyToken], auth.updateAddOnServices);
+        app.delete("/api/v1/admin/AddOnServices/deleteAddOnServices/:id", [authJwt.verifyToken], auth.removeAddOnServices);
         app.post("/api/v1/admin/createShipment", auth.createShipment);
 
 }
