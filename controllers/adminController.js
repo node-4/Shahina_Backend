@@ -28,6 +28,7 @@ const acneQuiz = require("../models/acneQuiz");
 const acneQuizSuggession = require("../models/acneQuizSuggession");
 const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
+const deliverOrde = require("../models/deliverOrde");
 // const axios = require('axios');
 // const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 // const sendleApiBaseUrl = 'https://api.sendle.com';
@@ -1967,54 +1968,57 @@ const client = new SendleClient({
 });
 exports.createShipment = async (req, res) => {
         try {
-                let shipmentData = {
-                        first_mile_option: 'pickup',
-                        description: 'Test',
-                        weight: {
-                                value: '1',
-                                units: 'kg',
-                        },
-                        customer_reference: '1337',
-                        metadata: {
-                                userId: 100,
-                        },
-                        sender: {
-                                contact: {
-                                        name: 'Lex Luthor',
-                                },
-                                address: {
-                                        address_line1: '123 Main Street', // U.S. address
-                                        suburb: 'Los Angeles', // U.S. suburb
-                                        state_name: 'CA', // U.S. state
-                                        postcode: '90001', // U.S. postal code
-                                        country: 'US', // Country set to the United States
-                                },
-                        },
-                        receiver: {
-                                instructions: 'Signature on Delivery',
-                                contact: {
-                                        name: 'Clark Kent',
-                                        email: 'clarkissuper@dailyplanet.xyz',
-                                        company: 'Daily Planet',
-                                },
-                                address: {
-                                        address_line1: '456 Elm Street', // U.S. address
-                                        suburb: 'New York', // U.S. suburb
-                                        state_name: 'NY', // U.S. state
-                                        postcode: '10001', // U.S. postal code
-                                        country: 'US', // Country set to the United States
-                                },
-                        },
+                // let shipmentData = {
+                //         first_mile_option: 'pickup',
+                //         description: 'Test',
+                //         weight: {
+                //                 value: '1',
+                //                 units: 'kg',
+                //         },
+                //         customer_reference: '1337',
+                //         metadata: {
+                //                 userId: 100,
+                //         },
+                //         sender: {
+                //                 contact: {
+                //                         name: 'Lex Luthor',
+                //                 },
+                //                 address: {
+                //                         address_line1: '123 Main Street', // U.S. address
+                //                         suburb: 'Los Angeles', // U.S. suburb
+                //                         state_name: 'CA', // U.S. state
+                //                         postcode: '90001', // U.S. postal code
+                //                         country: 'US', // Country set to the United States
+                //                 },
+                //         },
+                //         receiver: {
+                //                 instructions: 'Signature on Delivery',
+                //                 contact: {
+                //                         name: 'Clark Kent',
+                //                         email: 'clarkissuper@dailyplanet.xyz',
+                //                         company: 'Daily Planet',
+                //                 },
+                //                 address: {
+                //                         address_line1: '456 Elm Street', // U.S. address
+                //                         suburb: 'New York', // U.S. suburb
+                //                         state_name: 'NY', // U.S. state
+                //                         postcode: '10001', // U.S. postal code
+                //                         country: 'US', // Country set to the United States
+                //                 },
+                //         },
+                // }
+                const order = await client.orders.create(req.body);
+                if(order){
+                        req.body = order
+                        const category = await deliverOrde.create(req.body);
+                        return res.json(category);
                 }
-
-                const order = await client.orders.create(shipmentData);
-
-                return res.json(order);
         } catch (error) {
                 console.error('Internal Server Error:', error);
                 return res.status(500).json({ error: 'Internal Server Error' });
         }
 };
+
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let OTP = '';
