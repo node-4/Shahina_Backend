@@ -29,8 +29,10 @@ const acneQuizSuggession = require("../models/acneQuizSuggession");
 const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
 const axios = require('axios');
-const sendleApiKey = 'WSRnKJtXs5X5CCbFHDFHvwy7';
+const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 const sendleApiBaseUrl = 'https://api.sendle.com';
+const sdk = require('api')('@sendle/v1.0#25eje35llbmpa1g');
+
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -1607,21 +1609,21 @@ exports.deleteGiftCard = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
-exports.createShipment = async (req, res) => {
-        try {
-                createSendleOrder(orderData)
-                        .then((orderResponse) => {
-                                console.log('Order created successfully:', orderResponse);
-                        })
-                        .catch((error) => {
-                                console.error('Error creating order:', error);
-                        });
+// exports.createShipment = async (req, res) => {
+//         try {
+//                 createSendleOrder(orderData)
+//                         .then((orderResponse) => {
+//                                 console.log('Order created successfully:', orderResponse);
+//                         })
+//                         .catch((error) => {
+//                                 console.error('Error creating order:', error);
+//                         });
 
-        } catch (error) {
-                console.error('Error creating shipment:', error.response ? error.response.data : error.message);
-                throw error;
-        }
-}
+//         } catch (error) {
+//                 console.error('Error creating shipment:', error.response ? error.response.data : error.message);
+//                 throw error;
+//         }
+// }
 exports.createSlot = async (req, res) => {
         try {
                 let findSlot = await slot.findOne({ date: req.body.date, from: req.body.from, to: req.body.to, });
@@ -1987,7 +1989,74 @@ async function createSendleOrder(orderData) {
         } catch (error) {
                 throw error;
         }
-}
+};
+
+exports.createShipment = async (req, res) => {
+        try {
+                sdk.auth('shahina_hoja_gmail_c', 'KkZkQ3MdyRtwsT3s9rMww5w5');
+                sdk.server('https://api.sendle.com');
+                const response = await sdk.createOrder({
+                        sender: {
+                                contact: { name: 'Your Name' },
+                                address: {
+                                        country: 'US',
+                                        address_line1: '123 Main Street',
+                                        suburb: 'Los Angeles',
+                                        postcode: '90001',
+                                        state_name: 'CA'
+                                }
+                        },
+                        receiver: {
+                                contact: { name: 'Receiver Name' },
+                                address: {
+                                        country: 'US',
+                                        address_line1: '456 Elm Street', // Replace with receiver's address
+                                        suburb: 'New York', // Replace with receiver's suburb
+                                        postcode: '10001', // Replace with receiver's postcode
+                                        state_code: 'NY' // Replace with receiver's state code
+                                }
+
+                                // address: {
+                                //         country: 'AU', 
+                                //         address_line1: '456 Elm Street', 
+                                //         suburb: 'Sydney', 
+                                //         postcode: '2000', 
+                                //         state_code: 'NSW' 
+                                //         // country: 'AU',
+                                //         // address_line1: 'Receiver Address Line 1',
+                                //         // suburb: 'Receiver Suburb',
+                                //         // postcode: '10001',
+                                //         // state_code: 'NY'
+                                // }
+                        },
+                        weight: { units: 'kg', value: '2' },
+                        volume: { value: '84.95073', units: 'l' },
+                        dimensions: { units: 'cm', length: '30', width: '30', height: '10' },
+                        description: 'Shipment Description',
+                        hide_pickup_address: true,
+                        contents: [
+                                {
+                                        description: 'Item 1 Description',
+                                        value: 'Item 1 Value',
+                                        country_of_origin: 'US',
+                                        hs_code: 'Item 1 HS Code'
+                                }
+                        ],
+                        contents_type: 'Merchandise'
+                });
+                if (response.status === 200) {
+                        return res.status(200).json(response.data);
+                } else {
+                        console.error('Sendle API Error:', response.statusText);
+                        return res.status(response.status).json(response.data);
+                }
+        } catch (error) {
+                console.error('Internal Server Error:', error);
+                return res.status(500).json({ error: 'Internal Server Error' });
+        }
+};
+
+
 const orderData = {
         sender: {
                 contact: {
@@ -1997,12 +2066,11 @@ const orderData = {
                         company: 'Sender Company',
                 },
                 address: {
-                        country: 'AU',
-                        address_line1: 'Sender Address Line 1',
-                        address_line2: 'Sender Address Line 2',
-                        suburb: 'Sender Suburb',
-                        postcode: '12345',
-                        state_name: 'Sender State',
+                        country: 'US',
+                        address_line1: ' Main Street',
+                        suburb: 'Los Angeles',
+                        postcode: '90001',
+                        state_name: 'CA '
                 },
                 instructions: 'Sender Instructions',
         },
