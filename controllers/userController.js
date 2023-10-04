@@ -1633,7 +1633,19 @@ exports.verifySubscription = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
-
+exports.getAllcoupan = async (req, res, next) => {
+        try {
+                const cart = await coupan.findOne({ user: req.user._id });
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Get all rewards.", cart: {} })
+                } else {
+                        return res.status(200).json({ success: true, msg: "Get all rewards.", cart: cart })
+                }
+        } catch (error) {
+                console.log(error)
+                next(error);
+        }
+}
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let OTP = '';

@@ -1044,7 +1044,7 @@ exports.createServicePage = async (req, res) => {
         try {
                 const findData = await banner.findOne({ type: "servicePage" });
                 if (!findData) {
-                        let serviceImage, data;
+                        let serviceImage = [], data;
                         if (req.files) {
                                 for (let i = 0; i < req.files.length; i++) {
                                         serviceImage.push(req.files[i].path)
@@ -1057,7 +1057,7 @@ exports.createServicePage = async (req, res) => {
                         const Banner = await banner.create(data);
                         return res.status(200).json({ message: "servicePage add successfully.", status: 200, data: Banner });
                 } else {
-                        let serviceImage, data;
+                        let serviceImage = [], data;
                         if (req.files) {
                                 for (let i = 0; i < req.files.length; i++) {
                                         serviceImage.push(req.files[i].path)
@@ -2008,7 +2008,7 @@ exports.createShipment = async (req, res) => {
                 //         },
                 // }
                 const order = await client.orders.create(req.body);
-                if(order){
+                if (order) {
                         req.body = order
                         const category = await deliverOrde.create(req.body);
                         return res.json(category);
@@ -2071,11 +2071,11 @@ const reffralCode = async () => {
 //                                 }
 
 //                                 // address: {
-//                                 //         country: 'AU', 
-//                                 //         address_line1: '456 Elm Street', 
-//                                 //         suburb: 'Sydney', 
-//                                 //         postcode: '2000', 
-//                                 //         state_code: 'NSW' 
+//                                 //         country: 'AU',
+//                                 //         address_line1: '456 Elm Street',
+//                                 //         suburb: 'Sydney',
+//                                 //         postcode: '2000',
+//                                 //         state_code: 'NSW'
 //                                 //         // country: 'AU',
 //                                 //         // address_line1: 'Receiver Address Line 1',
 //                                 //         // suburb: 'Receiver Suburb',

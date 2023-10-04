@@ -51,4 +51,7 @@ module.exports = (app) => {
         app.get('/api/v1/getSubscription', auth.getSubscription);
         app.post("/api/v1/takeSubscription/:id", [authJwt.verifyToken], auth.takeSubscription);
         app.post("/api/v1/verifySubscription/:transactionId", [authJwt.verifyToken], auth.verifySubscription);
+
+        app.get("/api/v1/getAllcoupan", [authJwt.verifyToken], auth.getAllcoupan);
+
 }
