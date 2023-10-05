@@ -178,7 +178,7 @@ exports.createBrands = async (req, res) => {
         try {
                 let findBrand = await Brand.findOne({ name: req.body.name });
                 if (findBrand) {
-                        return res.status(409).json({ message: "Brand already exit.", status: 404, data: {} });
+                        return res.status(409).json({ message: "Brand already exit.", status: 409, data: {} });
                 } else {
                         let fileUrl;
                         if (req.file) {
@@ -742,7 +742,7 @@ exports.createService = async (req, res) => {
                         }
                 }
                 if (req.body.discountActive == 'true') {
-                        req.body.discountPrice = req.body.price - ((req.body.price * req.body.discount) / 100)
+                        req.body.discountPrice = (req.body.price - ((req.body.price * req.body.discount) / 100)).toFixed(2)
                 } else {
                         req.body.discountPrice = 0
                 }
@@ -1192,18 +1192,13 @@ exports.createPromotionBanner = async (req, res) => {
 };
 exports.createGallarys = async (req, res) => {
         try {
-                let findGallary = await Gallary.findOne({ name: req.body.name });
-                if (findGallary) {
-                        return res.status(409).json({ message: "Gallary already exit.", status: 404, data: {} });
-                } else {
-                        let fileUrl;
-                        if (req.file) {
-                                fileUrl = req.file ? req.file.path : "";
-                        }
-                        const data = { description: req.body.description, image: fileUrl };
-                        const category = await Gallary.create(data);
-                        return res.status(200).json({ message: "Gallary add successfully.", status: 200, data: category });
+                let fileUrl;
+                if (req.file) {
+                        fileUrl = req.file ? req.file.path : "";
                 }
+                const data = { description: req.body.description, image: fileUrl };
+                const category = await Gallary.create(data);
+                return res.status(200).json({ message: "Gallary add successfully.", status: 200, data: category });
         } catch (error) {
                 return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
         }
