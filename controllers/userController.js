@@ -135,7 +135,7 @@ exports.forgetPassword = async (req, res) => {
                         let otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
                         const updated = await User.findOneAndUpdate({ _id: data._id }, { $set: { accountVerification: accountVerification, otp: otp, otpExpiration: otpExpiration } }, { new: true, });
                         if (updated) {
-                                return res.status(200).json({ message: "Otp send to your email.", status: 200, data: updated._id });
+                                return res.status(200).json({ message: "Otp send to your email.", status: 200, data: updated });
                         }
                         // } else {
                         //    return     res.status(200).json({ message: "Otp not send on your mail please check.", status: 200, data: {} });
