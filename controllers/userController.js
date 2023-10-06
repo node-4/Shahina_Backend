@@ -438,16 +438,17 @@ exports.addFBPToCart = async (req, res, next) => {
                 let cart = await Cart.findOne({ user: req.user._id, });
                 if (!cart) {
                         let frequentlyBuyProductSchema = [];
-                        let obj = { frequentlyBuyProductId: data._id, quantity: 1 };
+                        let obj = { frequentlyBuyProductId: data._id, quantity: req.body.quantity };
                         frequentlyBuyProductSchema.push(obj)
                         cart = await Cart.create({ user: req.user._id, frequentlyBuyProductSchema: frequentlyBuyProductSchema });
                         return res.status(200).json({ msg: "Frequently Buy Product added to cart", data: cart });
                 } else {
                         const productIndex = cart.frequentlyBuyProductSchema.findIndex((cartProduct) => { return cartProduct.frequentlyBuyProductId.toString() == frequentlyBuyProductId; });
                         if (productIndex < 0) {
-                                cart.frequentlyBuyProductSchema.push({ frequentlyBuyProductId });
+                                let obj = { frequentlyBuyProductId: frequentlyBuyProductId, quantity: req.body.quantity };
+                                cart.frequentlyBuyProductSchema.push(obj);
                         } else {
-                                cart.frequentlyBuyProductSchema[productIndex].quantity++;
+                                cart.frequentlyBuyProductSchema[productIndex].quantity = req.body.quantity;
                         }
                         await cart.save();
                         return res.status(200).json({ msg: "Frequently Buy Product added to cart", data: cart });
@@ -495,16 +496,17 @@ exports.addGiftCardToCart = async (req, res, next) => {
                 let cart = await Cart.findOne({ user: req.user._id, });
                 if (!cart) {
                         let gifts = [];
-                        let obj = { giftId: data._id, quantity: 1 };
+                        let obj = { giftId: data._id, quantity: req.body.quantity };
                         gifts.push(obj)
                         cart = await Cart.create({ user: req.user._id, gifts: gifts });
                         return res.status(200).json({ msg: "GiftCard added to cart", data: cart });
                 } else {
                         const giftIndex = cart.gifts.findIndex((cartGift) => { return cartGift.giftId.toString() == giftId; });
                         if (giftIndex < 0) {
-                                cart.gifts.push({ giftId });
+                                let obj = { giftId: giftId, quantity: req.body.quantity };
+                                cart.gifts.push(obj);
                         } else {
-                                cart.gifts[giftIndex].quantity++;
+                                cart.gifts[giftIndex].quantity = req.body.quantity;
                         }
                         await cart.save();
                         return res.status(200).json({ msg: "GiftCard added to cart", });
