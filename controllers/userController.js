@@ -149,7 +149,7 @@ exports.forgetPassword = async (req, res) => {
 exports.forgotVerifyotp = async (req, res) => {
         try {
                 const { otp } = req.body;
-                const user = await User.findById(req.params.id);
+                const user = await User.findOne({ email: req.body.email });
                 if (!user) {
                         return res.status(404).send({ message: "user not found" });
                 }
