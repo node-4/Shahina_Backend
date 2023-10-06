@@ -133,6 +133,23 @@ const DocumentSchema = schema({
                         type: String,
                 },
         },
+        billingAddresss: {
+                address: {
+                        type: String,
+                },
+                appartment: {
+                        type: String,
+                },
+                city: {
+                        type: String,
+                },
+                state: {
+                        type: String,
+                },
+                zipCode: {
+                        type: String,
+                },
+        },
         orderStatus: {
                 type: String,
                 enum: ["unconfirmed", "confirmed"],

@@ -312,7 +312,7 @@ exports.createAddress = async (req, res, next) => {
                 const data = await User.findOne({ _id: req.user._id, });
                 if (data) {
                         if (data.userType == "ADMIN") {
-                                const data1 = await Address.findOne({ admin: data._id });
+                                const data1 = await Address.findOne({ admin: data._id, addressType: req.body.addressType });
                                 if (data1) {
                                         const newAddressData = req.body;
                                         req.body.type = "Admin"
@@ -326,7 +326,7 @@ exports.createAddress = async (req, res, next) => {
                                 }
                         }
                         if (data.userType == "USER") {
-                                const data1 = await Address.findOne({ user: data._id });
+                                const data1 = await Address.findOne({ user: data._id, addressType: req.body.addressType });
                                 if (data1) {
                                         req.body.type = "User"
                                         const newAddressData = req.body;
@@ -530,9 +530,10 @@ exports.checkoutForProduct = async (req, res) => {
                         }
                         let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
-                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
-                                const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
+                                const data1 = await Address.findOne({ type: "Admin" }).select(' address,appartment,city,state,zipCode, -_id');
+                                const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select(' address,appartment,city,state,zipCode, -_id');
                                 const data3 = await User.findOne({ _id: req.user._id })
+                                const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select(' address,appartment,city,state,zipCode, -_id');
                                 let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
                                 if (data3) {
                                         if (data3.isSubscription == true) {
@@ -591,6 +592,7 @@ exports.checkoutForProduct = async (req, res) => {
                                 cartResponse.subTotal = subTotal;
                                 if (findCart.pickupFromStore == true) {
                                         cartResponse.pickUp = data1;
+                                        cartResponse.billingAddresss = data5;
                                         total1 = subTotal - coupan;
                                         memberShip = (total1 * memberShipPer) / 100;
                                         cartResponse.memberShip = memberShip;
@@ -599,6 +601,7 @@ exports.checkoutForProduct = async (req, res) => {
                                         cartResponse.grandTotal = grandTotal;
                                 } else {
                                         cartResponse.deliveryAddresss = data2;
+                                        cartResponse.billingAddresss = data5;
                                         cartResponse.shipping = shipping;
                                         total1 = subTotal - coupan + shipping;
                                         memberShip = (total1 * memberShipPer) / 100;
@@ -614,9 +617,10 @@ exports.checkoutForProduct = async (req, res) => {
                 } else {
                         let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
-                                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
-                                const data2 = await Address.findOne({ user: req.user._id }).select('houseFlat appartment landMark -_id');
+                                const data1 = await Address.findOne({ type: "Admin" }).select(' address,appartment,city,state,zipCode, -_id');
+                                const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select(' address,appartment,city,state,zipCode, -_id');
                                 const data3 = await User.findOne({ _id: req.user._id })
+                                const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select(' address,appartment,city,state,zipCode, -_id');
                                 let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
                                 if (data3) {
                                         if (data3.isSubscription == true) {
@@ -675,6 +679,7 @@ exports.checkoutForProduct = async (req, res) => {
                                 cartResponse.subTotal = subTotal;
                                 if (findCart.pickupFromStore == true) {
                                         cartResponse.pickUp = data1;
+                                        cartResponse.billingAddresss = data5;
                                         total1 = subTotal - coupan;
                                         memberShip = (total1 * memberShipPer) / 100;
                                         cartResponse.memberShip = memberShip;
@@ -683,6 +688,7 @@ exports.checkoutForProduct = async (req, res) => {
                                         cartResponse.grandTotal = grandTotal;
                                 } else {
                                         cartResponse.deliveryAddresss = data2;
+                                        cartResponse.billingAddresss = data5;
                                         cartResponse.shipping = shipping;
                                         total1 = subTotal - coupan + shipping;
                                         memberShip = (total1 * memberShipPer) / 100;
@@ -878,8 +884,9 @@ const getCartResponse = async (cart, userId) => {
                 await cart.populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } },
                 { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },
                 { path: "coupon", select: "couponCode discount expirationDate" },]);
-                const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
-                const data2 = await Address.findOne({ user: userId }).select('houseFlat appartment landMark -_id');
+                const data1 = await Address.findOne({ type: "Admin" }).select(' address,appartment,city,state,zipCode, -_id');
+                const data2 = await Address.findOne({ user: userId, addressType: "Shipping" }).select(' address,appartment,city,state,zipCode, -_id');
+                const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select(' address,appartment,city,state,zipCode, -_id');
                 const data3 = await User.findOne({ _id: userId })
                 const data4 = await contact.findOne().select('name image phone email numOfReviews ratings -_id');
                 let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer;
@@ -949,8 +956,10 @@ const getCartResponse = async (cart, userId) => {
                 cartResponse.contactDetail = data4;
                 if (cart.pickupFromStore == true) {
                         cartResponse.pickUp = data1;
+                        cartResponse.billingAddresss = data5;
                 } else {
                         cartResponse.deliveryAddresss = data2;
+                        cartResponse.billingAddresss = data5;
                 }
                 return cartResponse;
         } catch (error) {
@@ -1447,7 +1456,8 @@ const getServiceCartResponse = async (cartService, userId) => {
                         { path: "coupon", select: "couponCode discount expirationDate" },
                 ]);
                 const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
-                const data2 = await Address.findOne({ user: userId }).select('houseFlat appartment landMark -_id');
+                const data2 = await Address.findOne({ user: userId, addressType: "Shipping" }).select(' address,appartment,city,state,zipCode, -_id');
+                const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select(' address,appartment,city,state,zipCode, -_id');
                 const data3 = await User.findOne({ _id: userId })
                 const data4 = await contact.findOne().select('name image phone email numOfReviews ratings -_id');
                 let discount = 0, coupan = 0, memberShip = 0, serviceCharge = 10, memberShipPer;
@@ -1502,7 +1512,7 @@ const getServiceCartResponse = async (cartService, userId) => {
                 cartResponse.grandTotal = grandTotal;
                 cartResponse.contactDetail = data4;
                 cartResponse.serviceAddresss = data1;
-
+                cartResponse.billingAddresss = data5;
                 return cartResponse;
         } catch (error) {
                 throw error;

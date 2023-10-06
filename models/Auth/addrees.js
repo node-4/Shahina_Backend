@@ -27,5 +27,9 @@ const addressSchema = new mongoose.Schema({
     type: {
         type: String,
     },
+    addressType: {
+        type: String,
+        enum: ["Shipping", "Billing"]
+    },
 }, { timestamps: true });
 module.exports = mongoose.model("Address", addressSchema);
