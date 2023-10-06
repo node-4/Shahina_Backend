@@ -511,7 +511,7 @@ exports.createProduct = async (req, res) => {
 };
 exports.paginateProductSearch = async (req, res) => {
         try {
-                const { search, fromDate, toDate, brandId, quantity, status, page, limit } = req.query;
+                const { search, fromDate, toDate, brandId, nutritionId, productTypeId, skinConditionId, skinTypeId, quantity, status, page, limit } = req.query;
                 let query = {};
                 if (search) {
                         query.$or = [
@@ -524,6 +524,18 @@ exports.paginateProductSearch = async (req, res) => {
                 }
                 if (brandId) {
                         query.brandId = brandId
+                }
+                if (nutritionId) {
+                        query.nutritionId = nutritionId
+                }
+                if (productTypeId) {
+                        query.productTypeId = productTypeId
+                }
+                if (skinConditionId) {
+                        query.skinConditionId = skinConditionId
+                }
+                if (skinTypeId) {
+                        query.skinTypeId = skinTypeId
                 }
                 if (quantity) {
                         query.quantity = quantity
