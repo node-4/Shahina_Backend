@@ -464,16 +464,15 @@ exports.deletefrequentlyBuyProductfromcart = async (req, res) => {
                         for (let i = 0; i < findCart.frequentlyBuyProductSchema.length; i++) {
                                 if (findCart.frequentlyBuyProductSchema.length > 0) {
                                         if (((findCart.frequentlyBuyProductSchema[i].frequentlyBuyProductId).toString() == req.params.id) == true) {
-                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'frequentlyBuyProductSchema.frequentlyBuyProductId': req.params.id }, { $pull: { 'frequentlyBuyProductSchema': { frequentlyBuyProductId: req.params.id, quantity: findCart.frequentlyBuyProductSchema[i].quantity, } } }, { new: true })
+                                                let updateCart = await Cart.findOneAndUpdate({ _id: findCart._id, 'frequentlyBuyProductSchema.frequentlyBuyProductId': req.params.id }, { $pull: { 'frequentlyBuyProductSchema': { frequentlyBuyProductId: req.params.id, quantity: findCart.frequentlyBuyProductSchema[i].quantity, } } }, { new: true })
                                                 if (updateCart) {
                                                         return res.status(200).send({ message: "frequently Buy Product delete from cart.", data: updateCart, });
                                                 }
                                         }
                                 } else {
-
                                         let findCart1 = await Cart.findOne({ user: req.user._id });
-                                        if (!findCart1) {
-                                                return res.status(200).send({ status: 200, message: "Cart Data Found ", cart: [] });
+                                        if (findCart1) {
+                                                return res.status(200).send({ status: 200, message: "Cart Data Found ", cart: findCart1 });
                                         }
                                 }
                         }
@@ -522,15 +521,15 @@ exports.deleteGiftCardfromcart = async (req, res) => {
                         for (let i = 0; i < findCart.gifts.length; i++) {
                                 if (findCart.gifts.length > 0) {
                                         if (((findCart.gifts[i].giftId).toString() == req.params.id) == true) {
-                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'gifts.giftId': req.params.id }, { $pull: { 'gifts': { giftId: req.params.id, quantity: findCart.gifts[i].quantity, } } }, { new: true })
+                                                let updateCart = await Cart.findOneAndUpdate({ _id: findCart._id, 'gifts.giftId': req.params.id }, { $pull: { 'gifts': { giftId: req.params.id, quantity: findCart.gifts[i].quantity, } } }, { new: true })
                                                 if (updateCart) {
-                                                        return res.status(200).send({ message: "frequently Buy Product delete from cart.", data: updateCart, });
+                                                        return res.status(200).send({ message: "Gift card delete from cart.", data: updateCart, });
                                                 }
                                         }
                                 } else {
                                         let findCart1 = await Cart.findOne({ user: req.user._id });
-                                        if (!findCart1) {
-                                                return res.status(200).send({ status: 200, message: "Cart Data Found ", cart: [] });
+                                        if (findCart1) {
+                                                return res.status(200).send({ status: 200, message: "Cart Data Found ", cart: findCart1 });
                                         }
                                 }
                         }
@@ -901,7 +900,7 @@ exports.deleteProductfromcart = async (req, res) => {
                         for (let i = 0; i < findCart.products.length; i++) {
                                 if (findCart.products.length > 1) {
                                         if (((findCart.products[i].productId).toString() == req.params.id) == true) {
-                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'products.productId': req.params.id }, { $pull: { 'products': { productId: req.params.id, quantity: findCart.products[i].quantity, } } }, { new: true })
+                                                let updateCart = await Cart.findOneAndUpdate({ _id: findCart._id, 'products.productId': req.params.id }, { $pull: { 'products': { productId: req.params.id, quantity: findCart.products[i].quantity, } } }, { new: true })
                                                 if (updateCart) {
                                                         return res.status(200).send({ message: "Service delete from cart.", data: updateCart, });
                                                 }
@@ -910,8 +909,8 @@ exports.deleteProductfromcart = async (req, res) => {
                                         let updateProject = await Cart.findByIdAndDelete({ _id: findCart._id });
                                         if (updateProject) {
                                                 let findCart1 = await Cart.findOne({ user: req.user._id });
-                                                if (!findCart1) {
-                                                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                                                if (findCart1) {
+                                                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: findCart1 });
                                                 }
                                         }
                                 }
