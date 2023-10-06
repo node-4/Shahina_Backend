@@ -1873,7 +1873,7 @@ exports.createFrequentlyBuyProduct = async (req, res) => {
         }
 };
 exports.getFrequentlyBuyProduct = async (req, res) => {
-        const categories = await frequentlyBuyProduct.find({});
+        const categories = await frequentlyBuyProduct.find({}).populate('products');
         if (categories.length > 0) {
                 return res.status(201).json({ message: "Frequently Buy Product Found", status: 200, data: categories, });
         }
