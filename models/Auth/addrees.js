@@ -1,13 +1,19 @@
 const mongoose = require("mongoose");
 const schema = mongoose.Schema;
 const addressSchema = new mongoose.Schema({
-    houseFlat: {
+    address: {
         type: String,
     },
     appartment: {
         type: String,
     },
-    landMark: {
+    city: {
+        type: String,
+    },
+    state: {
+        type: String,
+    },
+    zipCode: {
         type: String,
     },
     user: {

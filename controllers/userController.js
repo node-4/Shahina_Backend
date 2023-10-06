@@ -876,7 +876,7 @@ exports.getProductOrderbyId = async (req, res, next) => {
 const getCartResponse = async (cart, userId) => {
         try {
                 await cart.populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } },
-                { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
+                { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },
                 { path: "coupon", select: "couponCode discount expirationDate" },]);
                 const data1 = await Address.findOne({ type: "Admin" }).select('houseFlat appartment landMark -_id');
                 const data2 = await Address.findOne({ user: userId }).select('houseFlat appartment landMark -_id');

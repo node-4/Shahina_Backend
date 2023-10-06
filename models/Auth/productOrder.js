@@ -100,24 +100,36 @@ const DocumentSchema = schema({
                 default: false,
         },
         pickUp: {
-                houseFlat: {
+                address: {
                         type: String,
                 },
                 appartment: {
                         type: String,
                 },
-                landMark: {
+                city: {
+                        type: String,
+                },
+                state: {
+                        type: String,
+                },
+                zipCode: {
                         type: String,
                 },
         },
         deliveryAddresss: {
-                houseFlat: {
+                address: {
                         type: String,
                 },
                 appartment: {
                         type: String,
                 },
-                landMark: {
+                city: {
+                        type: String,
+                },
+                state: {
+                        type: String,
+                },
+                zipCode: {
                         type: String,
                 },
         },
