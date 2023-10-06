@@ -409,16 +409,17 @@ exports.addToCart = async (req, res, next) => {
                 let cart = await Cart.findOne({ user: req.user._id, });
                 if (!cart) {
                         let products = [];
-                        let obj = { productId: data._id, quantity: 1 };
+                        let obj = { productId: data._id, quantity: req.body.quantity };
                         products.push(obj)
                         cart = await Cart.create({ user: req.user._id, products: products });
                         return res.status(200).json({ msg: "product added to cart", data: cart });
                 } else {
                         const productIndex = cart.products.findIndex((cartProduct) => { return cartProduct.productId.toString() == productId; });
                         if (productIndex < 0) {
-                                cart.products.push({ productId });
+                                let obj = { productId: data._id, quantity: req.body.quantity };
+                                cart.products.push(obj);
                         } else {
-                                cart.products[productIndex].quantity++;
+                                cart.products[productIndex].quantity = req.body.quantity;
                         }
                         await cart.save();
                         return res.status(200).json({ msg: "product added to cart", data: cart });
@@ -455,6 +456,35 @@ exports.addFBPToCart = async (req, res, next) => {
                 next(error);
         }
 };
+exports.deletefrequentlyBuyProductfromcart = async (req, res) => {
+        try {
+                let findCart = await Cart.findOne({ user: req.user._id });
+                if (findCart) {
+                        for (let i = 0; i < findCart.frequentlyBuyProductSchema.length; i++) {
+                                if (findCart.frequentlyBuyProductSchema.length > 0) {
+                                        if (((findCart.frequentlyBuyProductSchema[i].frequentlyBuyProductId).toString() == req.params.id) == true) {
+                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'frequentlyBuyProductSchema.frequentlyBuyProductId': req.params.id }, { $pull: { 'frequentlyBuyProductSchema': { frequentlyBuyProductId: req.params.id, quantity: findCart.frequentlyBuyProductSchema[i].quantity, } } }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "frequently Buy Product delete from cart.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+
+                                        let findCart1 = await Cart.findOne({ user: req.user._id });
+                                        if (!findCart1) {
+                                                return res.status(200).send({ status: 200, message: "Cart Data Found ", cart: [] });
+                                        }
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                }
+
+        } catch (error) {
+                console.log("353====================>", error)
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
 exports.addGiftCardToCart = async (req, res, next) => {
         try {
                 const giftId = req.params.id;
@@ -481,6 +511,34 @@ exports.addGiftCardToCart = async (req, res, next) => {
                 }
         } catch (error) {
                 next(error);
+        }
+};
+exports.deleteGiftCardfromcart = async (req, res) => {
+        try {
+                let findCart = await Cart.findOne({ user: req.user._id });
+                if (findCart) {
+                        for (let i = 0; i < findCart.gifts.length; i++) {
+                                if (findCart.gifts.length > 0) {
+                                        if (((findCart.gifts[i].giftId).toString() == req.params.id) == true) {
+                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'gifts.giftId': req.params.id }, { $pull: { 'gifts': { giftId: req.params.id, quantity: findCart.gifts[i].quantity, } } }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "frequently Buy Product delete from cart.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+                                        let findCart1 = await Cart.findOne({ user: req.user._id });
+                                        if (!findCart1) {
+                                                return res.status(200).send({ status: 200, message: "Cart Data Found ", cart: [] });
+                                        }
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                }
+
+        } catch (error) {
+                console.log("353====================>", error)
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 exports.getCart = async (req, res, next) => {
@@ -831,6 +889,37 @@ exports.cancelOrderForProduct = async (req, res) => {
                 }
         } catch (error) {
                 console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.deleteProductfromcart = async (req, res) => {
+        try {
+                let findCart = await Cart.findOne({ user: req.user._id });
+                if (findCart) {
+                        for (let i = 0; i < findCart.products.length; i++) {
+                                if (findCart.products.length > 1) {
+                                        if (((findCart.products[i].productId).toString() == req.params.id) == true) {
+                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'products.productId': req.params.id }, { $pull: { 'products': { productId: req.params.id, quantity: findCart.products[i].quantity, } } }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "Service delete from cart.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+                                        let updateProject = await Cart.findByIdAndDelete({ _id: findCart._id });
+                                        if (updateProject) {
+                                                let findCart1 = await Cart.findOne({ user: req.user._id });
+                                                if (!findCart1) {
+                                                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                                                }
+                                        }
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, "message": "No Data Found ", cart: [] });
+                }
+
+        } catch (error) {
+                console.log("353====================>", error)
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };

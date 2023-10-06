@@ -26,6 +26,9 @@ module.exports = (app) => {
         app.post('/api/v1/cart/gift/:id', [authJwt.verifyToken], auth.addGiftCardToCart)
         app.put('/api/v1/updatePickupFromStore', [authJwt.verifyToken], auth.updatePickupFromStore);
         app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
+        app.put('/api/v1/deleteProductfromcart/:id', [authJwt.verifyToken], auth.deleteProductfromcart)
+        app.put('/api/v1/deletefrequentlyBuyProductfromcart/:id', [authJwt.verifyToken], auth.deletefrequentlyBuyProductfromcart)
+        app.put('/api/v1/deleteGiftCardfromcart/:id', [authJwt.verifyToken], auth.deleteGiftCardfromcart)
         app.post('/api/v1/checkoutForProduct', [authJwt.verifyToken], auth.checkoutForProduct);
         app.post("/api/v1/placeOrderForProduct/:orderId", [authJwt.verifyToken], auth.placeOrderForProduct);
         app.get("/api/v1/successOrderForProduct/:orderId", [authJwt.verifyToken], auth.successOrderForProduct);
