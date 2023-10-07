@@ -34,6 +34,11 @@ module.exports = (app) => {
         app.post("/api/v1/placeOrder/:orderId", [authJwt.verifyToken], auth.placeOrder);
         app.get("/api/v1/successOrder/:orderId", [authJwt.verifyToken], auth.successOrder);
         app.get("/api/v1/cancelOrder/:orderId", [authJwt.verifyToken], auth.cancelOrder);
+        app.get("/api/v1/productOrders", [authJwt.verifyToken], auth.getProductOrders);
+        app.get("/api/v1/viewproductOrder/:id", [authJwt.verifyToken], auth.getProductOrderbyId);
+        app.get("/api/v1/serviceOrders", [authJwt.verifyToken], auth.getServiceOrders);
+        app.get("/api/v1/viewserviceOrder/:id", [authJwt.verifyToken], auth.getServiceOrderbyId);
+        app.get("/api/v1/Service/getOnSale/Service", auth.getOnSaleService);
 
 
 
@@ -50,8 +55,6 @@ module.exports = (app) => {
         // app.post("/api/v1/placeOrderForProduct/:orderId", [authJwt.verifyToken], auth.placeOrderForProduct);
         // app.get("/api/v1/successOrderForProduct/:orderId", [authJwt.verifyToken], auth.successOrderForProduct);
         // app.get("/api/v1/cancelOrderForProduct/:orderId", [authJwt.verifyToken], auth.cancelOrderForProduct);
-        // app.get("/api/v1/productOrders", [authJwt.verifyToken], auth.getProductOrders);
-        // app.get("/api/v1/viewproductOrder/:id", [authJwt.verifyToken], auth.getProductOrderbyId);
         // // service cart start 
         // app.post('/api/v1/cart/service/:id', [authJwt.verifyToken], auth.addServiceToCart)
         // app.post('/api/v1/cart/addOnservice/:id', [authJwt.verifyToken], auth.addOnServiceToCart)
@@ -62,9 +65,6 @@ module.exports = (app) => {
         // app.get("/api/v1/successOrderForService/:orderId", [authJwt.verifyToken], auth.successOrderForService);
         // app.get("/api/v1/cancelOrderForService/:orderId", [authJwt.verifyToken], auth.cancelOrderForService);
         // app.get('/api/v1/cartData', [authJwt.verifyToken], auth.cartData);
-        // app.get("/api/v1/Service/getOnSale/Service", auth.getOnSaleService);
-        // app.get("/api/v1/serviceOrders", [authJwt.verifyToken], auth.getServiceOrders);
-        // app.get("/api/v1/viewserviceOrder/:id", [authJwt.verifyToken], auth.getServiceOrderbyId);
         // service cart end 
 
 }
