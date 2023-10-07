@@ -15,6 +15,9 @@ const staticContent = mongoose.Schema({
     desc: {
         type: String
     },
+    description: {
+        type: Array
+    },
     designation: {
         type: String
     },

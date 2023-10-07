@@ -9,7 +9,7 @@ exports.createAboutUs = async (req, res) => {
                 const newAboutUs = {
                         title: req.body.title,
                         image: image,
-                        desc: req.body.desc,
+                        description: req.body.description,
                         designation: req.body.designation,
                         link: req.body.link,
                         type: "ABOUTUS"
@@ -59,10 +59,10 @@ exports.updateAboutUs = async (req, res) => {
                                 image = data.image;
                         }
                         let title = req.body.title || data.title;
-                        let desc = req.body.desc || data.desc;
+                        let description = req.body.description || data.description;
                         let designation = req.body.designation || data.designation;
                         let link = req.body.link || data.link;
-                        const result = await staticContent.findByIdAndUpdate({ _id: req.params.id }, { $set: { image: image, link: link, designation: designation, title: title, desc: desc, type: data.type, } }, { new: true });
+                        const result = await staticContent.findByIdAndUpdate({ _id: req.params.id }, { $set: { image: image, link: link, designation: designation, title: title, description: description, type: data.type, } }, { new: true });
                         return res.status(200).json({ status: 200, message: "update successfully.", data: result });
                 }
         } catch (error) {

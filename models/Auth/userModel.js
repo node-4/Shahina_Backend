@@ -67,7 +67,7 @@ var userSchema = new schema(
                 },
                 userType: {
                         type: String,
-                        enum: ["USER", "ADMIN"],
+                        enum: ["USER","GUEST", "ADMIN"],
                 },
                 status: {
                         type: String,

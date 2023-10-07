@@ -30,26 +30,6 @@ const cartfrequentlyBuyProductSchema = new Schema({
         default: 1
     }
 }, { _id: false })
-const cartAddOnservicesSchema = new Schema({
-    addOnservicesId: {
-        type: Schema.Types.ObjectId,
-        ref: "addOnservices"
-    },
-    quantity: {
-        type: Number,
-        default: 1
-    }
-}, { _id: false })
-const cartServiceSchema = new Schema({
-    serviceId: {
-        type: Schema.Types.ObjectId,
-        ref: "services"
-    },
-    quantity: {
-        type: Number,
-        default: 1
-    }
-}, { _id: false })
 const CartSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
@@ -76,12 +56,6 @@ const CartSchema = new Schema({
     },
     frequentlyBuyProductSchema: {
         type: [cartfrequentlyBuyProductSchema]
-    },
-    services: {
-        type: [cartServiceSchema]
-    },
-    AddOnservicesSchema: {
-        type: [cartAddOnservicesSchema]
     },
     coupon: {
         type: Schema.Types.ObjectId,
