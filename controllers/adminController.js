@@ -431,25 +431,35 @@ exports.removeSkinType = async (req, res) => {
 };
 exports.createProduct = async (req, res) => {
         try {
-                const data = await Brand.findById(req.body.brandId);
-                if (!data || data.length === 0) {
-                        return res.status(400).send({ status: 404, msg: "Brand not found" });
+                if (req.body.brandId != (null || undefined)) {
+                        const data0 = await Brand.findById(req.body.brandId);
+                        if (!data0 || data0.length === 0) {
+                                return res.status(400).send({ status: 404, msg: "Brand not found" });
+                        }
                 }
-                const data1 = await Nutrition.findById(req.body.nutritionId);
-                if (!data1 || data1.length === 0) {
-                        return res.status(400).send({ status: 404, msg: "Nutrition not found" });
+                if (req.body.nutritionId != (null || undefined)) {
+                        const data1 = await Nutrition.findById(req.body.nutritionId);
+                        if (!data1 || data1.length === 0) {
+                                return res.status(400).send({ status: 404, msg: "Nutrition not found" });
+                        }
                 }
-                const data2 = await ProductType.findById(req.body.productTypeId);
-                if (!data2 || data2.length === 0) {
-                        return res.status(400).send({ status: 404, msg: "ProductType not found" });
+                if (req.body.productTypeId != (null || undefined)) {
+                        const data2 = await ProductType.findById(req.body.productTypeId);
+                        if (!data2 || data2.length === 0) {
+                                return res.status(400).send({ status: 404, msg: "ProductType not found" });
+                        }
                 }
-                const data3 = await SkinCondition.findById(req.body.skinConditionId);
-                if (!data3 || data3.length === 0) {
-                        return res.status(400).send({ status: 404, msg: "SkinCondition not found" });
+                if (req.body.skinConditionId != (null || undefined)) {
+                        const data3 = await SkinCondition.findById(req.body.skinConditionId);
+                        if (!data3 || data3.length === 0) {
+                                return res.status(400).send({ status: 404, msg: "SkinCondition not found" });
+                        }
                 }
-                const data4 = await SkinType.findById(req.body.skinTypeId);
-                if (!data4 || data4.length === 0) {
-                        return res.status(400).send({ status: 404, msg: "SkinType not found" });
+                if (req.body.skinTypeId != (null || undefined)) {
+                        const data4 = await SkinType.findById(req.body.skinTypeId);
+                        if (!data4 || data4.length === 0) {
+                                return res.status(400).send({ status: 404, msg: "SkinType not found" });
+                        }
                 }
                 let productImages = [], howTouse = [], additionalInfo = [], sizePrice = [];
                 if (req.files) {
@@ -460,19 +470,23 @@ exports.createProduct = async (req, res) => {
                                 productImages.push(obj)
                         }
                 }
-                for (let i = 0; i < req.body.step.length; i++) {
-                        let obj = {
-                                step: req.body.step[i],
-                                description: req.body.stepDescription[i]
+                if (req.body.step != undefined) {
+                        for (let i = 0; i < req.body.step.length; i++) {
+                                let obj = {
+                                        step: req.body.step[i],
+                                        description: req.body.stepDescription[i]
+                                }
+                                howTouse.push(obj)
                         }
-                        howTouse.push(obj)
                 }
-                for (let i = 0; i < req.body.title.length; i++) {
-                        let obj = {
-                                title: req.body.title[i],
-                                addDescription: req.body.addDescription[i]
+                if (req.body.title != undefined) {
+                        for (let i = 0; i < req.body.title.length; i++) {
+                                let obj = {
+                                        title: req.body.title[i],
+                                        addDescription: req.body.addDescription[i]
+                                }
+                                howTouse.push(obj)
                         }
-                        howTouse.push(obj)
                 }
                 if (req.body.stock > 0) { req.body.status = "STOCK" }
                 if (req.body.stock <= 0) { req.body.status = "OUTOFSTOCK" }

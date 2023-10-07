@@ -24,11 +24,16 @@ module.exports = (app) => {
         app.post("/api/v1/takeSubscription/:id", [authJwt.verifyToken], auth.takeSubscription);
         app.post("/api/v1/verifySubscription/:transactionId", [authJwt.verifyToken], auth.verifySubscription);
         app.get("/api/v1/getAllcoupan", [authJwt.verifyToken], auth.getAllcoupan);
+        app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
         app.post('/api/v1/add-to-cart/:type/:id', [authJwt.verifyToken], auth.addToCart);
         app.delete('/api/cart/delete/:type/:id', [authJwt.verifyToken], auth.deleteCartItem);
         app.put("/api/v1/cart/addDateAndtimetoServiceCart", [authJwt.verifyToken], auth.addDateAndtimetoServiceCart);
         app.put("/api/v1/cart/addSuggestionToServiceCart", [authJwt.verifyToken], auth.addSuggestionToServiceCart);
         app.put('/api/v1/updatePickupFromStore', [authJwt.verifyToken], auth.updatePickupFromStore);
+        app.post('/api/v1/checkout', [authJwt.verifyToken], auth.checkout);
+        app.post("/api/v1/placeOrder/:orderId", [authJwt.verifyToken], auth.placeOrder);
+        app.get("/api/v1/successOrder/:orderId", [authJwt.verifyToken], auth.successOrder);
+        app.get("/api/v1/cancelOrder/:orderId", [authJwt.verifyToken], auth.cancelOrder);
 
 
 
