@@ -818,11 +818,11 @@ exports.addDateAndtimetoServiceCart = async (req, res) => {
                 if (!userData) {
                         return res.status(404).send({ status: 404, message: "User not found" });
                 } else {
-                        let findCart = await cartService.findOne({ user: userData._id });
+                        let findCart = await Cart.findOne({ user: userData._id });
                         if (findCart) {
                                 const d = new Date(req.body.date);
                                 let text = d.toISOString();
-                                let update = await cartService.findByIdAndUpdate({ _id: findCart._id }, { $set: { date: text, time: req.body.time } }, { new: true });
+                                let update = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $set: { date: text, time: req.body.time } }, { new: true });
                                 if (update) {
                                         return res.status(200).send({ status: 200, message: "Cart update successfully.", data: update });
                                 }
@@ -837,9 +837,9 @@ exports.addDateAndtimetoServiceCart = async (req, res) => {
 };
 exports.addSuggestionToServiceCart = async (req, res) => {
         try {
-                let findCart = await cartService.findOne({ user: req.user._id });
+                let findCart = await Cart.findOne({ user: req.user._id });
                 if (findCart) {
-                        let update1 = await cartService.findByIdAndUpdate({ _id: findCart._id }, { $set: { suggesstion: req.body.suggestion }, }, { new: true });
+                        let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $set: { suggesstion: req.body.suggestion }, }, { new: true });
                         return res.status(200).json({ status: 200, message: "suggestion add to cart Successfully.", data: update1 })
                 } else {
                         return res.status(404).json({ status: 404, message: "Cart is empty.", data: {} });
