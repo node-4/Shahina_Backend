@@ -22,6 +22,7 @@ const serviceOrder = require("../models/Auth/serviceOrder");
 const productOrder = require("../models/Auth/productOrder");
 const ingredients = require("../models/ingredients");
 const giftCard = require("../models/giftCard");
+const Cart = require("../models/Auth/cartModel");
 const slot = require("../models/slot");
 const shippingCharges = require("../models/shippingCharges");
 const acneQuiz = require("../models/acneQuiz");
@@ -821,6 +822,34 @@ exports.paginateServiceSearch = async (req, res) => {
 
         } catch (err) {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.getServiceByToken = async (req, res, next) => {
+        try {
+                const servicesList = await services.find({ categoryId: req.query.categoryId });
+                const servicesWithDynamicFields = [];
+                const userCart = await Cart.findOne({ user: req.user._id });
+                for (const service of servicesList) {
+                        let isInCart = false;
+                        let quantityInCart = 0;
+                        if (userCart) {
+                                const cartItem = userCart.services.find((cartItem) => cartItem.serviceId?.equals(service._id));
+                                if (cartItem) {
+                                        isInCart = true;
+                                        quantityInCart = cartItem.quantity;
+                                }
+                        }
+                        const serviceWithDynamicFields = {
+                                ...service.toObject(),
+                                isInCart,
+                                quantityInCart,
+                        };
+                        servicesWithDynamicFields.push(serviceWithDynamicFields);
+                }
+                return res.status(200).json({ status: 200, message: "Services data found.", data: servicesWithDynamicFields, });
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({ message: "Internal server error while fetching services" });
         }
 };
 exports.getIdService = async (req, res) => {
