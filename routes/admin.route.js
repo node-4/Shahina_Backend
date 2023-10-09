@@ -117,6 +117,7 @@ module.exports = (app) => {
         app.get("/api/v1/FrequentlyBuyProduct/byProduct/:productId", auth.getFrequentlyBuyProductbyProductId);
         app.post("/api/v1/admin/AddOnServices/addAddOnServices", [authJwt.verifyToken], auth.createAddOnServices);
         app.get("/api/v1/admin/AddOnServices/allAddOnServices", auth.getAddOnServices);
+        app.get("/api/v1/AddOnServices/getAddOnServiceByToken", [authJwt.verifyToken], auth.getAddOnServiceByToken);
         app.put("/api/v1/admin/AddOnServices/updateAddOnServices/:id", [authJwt.verifyToken], auth.updateAddOnServices);
         app.delete("/api/v1/admin/AddOnServices/deleteAddOnServices/:id", [authJwt.verifyToken], auth.removeAddOnServices);
         app.post("/api/v1/admin/createShipment", auth.createShipment);

@@ -1984,6 +1984,34 @@ exports.getAddOnServices = async (req, res) => {
         return res.status(201).json({ message: "AddOnServices not Found", status: 404, data: {}, });
 
 };
+exports.getAddOnServiceByToken = async (req, res, next) => {
+        try {
+                const servicesList = await addOnservices.find({});
+                const servicesWithDynamicFields = [];
+                const userCart = await Cart.findOne({ user: req.user._id });
+                for (const service of servicesList) {
+                        let isInCart = false;
+                        let quantityInCart = 0;
+                        if (userCart) {
+                                const cartItem = userCart.AddOnservicesSchema.find((cartItem) => cartItem.addOnservicesId?.equals(service._id));
+                                if (cartItem) {
+                                        isInCart = true;
+                                        quantityInCart = cartItem.quantity;
+                                }
+                        }
+                        const serviceWithDynamicFields = {
+                                ...service.toObject(),
+                                isInCart,
+                                quantityInCart,
+                        };
+                        servicesWithDynamicFields.push(serviceWithDynamicFields);
+                }
+                return res.status(200).json({ status: 200, message: "Add On Services data found.", data: servicesWithDynamicFields, });
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({ message: "Internal server error while fetching services" });
+        }
+};
 exports.updateAddOnServices = async (req, res) => {
         const { id } = req.params;
         const category = await addOnservices.findById(id);
