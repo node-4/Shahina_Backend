@@ -1148,6 +1148,40 @@ exports.createBanner = async (req, res) => {
                 return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
         }
 };
+exports.createHomePageBanner = async (req, res) => {
+        try {
+                const findData = await banner.findOne({ type: "HomePage" });
+                if (findData) {
+                        let bannerImage, data;
+                        if (req.file.path) {
+                                bannerImage = req.file.path
+                        }
+                        data = {
+                                title: req.body.title || findData.title,
+                                description: req.body.description || findData.description,
+                                bannerImage: bannerImage || findData.bannerImage,
+                                type: "HomePage"
+                        };
+                        const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
+                        return res.status(200).json({ message: "Banner update successfully.", status: 200, data: Banner });
+                } else {
+                        let bannerImage, data;
+                        if (req.file.path) {
+                                bannerImage = req.file.path
+                        }
+                        data = {
+                                title: req.body.title,
+                                description: req.body.description,
+                                bannerImage: bannerImage,
+                                type: 'HomePage'
+                        };
+                        const Banner = await banner.create(data);
+                        return res.status(200).json({ message: "Banner add successfully.", status: 200, data: Banner });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
+        }
+};
 exports.getBanner = async (req, res) => {
         try {
                 const data = await banner.find({ type: req.params.type })

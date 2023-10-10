@@ -25,6 +25,9 @@ const DocumentSchema = schema({
         partnerImage: {
                 type: Array
         },
+        description: {
+                type: Array
+        },
         shopImage: {
                 type: Array
         },
@@ -44,7 +47,7 @@ const DocumentSchema = schema({
         },
         type: {
                 type: String,
-                enum: ["offer", "product", "finance", "Membership", "Partner", "shopPage", "servicePage", "Promotion"]
+                enum: ["offer", "product", "finance", "Membership", "Partner", "shopPage", "servicePage", "Promotion", "HomePage"]
         },
 }, { timestamps: true })
 module.exports = mongoose.model("banner", DocumentSchema);

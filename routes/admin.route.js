@@ -54,6 +54,7 @@ module.exports = (app) => {
         app.put("/api/v1/Subscription/:id", auth.updateSubscription);
         app.delete("/api/v1/Subscription/:id", auth.deleteSubscription);
         app.post("/api/v1/Banner/addBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createBanner);
+        app.post("/api/v1/Banner/createHomePageBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createHomePageBanner);
         app.post("/api/v1/Banner/createPromotionBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createPromotionBanner);
         app.get("/api/v1/Banner/getBanner/:type", auth.getBanner);
         app.get("/api/v1/Banner/:id", auth.getIdBanner);
