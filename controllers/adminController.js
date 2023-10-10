@@ -1311,6 +1311,7 @@ exports.addContactDetails = async (req, res) => {
                                         google: req.body.google || findContact.google,
                                         instagram: req.body.instagram || findContact.instagram,
                                         map: req.body.map || findContact.map,
+                                        mapLink: req.body.mapLink || findContact.mapLink,
                                         address: req.body.address || findContact.address,
                                         phone: req.body.phone || findContact.phone,
                                         email: req.body.email || findContact.email,

@@ -25,6 +25,9 @@ const DocumentSchema = schema({
         map: {
                 type: String
         },
+        mapLink: {
+                type: String
+        },
         address: {
                 type: String
         },
