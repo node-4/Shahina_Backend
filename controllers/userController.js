@@ -1500,7 +1500,7 @@ exports.placeOrder = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
                 if (findUserOrder) {
-                        let  memberShipPer
+                        let memberShipPer
                         const data3 = await User.findOne({ _id: req.user._id });
                         if (data3) {
                                 if (data3.isSubscription == true) {
@@ -1672,7 +1672,7 @@ exports.placeOrder = async (req, res) => {
                                 line_items.push(obj4)
                         }
 
-                        const couponId = await   stripe.coupons.create({
+                        const couponId = await stripe.coupons.create({
                                 name: "Member Ship Discount",
                                 percent_off: memberShipPer,
                                 duration: "once",
@@ -1784,6 +1784,96 @@ exports.getServiceOrderbyId = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+exports.takeSubscriptionFromWebsite = async (req, res) => {
+        try {
+                const user = await User.findOne({ _id: req.user._id, });
+                if (!user) {
+                        return res.status(404).send({ status: 404, message: "User not found" });
+                } else {
+                        let id = req.params.id;
+                        const findSubscription = await Subscription.findById(id);
+                        if (findSubscription) {
+                                const findTransaction = await transactionModel.findOne({ user: user._id, type: "Subscription", Status: "pending" });
+                                if (findTransaction) {
+                                        let deleteData = await transactionModel.findByIdAndDelete({ _id: findTransaction._id })
+                                        let obj = {
+                                                user: user._id,
+                                                subscriptionId: findSubscription._id,
+                                                amount: findSubscription.price,
+                                                paymentMode: req.body.paymentMode,
+                                                type: "Subscription",
+                                                Status: "pending",
+                                        }
+                                        let update = await transactionModel.create(obj);
+                                        if (update) {
+                                                let line_items = [];
+                                                let obj2 = {
+                                                        price_data: {
+                                                                currency: "usd",
+                                                                product_data: {
+                                                                        name: `${findSubscription.plan} Subscription`,
+                                                                },
+                                                                unit_amount: `${Math.round(findSubscription.price * 100)}`,
+                                                        },
+                                                        quantity: 1,
+                                                }
+                                                line_items.push(obj2)
+                                                const session = await stripe.checkout.sessions.create({
+                                                        payment_method_types: ["card"],
+                                                        success_url: `https://shahina-web.vercel.app/thanks/${update._id}`,
+                                                        cancel_url: `https://shahina-web.vercel.app/failed/${update._id}`,
+                                                        customer_email: req.user.email,
+                                                        client_reference_id: update._id,
+                                                        line_items: line_items,
+                                                        mode: "payment",
+                                                });
+                                                return res.status(200).json({ status: "success", session: session, });
+                                        }
+                                } else {
+                                        let obj = {
+                                                user: user._id,
+                                                subscriptionId: findSubscription._id,
+                                                amount: findSubscription.price,
+                                                paymentMode: req.body.paymentMode,
+                                                type: "Subscription",
+                                                Status: "pending",
+                                        }
+                                        let update = await transactionModel.create(obj);
+                                        if (update) {
+                                                let line_items = [];
+                                                let obj2 = {
+                                                        price_data: {
+                                                                currency: "usd",
+                                                                product_data: {
+                                                                        name: `${findSubscription.plan} Subscription`,
+                                                                },
+                                                                unit_amount: `${Math.round(findSubscription.price * 100)}`,
+                                                        },
+                                                        quantity: 1,
+                                                }
+                                                line_items.push(obj2)
+                                                const session = await stripe.checkout.sessions.create({
+                                                        payment_method_types: ["card"],
+                                                        success_url: `https://shahina-web.vercel.app/thanks/${update._id}`,
+                                                        cancel_url: `https://shahina-web.vercel.app/failed/${update._id}`,
+                                                        customer_email: req.user.email,
+                                                        client_reference_id: update._id,
+                                                        line_items: line_items,
+                                                        mode: "payment",
+                                                });
+                                                return res.status(200).json({ status: "success", session: session, });
+                                        }
+                                }
+                        } else {
+                                return res.status(404).send({ status: 404, message: "Subscription not found" });
+                        }
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let OTP = '';
