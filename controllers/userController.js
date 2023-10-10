@@ -233,7 +233,7 @@ exports.verifyOtp = async (req, res) => {
 };
 exports.getProfile = async (req, res) => {
         try {
-                const data = await User.findOne({ _id: req.user._id, }).select('-password');
+                const data = await User.findOne({ _id: req.user._id, }).select('-password').populate('subscriptionId');
                 if (data) {
                         return res.status(200).json({ status: 200, message: "get Profile", data: data });
                 } else {
