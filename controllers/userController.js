@@ -1672,26 +1672,40 @@ exports.placeOrder = async (req, res) => {
                                 line_items.push(obj4)
                         }
 
-                        const couponId = await stripe.coupons.create({
-                                name: "Member Ship Discount",
-                                percent_off: memberShipPer,
-                                duration: "once",
-                        })
-                        const session = await stripe.checkout.sessions.create({
-                                payment_method_types: ["card"],
-                                success_url: `https://shahina-web.vercel.app/thanks/${findUserOrder.orderId}`,
-                                cancel_url: `https://shahina-web.vercel.app/failed/${findUserOrder.orderId}`,
-                                customer_email: req.user.email,
-                                client_reference_id: findUserOrder.orderId,
-                                line_items: line_items,
-                                mode: "payment",
-                                discounts: [
-                                        {
-                                                coupon: couponId.id, // Replace with your coupon ID
-                                        },
-                                ],
-                        });
-                        return res.status(200).json({ status: "success", session: session, });
+                        if (memberShipPer > 0) {
+                                const couponId = await stripe.coupons.create({
+                                        name: "Member Ship Discount",
+                                        percent_off: memberShipPer,
+                                        duration: "once",
+                                })
+                                const session = await stripe.checkout.sessions.create({
+                                        payment_method_types: ["card"],
+                                        success_url: `https://shahina-web.vercel.app/thanks/${findUserOrder.orderId}`,
+                                        cancel_url: `https://shahina-web.vercel.app/failed/${findUserOrder.orderId}`,
+                                        customer_email: req.user.email,
+                                        client_reference_id: findUserOrder.orderId,
+                                        line_items: line_items,
+                                        mode: "payment",
+                                        discounts: [
+                                                {
+                                                        coupon: couponId.id, // Replace with your coupon ID
+                                                },
+                                        ],
+                                });
+                                return res.status(200).json({ status: "success", session: session, });
+                        } else {
+                                const session = await stripe.checkout.sessions.create({
+                                        payment_method_types: ["card"],
+                                        success_url: `https://shahina-web.vercel.app/thanks/${findUserOrder.orderId}`,
+                                        cancel_url: `https://shahina-web.vercel.app/failed/${findUserOrder.orderId}`,
+                                        customer_email: req.user.email,
+                                        client_reference_id: findUserOrder.orderId,
+                                        line_items: line_items,
+                                        mode: "payment",
+                                });
+                                return res.status(200).json({ status: "success", session: session, });
+                        }
+
                 } else {
                         return res.status(404).json({ message: "No data found", data: {} });
                 }
@@ -1820,8 +1834,8 @@ exports.takeSubscriptionFromWebsite = async (req, res) => {
                                                 line_items.push(obj2)
                                                 const session = await stripe.checkout.sessions.create({
                                                         payment_method_types: ["card"],
-                                                        success_url: `https://shahina-web.vercel.app/thanks/${update._id}`,
-                                                        cancel_url: `https://shahina-web.vercel.app/failed/${update._id}`,
+                                                        success_url: `https://shahina-web.vercel.app/verifySubscription/${update._id}`,
+                                                        cancel_url: `https://shahina-web.vercel.app/faildeSub/${update._id}`,
                                                         customer_email: req.user.email,
                                                         client_reference_id: update._id,
                                                         line_items: line_items,
@@ -1854,8 +1868,8 @@ exports.takeSubscriptionFromWebsite = async (req, res) => {
                                                 line_items.push(obj2)
                                                 const session = await stripe.checkout.sessions.create({
                                                         payment_method_types: ["card"],
-                                                        success_url: `https://shahina-web.vercel.app/thanks/${update._id}`,
-                                                        cancel_url: `https://shahina-web.vercel.app/failed/${update._id}`,
+                                                        success_url: `https://shahina-web.vercel.app/verifySubscription/${update._id}`,
+                                                        cancel_url: `https://shahina-web.vercel.app/faildeSub/${update._id}`,
                                                         customer_email: req.user.email,
                                                         client_reference_id: update._id,
                                                         line_items: line_items,
