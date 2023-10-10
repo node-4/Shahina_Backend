@@ -1895,7 +1895,7 @@ exports.cancelMemberShip = async (req, res) => {
                         return res.status(404).send({ status: 404, message: "User not found" });
                 } else {
                         let updateUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { isSubscription: false } }, { new: true })
-                        return res.status(200).send({ status: 200, message: 'subscription cancel successfully.', data: update })
+                        return res.status(200).send({ status: 200, message: 'subscription cancel successfully.', data: updateUser })
                 }
         } catch (error) {
                 console.error(error);
