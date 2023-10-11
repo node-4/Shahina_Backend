@@ -5,6 +5,10 @@ const couponSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "user"
   },
+  senderUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user"
+  },
   code: {
     type: String,
     required: true,
@@ -28,6 +32,9 @@ const couponSchema = new mongoose.Schema({
   discount: {
     type: String
   },
+  price: {
+    type: String
+  },
   used: {
     type: Boolean,
     default: false
@@ -43,6 +50,11 @@ const couponSchema = new mongoose.Schema({
     type: String,
     enum: ["unconfirmed", "confirmed"],
     default: "unconfirmed",
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["pending", "paid", "failed"],
+    default: "pending"
   },
 });
 couponSchema.pre('save', function (next) {

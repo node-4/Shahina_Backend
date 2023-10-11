@@ -20,7 +20,7 @@ const News = require("../models/news");
 const ClientReview = require("../models/clientReview");
 const Cart = require("../models/Auth/cartModel");
 const cartService = require("../models/extra/cartService");
-const coupan = require("../models/Auth/coupan");
+const coupanModel = require("../models/Auth/coupan");
 const Address = require("../models/Auth/addrees");
 const serviceOrder = require("../models/Auth/serviceOrder");
 const productOrder = require("../models/Auth/productOrder");
@@ -60,7 +60,7 @@ exports.registration = async (req, res) => {
                                                 per: "Amount",
                                                 completeVisit: 5,
                                         }
-                                        const userCreatea = await coupan.create(obj);
+                                        const userCreatea = await coupanModel.create(obj);
                                         if (userCreatea) {
                                                 return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
                                         }
@@ -91,7 +91,7 @@ exports.registration = async (req, res) => {
                                                         per: "Amount",
                                                         completeVisit: 0,
                                                 }
-                                                const userCreatea = await coupan.create(obj);
+                                                const userCreatea = await coupanModel.create(obj);
                                                 if (userCreatea) {
                                                         let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id } }, { new: true });
                                                         return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
@@ -518,7 +518,7 @@ exports.verifySubscription = async (req, res) => {
 };
 exports.getAllcoupan = async (req, res, next) => {
         try {
-                const cart = await coupan.findOne({ user: req.user._id });
+                const cart = await coupanModel.findOne({ user: req.user._id });
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "Get all rewards.", cart: {} })
                 } else {
@@ -1197,7 +1197,8 @@ exports.checkout = async (req, res) => {
                 let findOrder = await productOrder.find({ user: req.user._id, orderStatus: "unconfirmed" });
                 let findOrder1 = await serviceOrder.find({ user: req.user._id, orderStatus: "unconfirmed" });
                 let findOrder2 = await userOrders.find({ user: req.user._id, orderStatus: "unconfirmed" });
-                if (findOrder.length > 0 || findOrder1.length > 0 || findOrder2.length > 0) {
+                let findOrder3 = await coupanModel.find({ senderUser: req.user._id, orderStatus: "unconfirmed" });
+                if (findOrder.length > 0 || findOrder1.length > 0 || findOrder2.length > 0 || findOrder3.length > 0) {
                         if (findOrder.length > 0) {
                                 for (let i = 0; i < findOrder.length; i++) {
                                         await productOrder.findByIdAndDelete({ _id: findOrder[i]._id });
@@ -1213,14 +1214,25 @@ exports.checkout = async (req, res) => {
                                         await userOrders.findByIdAndDelete({ _id: findOrder2[i]._id });
                                 }
                         }
-                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (findOrder3.length > 0) {
+                                for (let i = 0; i < findOrder3.length; i++) {
+                                        await coupanModel.findByIdAndDelete({ _id: findOrder3[i]._id });
+                                }
+                        }
+                        let findCart = await Cart.findOne({ user: req.user._id })
+                                .populate([{ path: "products.productId", select: { reviews: 0 } },
+                                { path: "gifts.giftId", select: { reviews: 0 } }, {
+                                        path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 }
+                                },
+                                { path: "services.serviceId", select: { reviews: 0 } },
+                                { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
                                 const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                                 const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                                 const data3 = await User.findOne({ _id: req.user._id });
                                 let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
-                                let orderObjPaidAmount = 0, productOrderId, serviceOrderId;
+                                let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId;
                                 if (data3) {
                                         if (data3.isSubscription == true) {
                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
@@ -1235,6 +1247,34 @@ exports.checkout = async (req, res) => {
                                 const cartResponse = findCart.toObject();
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
+                                if (cartResponse.gifts) {
+                                        cartResponse.gifts.forEach(async (cartGift) => {
+                                                if (cartGift.giftId.discountActive === true) {
+                                                        cartGift.total = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.subTotal = parseFloat((cartGift.giftId.discountPrice * cartGift.quantity).toFixed(2));
+                                                        cartGift.discount = parseFloat(((cartGift.giftId.price - cartGift.giftId.discountPrice) * cartGift.quantity).toFixed(2));
+                                                } else {
+                                                        cartGift.total = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.subTotal = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.discount = 0.00;
+                                                }
+                                                subTotal += cartGift.subTotal;
+                                                discount += cartGift.discount;
+                                                total += cartGift.total;
+                                                let obj = {
+                                                        senderUser: req.user._id,
+                                                        code: cartResponse.orderId,
+                                                        title: 'Buy a gift Card',
+                                                        email: cartGift.giftId.email,
+                                                        description: "Your friend Gift a gift card",
+                                                        price: cartGift.giftId.price,
+                                                        discount: cartGift.giftId.giftCardrewards,
+                                                        per: "Amount",
+                                                }
+                                                let saveOrder = await coupanModel.create(obj);
+                                                giftOrderId = saveOrder._id;
+                                        });
+                                }
                                 if (cartResponse.products && cartResponse.frequentlyBuyProductSchema) {
                                         cartResponse.products.forEach((cartProduct) => {
                                                 if (cartProduct.productId.discountActive == true) {
@@ -1339,6 +1379,7 @@ exports.checkout = async (req, res) => {
                                 let orderObj = {
                                         userId: req.user._id,
                                         orderId: orderId,
+                                        giftOrder: giftOrderId,
                                         productOrder: productOrderId,
                                         serviceOrder: serviceOrderId,
                                         orderObjPaidAmount: orderObjPaidAmount,
@@ -1361,16 +1402,14 @@ exports.checkout = async (req, res) => {
                                 return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                         }
                 } else {
-                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } },
-                        { path: "gifts.giftId", select: { reviews: 0 } },
-                        { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
                                 const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                                 const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                                 const data3 = await User.findOne({ _id: req.user._id });
-                                let discount = 0, coupan = 0, memberShip = 0, shipping = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
-                                let orderObjPaidAmount = 0, productOrderId, serviceOrderId;
+                                let discount = 0, couponDiscount = 0, memberShip = 0, shipping = 10, serviceCharge = 10, memberShipPer, total1 = 0, total = 0, subTotal = 0, grandTotal = 0;
+                                let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId;
                                 if (data3) {
                                         if (data3.isSubscription == true) {
                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
@@ -1386,19 +1425,25 @@ exports.checkout = async (req, res) => {
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.gifts) {
-                                        cartResponse.gifts.forEach((cartGift) => {
-                                                if (cartGift.giftId.discountActive === true) {
-                                                        cartGift.total = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
-                                                        cartGift.subTotal = parseFloat((cartGift.giftId.discountPrice * cartGift.quantity).toFixed(2));
-                                                        cartGift.discount = parseFloat(((cartGift.giftId.price - cartGift.giftId.discountPrice) * cartGift.quantity).toFixed(2));
-                                                } else {
-                                                        cartGift.total = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
-                                                        cartGift.subTotal = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
-                                                        cartGift.discount = 0.00;
-                                                }
+                                        cartResponse.gifts.forEach(async (cartGift) => {
+                                                cartGift.total = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
+                                                cartGift.subTotal = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
+                                                cartGift.discount = 0.00;
                                                 subTotal += cartGift.subTotal;
                                                 discount += cartGift.discount;
                                                 total += cartGift.total;
+                                                let obj = {
+                                                        senderUser: req.user._id,
+                                                        code: cartResponse.orderId,
+                                                        title: 'Buy a gift Card',
+                                                        email: cartGift.email,
+                                                        description: "Your friend Gift a gift card",
+                                                        price: cartGift.giftId.price,
+                                                        discount: cartGift.giftId.giftCardrewards,
+                                                        per: "Amount",
+                                                }
+                                                let saveOrder = await coupanModel.create(obj);
+                                                giftOrderId = saveOrder._id;
                                         });
                                 }
                                 if (cartResponse.products || cartResponse.frequentlyBuyProductSchema) {
@@ -1429,7 +1474,7 @@ exports.checkout = async (req, res) => {
                                         }
                                         cartResponse.total = total;
                                         cartResponse.discount = discount;
-                                        cartResponse.coupan = coupan;
+                                        cartResponse.coupan = couponDiscount;
                                         cartResponse.subTotal = subTotal;
                                         if (findCart.pickupFromStore == true) {
                                                 cartResponse.pickUp = data1;
@@ -1444,7 +1489,7 @@ exports.checkout = async (req, res) => {
                                                 cartResponse.deliveryAddresss = data2;
                                                 cartResponse.billingAddresss = data5;
                                                 cartResponse.shipping = shipping;
-                                                total1 = subTotal - coupan + shipping;
+                                                total1 = subTotal - couponDiscount + shipping;
                                                 memberShip = (total1 * memberShipPer) / 100;
                                                 cartResponse.memberShip = memberShip;
                                                 cartResponse.memberShipPer = memberShipPer;
@@ -1496,7 +1541,7 @@ exports.checkout = async (req, res) => {
                                         cartResponse.memberShip = memberShip;
                                         cartResponse.memberShipPer = memberShipPer;
                                         grandTotal = total1 - memberShip;
-                                        cartResponse.grandTotal = grandTotal;
+                                        cartResponse.grandTotal = parseFloat(grandTotal).toFixed(2);
                                         cartResponse.serviceAddresss = data1;
                                         orderObjPaidAmount = orderObjPaidAmount + grandTotal;
                                         let saveOrder = await serviceOrder.create(cartResponse);
@@ -1524,6 +1569,7 @@ exports.checkout = async (req, res) => {
                                 let orderObj = {
                                         userId: req.user._id,
                                         orderId: orderId,
+                                        giftOrder: giftOrderId,
                                         productOrder: productOrderId,
                                         serviceOrder: serviceOrderId,
                                         orderObjPaidAmount: orderObjPaidAmount,
@@ -1585,34 +1631,6 @@ exports.placeOrder = async (req, res) => {
                                         }
                                         line_items.push(obj2)
                                 });
-                                findOrder.gifts.forEach((cartGift) => {
-                                        let price;
-                                        if (cartGift.giftId.discountActive == true) {
-                                                cartGift.total = cartGift.giftId.price * cartGift.quantity;
-                                                cartGift.subTotal = cartGift.giftId.discountPrice * cartGift.quantity;
-                                                cartGift.discount = (cartGift.giftId.price - cartGift.giftId.discountPrice) * cartGift.quantity;
-                                                price = cartGift.giftId.discountPrice * cartGift.quantity
-                                        } else {
-                                                cartGift.total = cartGift.giftId.price * cartGift.quantity;
-                                                cartGift.subTotal = cartGift.giftId.price * cartGift.quantity;
-                                                cartGift.discount = 0;
-                                                price = cartGift.giftId.price * cartGift.quantity
-                                        }
-                                        subTotal += cartGift.subTotal;
-                                        discount += cartGift.discount;
-                                        total += cartGift.total;
-                                        let obj2 = {
-                                                price_data: {
-                                                        currency: "usd",
-                                                        product_data: {
-                                                                name: `${cartGift.giftId.name}`,
-                                                        },
-                                                        unit_amount: `${Math.round(price * 100)}`,
-                                                },
-                                                quantity: 1,
-                                        }
-                                        line_items.push(obj2)
-                                });
                                 findOrder.frequentlyBuyProductSchema.forEach((cartProduct) => {
                                         let price;
                                         cartProduct.total = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
@@ -1646,6 +1664,27 @@ exports.placeOrder = async (req, res) => {
                                         quantity: 1,
                                 }
                                 line_items.push(obj3)
+                        }
+                        if (findUserOrder.giftOrder != (null || undefined)) {
+                                let total = 0, subTotal = 0;
+                                let findOrder3 = await coupanModel.findById({ _id: findUserOrder.giftOrder, orderStatus: "unconfirmed" });
+                                let price;
+                                findOrder3.total = findOrder3.price * 1;
+                                findOrder3.subTotal = findOrder3.price * 1;
+                                price = findOrder3.price * 1
+                                subTotal += findOrder3.subTotal;
+                                total += findOrder3.total;
+                                let obj2 = {
+                                        price_data: {
+                                                currency: "usd",
+                                                product_data: {
+                                                        name: `${findOrder3.title}`,
+                                                },
+                                                unit_amount: `${Math.round(price * 100)}`,
+                                        },
+                                        quantity: 1,
+                                }
+                                line_items.push(obj2)
                         }
                         if (findUserOrder.serviceOrder != (null || undefined)) {
                                 let findOrder1 = await serviceOrder.findById({ _id: findUserOrder.serviceOrder }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
@@ -1765,9 +1804,32 @@ exports.successOrder = async (req, res) => {
                         let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-                        let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
-                        if (deleteCart) {
+                        let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+                        var transporter = nodemailer.createTransport({
+                                service: 'gmail',
+                                auth: {
+                                        "user": "info@shahinahoja.com",
+                                        "pass": "gganlypsemwqhwlh"
+                                }
+                        });
+                        let mailOptions;
+                        mailOptions = {
+                                from: 'info@shahinahoja.com',
+                                to: findOrder3.email,
+                                subject: 'Gift Card Provide by Your friend',
+                                text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`,
+                        };
+                        let info = await transporter.sendMail(mailOptions);
+                        if (info) {
+                                // let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+                                // if (deleteCart) {
                                 return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                                // }
+                        } else {
+                                // let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+                                // if (deleteCart) {
+                                return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                                // }
                         }
                 } else {
                         return res.status(404).json({ message: "No data found", data: {} });

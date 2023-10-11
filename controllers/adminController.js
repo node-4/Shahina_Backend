@@ -1632,7 +1632,8 @@ exports.createGiftCard = async (req, res) => {
                                         for (let i = 0; i < req.body.giftCardrewards.length; i++) {
                                                 let x = {
                                                         giftCardrewards: Number(req.body.giftCardrewards[i]),
-                                                        price: Number(req.body.price[i])
+                                                        price: Number(req.body.price[i]),
+                                                        giftId: ProductCreated._id
                                                 }
                                                 const Save = await giftPrice.create(x);
                                                 priceArray.push(Save._id)
@@ -1651,7 +1652,8 @@ exports.createGiftCard = async (req, res) => {
                                 for (let i = 0; i < req.body.giftCardrewards.length; i++) {
                                         let x = {
                                                 giftCardrewards: Number(req.body.giftCardrewards[i]),
-                                                price: Number(req.body.price[i])
+                                                price: Number(req.body.price[i]),
+                                                giftId: ProductCreated._id
                                         }
                                         const Save = await giftPrice.create(x);
                                         priceArray.push(Save._id)

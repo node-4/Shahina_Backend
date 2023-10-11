@@ -8,7 +8,11 @@ var storeSchema = new schema({
         },
         price: {
                 type: Number
-        }
+        },
+        giftId: {
+                type: schema.Types.ObjectId,
+                ref: "gift"
+        },
 }, { timestamps: true });
 storeSchema.plugin(mongoosePaginate);
 storeSchema.plugin(mongooseAggregatePaginate);

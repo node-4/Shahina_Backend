@@ -14,6 +14,10 @@ const DocumentSchema = schema({
     type: schema.Types.ObjectId,
     ref: "productOrder",
   },
+  giftOrder: {
+    type: schema.Types.ObjectId,
+    ref: "Coupon",
+  },
   serviceOrder: {
     type: schema.Types.ObjectId,
     ref: "serviceOrder",
