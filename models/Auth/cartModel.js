@@ -13,7 +13,10 @@ const cartProductsSchema = new Schema({
 const cartGiftsSchema = new Schema({
     giftId: {
         type: Schema.Types.ObjectId,
-        ref: "gift"
+        ref: "giftPrice"
+    },
+    email: {
+        type: String,
     },
     quantity: {
         type: Number,

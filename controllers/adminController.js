@@ -22,6 +22,7 @@ const serviceOrder = require("../models/Auth/serviceOrder");
 const productOrder = require("../models/Auth/productOrder");
 const ingredients = require("../models/ingredients");
 const giftCard = require("../models/giftCard");
+const giftPrice = require("../models/giftPrice");
 const Cart = require("../models/Auth/cartModel");
 const slot = require("../models/slot");
 const shippingCharges = require("../models/shippingCharges");
@@ -1609,21 +1610,55 @@ exports.checkIngredient = async (req, res) => {
 };
 exports.createGiftCard = async (req, res) => {
         try {
-                console.log(req.file);
-                if (req.file) {
-                        req.body.image = req.file.path
-                }
-                if (req.body.discountActive == 'true') {
-                        req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
-                        req.body.saved = Number(req.body.price) - req.body.discountPrice;
-                        req.body.discountActive = true;
+                const findGiftCard = await giftCard.findOne({});
+                if (findGiftCard) {
+                        let image;
+                        if (req.file) {
+                                image = req.file.path;
+                        } else {
+                                image = findGiftCard.image;
+                        }
+                        let obj = {
+                                name: req.body.name || findGiftCard.name,
+                                image: image,
+                                description: req.body.description || findGiftCard.description,
+                        }
+                        const ProductCreated = await giftCard.findByIdAndUpdate({ _id: findGiftCard._id }, { $set: obj }, { new: true });
+                        if (ProductCreated) {
+                                let priceArray = [];
+                                if (req.body.giftCardrewards == (null || undefined)) {
+                                        priceArray = findGiftCard.priceArray
+                                } else {
+                                        for (let i = 0; i < req.body.giftCardrewards.length; i++) {
+                                                let x = {
+                                                        giftCardrewards: Number(req.body.giftCardrewards[i]),
+                                                        price: Number(req.body.price[i])
+                                                }
+                                                const Save = await giftPrice.create(x);
+                                                priceArray.push(Save._id)
+                                        }
+                                }
+                                const data1 = await giftCard.findByIdAndUpdate({ _id: ProductCreated._id }, { $set: { priceArray: priceArray } }, { new: true });
+                                return res.status(201).send({ status: 200, message: "GiftCard add successfully", data: ProductCreated, });
+                        }
                 } else {
-                        req.body.discountPrice = 0;
-                        req.body.discountActive = false;
-                }
-                const ProductCreated = await giftCard.create(req.body);
-                if (ProductCreated) {
-                        return res.status(201).send({ status: 200, message: "GiftCard add successfully", data: ProductCreated, });
+                        if (req.file) {
+                                req.body.image = req.file.path
+                        }
+                        const ProductCreated = await giftCard.create(req.body);
+                        if (ProductCreated) {
+                                let priceArray = [];
+                                for (let i = 0; i < req.body.giftCardrewards.length; i++) {
+                                        let x = {
+                                                giftCardrewards: Number(req.body.giftCardrewards[i]),
+                                                price: Number(req.body.price[i])
+                                        }
+                                        const Save = await giftPrice.create(x);
+                                        priceArray.push(Save._id)
+                                }
+                                const data1 = await giftCard.findByIdAndUpdate({ _id: ProductCreated._id }, { $set: { priceArray: priceArray } }, { new: true });
+                                return res.status(201).send({ status: 200, message: "GiftCard add successfully", data: data1, });
+                        }
                 }
         } catch (err) {
                 console.log(err);
@@ -1642,45 +1677,11 @@ exports.getIdGiftCard = async (req, res) => {
         }
 };
 exports.getGiftCards = async (req, res) => {
-        const categories = await giftCard.find({});
+        const categories = await giftCard.find({}).populate('priceArray');
         if (categories.length > 0) {
                 return res.status(201).json({ message: "GiftCard Found", status: 200, data: categories, });
         }
         return res.status(201).json({ message: "Ingredients not Found", status: 404, data: {}, });
-};
-exports.editGiftCard = async (req, res) => {
-        try {
-                const data = await giftCard.findById(req.params.id);
-                if (!data) {
-                        return res.status(400).send({ msg: "not found" });
-                } else {
-                        if (req.file) {
-                                req.body.image = req.file.path
-                        }
-                        if (req.body.discountActive == 'true') {
-                                req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
-                                req.body.saved = Number(req.body.price) - req.body.discountPrice;
-                                req.body.discountActive = true;
-                        } else {
-                                req.body.discountPrice = 0;
-                                req.body.discountActive = false;
-                        }
-                        let productObj = {
-                                name: req.body.name || data.name,
-                                image: image || data.image,
-                                price: req.body.price || data.price,
-                                description: req.body.description || data.description,
-                                discountPrice: req.body.discountPrice || data.discountPrice,
-                                saved: req.body.saved || data.saved,
-                                discount: req.body.discount || data.discount,
-                                discountActive: req.body.discountActive || data.discountActive,
-                        }
-                        const data5 = await giftCard.findByIdAndUpdate({ _id: data._id }, { $set: productObj }, { new: true });
-                        return res.status(200).json({ status: 200, message: "GiftCard update successfully.", data: data5 });
-                }
-        } catch (err) {
-                return res.status(500).send({ msg: "internal server error ", error: err.message, });
-        }
 };
 exports.deleteGiftCard = async (req, res) => {
         try {

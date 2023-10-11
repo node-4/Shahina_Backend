@@ -9,26 +9,13 @@ var storeSchema = new schema({
         image: {
                 type: String
         },
-        price: {
-                type: Number
-        },
         description: {
                 type: String
         },
-        discountPrice: {
-                type: Number
-        },
-        saved: {
-                type: Number
-        },
-        discount: {
-                type: Number,
-                default: 0
-        },
-        discountActive: {
-                type: Boolean,
-                default: false
-        },
+        priceArray: [{
+                type: schema.Types.ObjectId,
+                ref: "giftPrice"
+        }],
         rating: {
                 type: Number,
                 default: 0

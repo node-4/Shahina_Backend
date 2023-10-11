@@ -13,6 +13,9 @@ const couponSchema = new mongoose.Schema({
   title: {
     type: String
   },
+  email: {
+    type: String
+  },
   description: {
     type: String
   },
@@ -25,8 +28,21 @@ const couponSchema = new mongoose.Schema({
   discount: {
     type: String
   },
+  used: {
+    type: Boolean,
+    default: false
+  },
+  per: {
+    type: String,
+    enum: ["Percentage", "Amount"]
+  },
   completeVisit: {
     type: Number
+  },
+  orderStatus: {
+    type: String,
+    enum: ["unconfirmed", "confirmed"],
+    default: "unconfirmed",
   },
 });
 couponSchema.pre('save', function (next) {

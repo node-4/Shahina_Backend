@@ -29,7 +29,9 @@ const transactionModel = require("../models/transactionModel");
 const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
 const giftCard = require("../models/giftCard");
+const giftPrice = require("../models/giftPrice");
 const moment = require("moment")
+const nodemailer = require("nodemailer");
 const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // test
 //  Publish key:- pk_live_51Kr67EJsxpRH9smizUjNERPVsq1hlJBnnJsfCOqNTPL6HKgsG9YTOOcA5yYk38O7Wz2NILGPvIKkxe3rU90iix610049htYt1w
 //  pk_test_51Kr67EJsxpRH9smiVHbxmogutwO92w8dmTUErkRtIsIo0lR7kyfyeVnULRoQlry9byYbS8Uhk5Mq4xegT2bB9n9F00hv3OFGM5
@@ -48,7 +50,21 @@ exports.registration = async (req, res) => {
                                 req.body.password = bcrypt.hashSync(req.body.password, 8);
                                 req.body.userType = "USER";
                                 const userCreate = await User.create(req.body);
-                                return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                                if (userCreate) {
+                                        let obj = {
+                                                user: userCreate._id,
+                                                code: await reffralCode(),
+                                                title: "$50 Off",
+                                                description: "Get $50 Off upon Competing your 5 visit",
+                                                discount: 50,
+                                                per: "Amount",
+                                                completeVisit: 5,
+                                        }
+                                        const userCreatea = await coupan.create(obj);
+                                        if (userCreatea) {
+                                                return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                                        }
+                                }
                         }
                 } else {
                         const findUser = await User.findOne({ refferalCode: req.body.refferalCode });
@@ -66,15 +82,26 @@ exports.registration = async (req, res) => {
                                         req.body.password = bcrypt.hashSync(req.body.password, 8);
                                         const userCreate = await User.create(req.body);
                                         if (userCreate) {
-                                                let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id }, $set: { wallet: findUser.wallet + 300 } }, { new: true });
-                                                return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                                                let obj = {
+                                                        user: findUser._id,
+                                                        code: await reffralCode(),
+                                                        title: "$100 Off",
+                                                        description: "Get $100 Off refer your friend.",
+                                                        discount: 100,
+                                                        per: "Amount",
+                                                        completeVisit: 0,
+                                                }
+                                                const userCreatea = await coupan.create(obj);
+                                                if (userCreatea) {
+                                                        let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id } }, { new: true });
+                                                        return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                                                }
                                         }
                                 }
                         } else {
                                 return res.status(404).send({ status: 404, message: "Invalid refferal code", data: {} });
                         }
                 }
-
         } catch (error) {
                 console.error(error);
                 return res.status(500).json({ message: "Server error" });
@@ -116,31 +143,31 @@ exports.forgetPassword = async (req, res) => {
                         return res.status(400).send({ msg: "not found" });
                 } else {
                         let otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
-                        // var transporter = nodemailer.createTransport({
-                        //         service: 'gmail',
-                        //         auth: {
-                        //                 "user": "info@shahinahoja.com",
-                        //                 "pass": "gganlypsemwqhwlh"
-                        //         }
-                        // });
-                        // let mailOptions;
-                        // mailOptions = {
-                        //         from: 'info@shahinahoja.com',
-                        //         to: req.body.email,
-                        //         subject: 'Forget password verification',
-                        //         text: `Your Account Verification Code is ${otp}`,
-                        // };
-                        // let info = await transporter.sendMail(mailOptions);
-                        // if (info) {
-                        let accountVerification = false;
-                        let otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
-                        const updated = await User.findOneAndUpdate({ _id: data._id }, { $set: { accountVerification: accountVerification, otp: otp, otpExpiration: otpExpiration } }, { new: true, });
-                        if (updated) {
-                                return res.status(200).json({ message: "Otp send to your email.", status: 200, data: updated });
+                        var transporter = nodemailer.createTransport({
+                                service: 'gmail',
+                                auth: {
+                                        "user": "info@shahinahoja.com",
+                                        "pass": "gganlypsemwqhwlh"
+                                }
+                        });
+                        let mailOptions;
+                        mailOptions = {
+                                from: 'info@shahinahoja.com',
+                                to: req.body.email,
+                                subject: 'Forget password verification',
+                                text: `Your Account Verification Code is ${otp}`,
+                        };
+                        let info = await transporter.sendMail(mailOptions);
+                        if (info) {
+                                let accountVerification = false;
+                                let otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
+                                const updated = await User.findOneAndUpdate({ _id: data._id }, { $set: { accountVerification: accountVerification, otp: otp, otpExpiration: otpExpiration } }, { new: true, });
+                                if (updated) {
+                                        return res.status(200).json({ message: "Otp send to your email.", status: 200, data: updated });
+                                }
+                        } else {
+                                return res.status(200).json({ message: "Otp not send on your mail please check.", status: 200, data: {} });
                         }
-                        // } else {
-                        //    return     res.status(200).json({ message: "Otp not send on your mail please check.", status: 200, data: {} });
-                        // }
                 }
         } catch (err) {
                 console.log(err.message);
@@ -551,10 +578,20 @@ exports.addToCart = async (req, res, next) => {
                 const cartField = getCartFieldByItemType(itemType);
                 const itemIndex = cart[cartField].findIndex((cartItem) => cartItem[itemType + 'Id'].toString() === itemId);
                 if (itemIndex < 0) {
-                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
-                        cart[cartField].push(obj);
+                        if (itemType == 'gift') {
+                                let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
+                                cart[cartField].push(obj);
+                        } else {
+                                let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
+                                cart[cartField].push(obj);
+                        }
                 } else {
-                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                        if (itemType == 'gift') {
+                                cart[cartField][itemIndex].quantity = req.body.quantity;
+                                cart[cartField][itemIndex].email = req.body.email;
+                        } else {
+                                cart[cartField][itemIndex].quantity = req.body.quantity;
+                        }
                 }
                 await cart.save();
                 return res.status(200).json({ msg: `${itemType} added to cart`, data: cart });
@@ -569,7 +606,7 @@ async function getItemData(itemType, itemId) {
                 case 'service':
                         return await services.findById(itemId);
                 case 'gift':
-                        return await giftCard.findById(itemId);
+                        return await giftPrice.findById(itemId);
                 case 'frequentlyBuyProduct':
                         return await frequentlyBuyProduct.findById(itemId);
                 case 'addOnservices':
@@ -1324,7 +1361,9 @@ exports.checkout = async (req, res) => {
                                 return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                         }
                 } else {
-                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } },
+                        { path: "gifts.giftId", select: { reviews: 0 } },
+                        { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (findCart) {
                                 const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
@@ -1346,7 +1385,7 @@ exports.checkout = async (req, res) => {
                                 const cartResponse = findCart.toObject();
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
-                                if (cartResponse.products || cartResponse.frequentlyBuyProductSchema || cartResponse.gifts) {
+                                if (cartResponse.gifts) {
                                         cartResponse.gifts.forEach((cartGift) => {
                                                 if (cartGift.giftId.discountActive === true) {
                                                         cartGift.total = parseFloat((cartGift.giftId.price * cartGift.quantity).toFixed(2));
@@ -1361,6 +1400,8 @@ exports.checkout = async (req, res) => {
                                                 discount += cartGift.discount;
                                                 total += cartGift.total;
                                         });
+                                }
+                                if (cartResponse.products || cartResponse.frequentlyBuyProductSchema) {
                                         cartResponse.products.forEach((cartProduct) => {
                                                 if (cartProduct.productId.discountActive == true) {
                                                         cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
@@ -1671,7 +1712,6 @@ exports.placeOrder = async (req, res) => {
                                 }
                                 line_items.push(obj4)
                         }
-
                         if (memberShipPer > 0) {
                                 const couponId = await stripe.coupons.create({
                                         name: "Member Ship Discount",
@@ -1887,7 +1927,6 @@ exports.takeSubscriptionFromWebsite = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
-
 exports.cancelMemberShip = async (req, res) => {
         try {
                 const user = await User.findOne({ _id: req.user._id, });
