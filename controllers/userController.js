@@ -656,7 +656,7 @@ const calculateCartResponse = async (cart, userId, isServiceCart = false) => {
         try {
                 await cart.populate([
                         { path: "products.productId", select: { reviews: 0 } },
-                        { path: "gifts.giftId", select: { reviews: 0 } },
+                        { path: "gifts.giftId", populate: { path: 'giftId', model: 'gift' }, select: { reviews: 0 } },
                         { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
                         { path: "services.serviceId", select: { reviews: 0 } },
                         { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },
