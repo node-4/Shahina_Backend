@@ -518,7 +518,7 @@ exports.verifySubscription = async (req, res) => {
 };
 exports.getAllcoupan = async (req, res, next) => {
         try {
-                const cart = await coupanModel.findOne({ user: req.user._id });
+                const cart = await coupanModel.find({ $or: [{ user: req.user._id }, { email: req.user.email }] });
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "Get all rewards.", cart: {} })
                 } else {
