@@ -782,7 +782,7 @@ exports.createService = async (req, res) => {
                         let docs = req.files['image'];
                         for (let i = 0; i < docs.length; i++) {
                                 let obj = {
-                                        img: req.files[i].path
+                                        img: docs[i].path
                                 }
                                 images.push(obj)
                         }
@@ -800,11 +800,11 @@ exports.createService = async (req, res) => {
                 req.body.beforeAfterImage = beforeAfterImage;
                 const ProductCreated = await services.create(req.body);
                 if (ProductCreated) {
-                        return res.status(201).send({ status: 200, message: "Product add successfully", data: ProductCreated, });
+                        return res.status(201).send({ status: 200, message: "Service add successfully", data: ProductCreated, });
                 }
         } catch (err) {
                 console.log(err);
-                return res.status(500).send({ message: "Internal server error while creating Product", });
+                return res.status(500).send({ message: "Internal server error while creating Service", });
         }
 };
 exports.paginateServiceSearch = async (req, res) => {
@@ -882,7 +882,7 @@ exports.getIdService = async (req, res) => {
                 if (!data || data.length === 0) {
                         return res.status(400).send({ msg: "not found" });
                 }
-                return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+                return res.status(200).json({ status: 200, message: "Service data found.", data: data });
         } catch (err) {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
@@ -1026,7 +1026,7 @@ exports.createPartner = async (req, res) => {
         try {
                 const findData = await banner.findOne({ type: "Partner" });
                 if (!findData) {
-                        let partnerImage, data;
+                        let partnerImage = [], data;
                         if (req.files) {
                                 for (let i = 0; i < req.files.length; i++) {
                                         partnerImage.push(req.files[i].path)
@@ -1041,7 +1041,7 @@ exports.createPartner = async (req, res) => {
                         const Banner = await banner.create(data);
                         return res.status(200).json({ message: "Partner add successfully.", status: 200, data: Banner });
                 } else {
-                        let partnerImage, data;
+                        let partnerImage = [], data;
                         if (req.files) {
                                 for (let i = 0; i < req.files.length; i++) {
                                         partnerImage.push(req.files[i].path)
@@ -1122,7 +1122,7 @@ exports.createShopPage = async (req, res) => {
                                 type: "shopPage"
                         };
                         const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
-                        return res.status(200).json({ message: "Partner update successfully.", status: 200, data: Banner });
+                        return res.status(200).json({ message: "Shop update successfully.", status: 200, data: Banner });
 
                 }
         } catch (error) {
@@ -1165,19 +1165,37 @@ exports.createServicePage = async (req, res) => {
 };
 exports.createBanner = async (req, res) => {
         try {
-                let bannerImage, data;
-                if (req.file.path) {
-                        bannerImage = req.file.path
+                const findData = await banner.findOne({ type: req.body.type });
+                if (findData) {
+                        let data;
+                        let bannerImage;
+                        if (req.file.path) {
+                                bannerImage = req.file.path
+                        }
+                        data = {
+                                title: req.body.title || findData.title,
+                                desc: req.body.desc || findData.desc,
+                                bannerName: req.body.bannerName || findData.bannerName,
+                                bannerImage: bannerImage || findData.bannerImage,
+                                type: req.body.type || findData.type,
+                        };
+                        const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
+                        return res.status(200).json({ message: "Banner update successfully.", status: 200, data: Banner });
+                } else {
+                        let bannerImage, data;
+                        if (req.file.path) {
+                                bannerImage = req.file.path
+                        }
+                        data = {
+                                title: req.body.title,
+                                desc: req.body.desc,
+                                bannerName: req.body.bannerName,
+                                bannerImage: bannerImage,
+                                type: req.body.type
+                        };
+                        const Banner = await banner.create(data);
+                        return res.status(200).json({ message: "Banner add successfully.", status: 200, data: Banner });
                 }
-                data = {
-                        title: req.body.title,
-                        desc: req.body.desc,
-                        bannerName: req.body.bannerName,
-                        bannerImage: bannerImage,
-                        type: req.body.type
-                };
-                const Banner = await banner.create(data);
-                return res.status(200).json({ message: "Banner add successfully.", status: 200, data: Banner });
         } catch (error) {
                 return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
         }
