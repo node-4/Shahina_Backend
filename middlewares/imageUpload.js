@@ -55,5 +55,8 @@ const quiz = upload22.fields([
         { name: 'option2image', maxCount: 1 },
         { name: 'option3image', maxCount: 1 },
         { name: 'option4image', maxCount: 1 },]);
+const upload23 = upload.fields([{ name: 'image', maxCount: 20 }, { name: 'result', maxCount: 5 }]);
 
-module.exports = { upload, productUpload, quiz, newsUpload, bannerUpload, aboutUs, servicePageUpload, upload20, shopPageUpload, blogUpload, aboutusUpload, gallaryUpload, NutritionUpload, SkinTypeUpload, ProductTypeUpload, SkinConditionUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };
+const upload24 = upload.fields([{ name: 'image', maxCount: 20 }, { name: 'beforeAfterImage', maxCount: 1 }]);
+
+module.exports = { upload, productUpload, upload23, upload24, quiz, newsUpload, bannerUpload, aboutUs, servicePageUpload, upload20, shopPageUpload, blogUpload, aboutusUpload, gallaryUpload, NutritionUpload, SkinTypeUpload, ProductTypeUpload, SkinConditionUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };

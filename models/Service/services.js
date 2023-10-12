@@ -21,6 +21,9 @@ var storeSchema = new schema({
         description: {
                 type: String
         },
+        beforeAfterImage: {
+                type: String
+        },
         discountPrice: {
                 type: Number
         },

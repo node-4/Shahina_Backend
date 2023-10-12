@@ -463,13 +463,20 @@ exports.createProduct = async (req, res) => {
                                 return res.status(400).send({ status: 404, msg: "SkinType not found" });
                         }
                 }
-                let productImages = [], howTouse = [], additionalInfo = [], sizePrice = [];
-                if (req.files) {
-                        for (let i = 0; i < req.files.length; i++) {
+                let productImages = [], result = [], howTouse = [], additionalInfo = [], sizePrice = [];
+                if (req.files['image'] != (null || undefined)) {
+                        let docs = req.files['image'];
+                        for (let i = 0; i < docs.length; i++) {
                                 let obj = {
-                                        image: req.files[i].path
+                                        image: docs[i].path
                                 }
                                 productImages.push(obj)
+                        }
+                }
+                if (req.files['result'] != (null || undefined)) {
+                        let docs = req.files['result'];
+                        for (let i = 0; i < docs.length; i++) {
+                                result.push(docs[i].path)
                         }
                 }
                 if (req.body.step != undefined) {
@@ -516,6 +523,8 @@ exports.createProduct = async (req, res) => {
                 req.body.howTouse = howTouse;
                 req.body.additionalInfo = additionalInfo;
                 req.body.productImages = productImages;
+                req.body.sizePrice = sizePrice;
+                req.body.result = result;
                 const ProductCreated = await product.create(req.body);
                 if (ProductCreated) {
                         return res.status(201).send({ status: 200, message: "Product add successfully", data: ProductCreated, });
@@ -628,13 +637,20 @@ exports.editProduct = async (req, res) => {
                                         return res.status(400).send({ status: 404, msg: "SkinType not found" });
                                 }
                         }
-                        let productImages = [], howTouse = [];
-                        if (req.files) {
-                                for (let i = 0; i < req.files.length; i++) {
+                        let productImages = [], result = [], howTouse = [], additionalInfo = [], sizePrice = [];
+                        if (req.files['image'] != (null || undefined)) {
+                                let docs = req.files['image'];
+                                for (let i = 0; i < docs.length; i++) {
                                         let obj = {
-                                                image: req.files[i].path
+                                                image: docs[i].path
                                         }
                                         productImages.push(obj)
+                                }
+                        }
+                        if (req.files['result'] != (null || undefined)) {
+                                let docs = req.files['result'];
+                                for (let i = 0; i < docs.length; i++) {
+                                        result.push(docs[i].path)
                                 }
                         }
                         for (let i = 0; i < req.body.step.length; i++) {
@@ -669,6 +685,7 @@ exports.editProduct = async (req, res) => {
                                 discountPrice: req.body.discountPrice || data.discountPrice,
                                 ratings: data.ratings,
                                 productImages: productImages || data.productImages,
+                                result: result || data.result,
                                 numOfReviews: data.numOfReviews,
                                 reviews: data.reviews,
                                 status: data.status,
@@ -760,14 +777,19 @@ exports.createService = async (req, res) => {
                 if (!data || data.length === 0) {
                         return res.status(400).send({ status: 404, msg: "not found" });
                 }
-                let images = [];
-                if (req.files) {
-                        for (let i = 0; i < req.files.length; i++) {
+                let images = [], beforeAfterImage;
+                if (req.files['image'] != (null || undefined)) {
+                        let docs = req.files['image'];
+                        for (let i = 0; i < docs.length; i++) {
                                 let obj = {
                                         img: req.files[i].path
                                 }
                                 images.push(obj)
                         }
+                }
+                if (req.files['beforeAfterImage'] != (null || undefined)) {
+                        let docs = req.files['beforeAfterImage'];
+                        beforeAfterImage = docs[0].path
                 }
                 if (req.body.discountActive == 'true') {
                         req.body.discountPrice = (req.body.price - ((req.body.price * req.body.discount) / 100)).toFixed(2)
@@ -775,6 +797,7 @@ exports.createService = async (req, res) => {
                         req.body.discountPrice = 0
                 }
                 req.body.images = images;
+                req.body.beforeAfterImage = beforeAfterImage;
                 const ProductCreated = await services.create(req.body);
                 if (ProductCreated) {
                         return res.status(201).send({ status: 200, message: "Product add successfully", data: ProductCreated, });
@@ -876,14 +899,23 @@ exports.editService = async (req, res) => {
                                         return res.status(400).send({ status: 404, msg: "not found" });
                                 }
                         }
-                        let images = [];
-                        if (req.files) {
-                                for (let i = 0; i < req.files.length; i++) {
+                        let images = [], beforeAfterImage;
+                        if (req.files['image'] != (null || undefined)) {
+                                let docs = req.files['image'];
+                                for (let i = 0; i < docs.length; i++) {
                                         let obj = {
                                                 img: req.files[i].path
                                         }
                                         images.push(obj)
                                 }
+                        } else {
+                                images = data.images
+                        }
+                        if (req.files['beforeAfterImage'] != (null || undefined)) {
+                                let docs = req.files['beforeAfterImage'];
+                                beforeAfterImage = docs[0].path
+                        } else {
+                                beforeAfterImage = data.beforeAfterImage
                         }
                         if (req.body.discountActive == 'true') {
                                 req.body.discountPrice = req.body.price - ((req.body.price * req.body.discount) / 100)
@@ -894,7 +926,8 @@ exports.editService = async (req, res) => {
                         let productObj = {
                                 categoryId: req.body.categoryId || data.categoryId,
                                 name: req.body.name || data.name,
-                                images: images || data.images,
+                                images: images,
+                                beforeAfterImage: beforeAfterImage,
                                 price: req.body.price || data.price,
                                 description: req.body.description || data.description,
                                 discountPrice: req.body.discountPrice || data.discountPrice,

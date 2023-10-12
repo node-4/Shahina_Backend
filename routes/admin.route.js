@@ -4,7 +4,7 @@ var multer = require("multer");
 const path = require("path");
 const express = require("express");
 const router = express()
-const { productUpload, quiz, upload, bannerUpload, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
+const { productUpload, quiz, upload, bannerUpload, upload23,upload24, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
         aboutusUpload, subCategoryUpload, shopPageUpload, upload20, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
@@ -35,18 +35,18 @@ module.exports = (app) => {
         app.get("/api/v1/admin/Category/allCategory", auth.getCategories);
         app.put("/api/v1/admin/Category/updateCategory/:id", [authJwt.verifyToken], categoryUpload.single('image'), auth.updateCategory);
         app.delete("/api/v1/admin/Category/deleteCategory/:id", [authJwt.verifyToken], auth.removeCategory);
-        app.post("/api/v1/admin/Product/addProduct", [authJwt.verifyToken], upload.array('image'), auth.createProduct);
+        app.post("/api/v1/admin/Product/addProduct", [authJwt.verifyToken], upload23, auth.createProduct);
         app.get("/api/v1/Product/all/paginateProductSearch", auth.paginateProductSearch);
         app.get("/api/v1/Product/:id", auth.getIdProduct);
-        app.put("/api/v1/Product/editProduct/:id", [authJwt.verifyToken], upload.array('image'), auth.editProduct);
+        app.put("/api/v1/Product/editProduct/:id", [authJwt.verifyToken], upload23, auth.editProduct);
         app.delete("/api/v1/Product/deleteProduct/:id", [authJwt.verifyToken], auth.deleteProduct);
         app.post("/api/v1/product/createProductReview", [authJwt.verifyToken], auth.createProductReview);
         app.get("/api/v1/product/getProductReviews/:id", [authJwt.verifyToken], auth.getProductReviews);
-        app.post("/api/v1/admin/Service/addService", [authJwt.verifyToken], upload.array('image'), auth.createService);
+        app.post("/api/v1/admin/Service/addService", [authJwt.verifyToken], upload24, auth.createService);
         app.get("/api/v1/Service/all/paginateServiceSearch", auth.paginateServiceSearch);
         app.get("/api/v1/Service/all/getServiceByToken", [authJwt.verifyToken], auth.getServiceByToken);
         app.get("/api/v1/Service/:id", auth.getIdService);
-        app.put("/api/v1/Service/editService/:id", [authJwt.verifyToken], upload.array('image'), auth.editService);
+        app.put("/api/v1/Service/editService/:id", [authJwt.verifyToken], upload24, auth.editService);
         app.delete("/api/v1/Service/deleteService/:id", [authJwt.verifyToken], auth.deleteService);
         app.post("/api/v1/Subscription", auth.createSubscription);
         app.get("/api/v1/Subscription", auth.getAllSubscription);
