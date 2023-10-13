@@ -31,6 +31,7 @@ const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
 const giftCard = require("../models/giftCard");
 const giftPrice = require("../models/giftPrice");
+const memshipCancel = require("../models/memshipCancel");
 const moment = require("moment")
 const nodemailer = require("nodemailer");
 const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // test
@@ -2002,7 +2003,17 @@ exports.cancelMemberShip = async (req, res) => {
                         return res.status(404).send({ status: 404, message: "User not found" });
                 } else {
                         let updateUser = await User.findByIdAndUpdate({ _id: user._id }, { $set: { isSubscription: false } }, { new: true })
-                        return res.status(200).send({ status: 200, message: 'subscription cancel successfully.', data: updateUser })
+                        if (updateUser) {
+                                let obj = {
+                                        user: user._id,
+                                        reason: req.body.reason,
+                                        type: req.body.type,
+                                }
+                                let saveOrder1 = await memshipCancel.create(obj);
+                                if (saveOrder1) {
+                                        return res.status(200).send({ status: 200, message: 'subscription cancel successfully.', data: updateUser })
+                                }
+                        }
                 }
         } catch (error) {
                 console.error(error);
