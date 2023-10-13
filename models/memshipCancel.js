@@ -1,6 +1,7 @@
-const CartSchema = new Schema({
+const mongoose = require('mongoose');
+const postSchema = mongoose.Schema({
         user: {
-                type: Schema.Types.ObjectId,
+                type: mongoose.Schema.Types.ObjectId,
                 ref: "user"
         },
         reason: {
@@ -12,4 +13,4 @@ const CartSchema = new Schema({
 }, {
         timestamps: true
 })
-module.exports = mongoose.model("memshipCancel", CartSchema)
+module.exports = mongoose.model("membershipCancel", postSchema)
