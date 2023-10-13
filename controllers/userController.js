@@ -769,9 +769,14 @@ const calculateCartResponse = async (cart, userId, isServiceCart = false) => {
                 if (cartResponse.coupon) {
                         couponDiscount = parseFloat(((0.01 * cart.coupon.discount) * subTotal).toFixed(2));
                 }
-                cartResponse.total = parseFloat(subTotal.toFixed(2)) + parseFloat(shipping.toFixed(2));
-                membershipDiscount = parseFloat((membershipDiscountPercentage / 100) * (parseFloat(subTotal.toFixed(2)) + parseFloat(shipping.toFixed(2))).toFixed(2));
-                grandTotal = parseFloat((total - membershipDiscount).toFixed(2));
+                if (cartResponse.gifts.length > 0 && cartResponse.services.length == 0 && cartResponse.products.length == 0) {
+                        cartResponse.total = parseFloat(subTotal.toFixed(2));
+                        grandTotal = parseFloat((total).toFixed(2));
+                } else {
+                        cartResponse.total = parseFloat(subTotal.toFixed(2)) + parseFloat(shipping.toFixed(2));
+                        membershipDiscount = parseFloat((membershipDiscountPercentage / 100) * (parseFloat(subTotal.toFixed(2)) + parseFloat(shipping.toFixed(2))).toFixed(2));
+                        grandTotal = parseFloat((total - membershipDiscount).toFixed(2));
+                }
                 cartResponse.discount = parseFloat(discount.toFixed(2));
                 cartResponse.membershipDiscount = parseFloat(membershipDiscount.toFixed(2));
                 cartResponse.couponDiscount = parseFloat(couponDiscount.toFixed(2));
