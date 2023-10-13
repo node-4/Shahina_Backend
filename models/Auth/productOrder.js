@@ -12,16 +12,6 @@ const cartProductsSchema = new schema({
                 default: 1
         }
 }, { _id: false })
-const cartGiftsSchema = new schema({
-        giftId: {
-                type: schema.Types.ObjectId,
-                ref: "gift"
-        },
-        quantity: {
-                type: Number,
-                default: 1
-        }
-}, { _id: false })
 const cartfrequentlyBuyProductSchema = new schema({
         frequentlyBuyProductId: {
                 type: schema.Types.ObjectId,
@@ -51,9 +41,6 @@ const DocumentSchema = schema({
         },
         products: {
                 type: [cartProductsSchema]
-        },
-        gifts: {
-                type: [cartGiftsSchema]
         },
         frequentlyBuyProductSchema: {
                 type: [cartfrequentlyBuyProductSchema]
