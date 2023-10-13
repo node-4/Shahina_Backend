@@ -7,6 +7,7 @@ const banner = require("../models/bannerModel");
 const Gallary = require("../models/gallary");
 const User = require("../models/Auth/userModel");
 const Category = require("../models/Service/Category")
+const mongoose = require('mongoose');
 const services = require('../models/Service/services');
 const Brand = require('../models/Product/brand');
 const Nutrition = require('../models/Product/nutrition');
@@ -1326,6 +1327,7 @@ exports.checkout = async (req, res) => {
                                                 cartResponse.grandTotal = grandTotal;
                                         }
                                         orderObjPaidAmount = orderObjPaidAmount + grandTotal;
+                                        cartResponse._id = new mongoose.Types.ObjectId();
                                         let saveOrder = await productOrder.create(cartResponse);
                                         productOrderId = saveOrder._id;
                                 }
@@ -1373,6 +1375,7 @@ exports.checkout = async (req, res) => {
                                         cartResponse.grandTotal = grandTotal;
                                         cartResponse.serviceAddresss = data1;
                                         orderObjPaidAmount = orderObjPaidAmount + grandTotal;
+                                        cartResponse._id = new mongoose.Types.ObjectId();
                                         let saveOrder = await serviceOrder.create(cartResponse);
                                         serviceOrderId = saveOrder._id;
                                 }
@@ -1385,20 +1388,6 @@ exports.checkout = async (req, res) => {
                                         orderObjPaidAmount: orderObjPaidAmount,
                                 }
                                 let saveOrder1 = await userOrders.create(orderObj);
-                                // cartResponse.gifts.forEach((cartGift) => {
-                                //         if (cartGift.giftId.discountActive == true) {
-                                //                 cartGift.total = cartGift.giftId.price * cartGift.quantity;
-                                //                 cartGift.subTotal = cartGift.giftId.discountPrice * cartGift.quantity;
-                                //                 cartGift.discount = (cartGift.giftId.price - cartGift.giftId.discountPrice) * cartGift.quantity;
-                                //         } else {
-                                //                 cartGift.total = cartGift.giftId.price * cartGift.quantity;
-                                //                 cartGift.subTotal = cartGift.giftId.price * cartGift.quantity;
-                                //                 cartGift.discount = 0;
-                                //         }
-                                //         subTotal += cartGift.subTotal;
-                                //         discount += cartGift.discount;
-                                //         total += cartGift.total;
-                                // });
                                 return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                         }
                 } else {
@@ -1497,7 +1486,8 @@ exports.checkout = async (req, res) => {
                                                 cartResponse.grandTotal = grandTotal;
                                         }
                                         orderObjPaidAmount = orderObjPaidAmount + grandTotal;
-                                        let saveOrder = await productOrder.create(cartResponse);
+                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                        let saveOrder = new productOrder.create(cartResponse);
                                         productOrderId = saveOrder._id;
                                 }
                                 if (cartResponse.services && cartResponse.AddOnservicesSchema) {
@@ -1544,7 +1534,8 @@ exports.checkout = async (req, res) => {
                                         cartResponse.grandTotal = parseFloat(grandTotal).toFixed(2);
                                         cartResponse.serviceAddresss = data1;
                                         orderObjPaidAmount = orderObjPaidAmount + grandTotal;
-                                        let saveOrder = await serviceOrder.create(cartResponse);
+                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                        let saveOrder = new serviceOrder.create(cartResponse);
                                         serviceOrderId = saveOrder._id;
                                 }
                                 membershipDiscount = parseFloat(((memberShipPer / 100) * (subTotal - couponDiscount)).toFixed(2));
@@ -1801,35 +1792,36 @@ exports.successOrder = async (req, res) => {
                         if (!user) {
                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
                         }
-                        let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-                        let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-                        let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-                        var transporter = nodemailer.createTransport({
-                                service: 'gmail',
-                                auth: {
-                                        "user": "info@shahinahoja.com",
-                                        "pass": "gganlypsemwqhwlh"
+                        let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
+                        if (find1) {
+                                let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+                        }
+                        let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId });
+                        if (find2) {
+                                let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+                        }
+                        let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
+                        if (find3) {
+                                let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+                                if (findOrder3) {
+                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`, };
+                                        let info = await transporter.sendMail(mailOptions);
                                 }
-                        });
-                        let mailOptions;
-                        mailOptions = {
-                                from: 'info@shahinahoja.com',
-                                to: findOrder3.email,
-                                subject: 'Gift Card Provide by Your friend',
-                                text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`,
-                        };
-                        let info = await transporter.sendMail(mailOptions);
-                        if (info) {
-                                // let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
-                                // if (deleteCart) {
-                                return res.status(200).json({ message: "Payment success.", status: 200, data: update });
-                                // }
+                        }
+                        let mailOption1 = { from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `, };
+                        let info1 = await transporter.sendMail(mailOption1);
+                        if (info1) {
+                                let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+                                if (deleteCart) {
+                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                                }
                         } else {
-                                // let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
-                                // if (deleteCart) {
-                                return res.status(200).json({ message: "Payment success.", status: 200, data: update });
-                                // }
+                                let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+                                if (deleteCart) {
+                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                                }
                         }
                 } else {
                         return res.status(404).json({ message: "No data found", data: {} });
