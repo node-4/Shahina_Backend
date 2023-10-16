@@ -686,7 +686,7 @@ exports.getCart = async (req, res, next) => {
                 if (cart.services.length > 0) {
                         cartResponse = await calculateCartResponse(cart, req.user._id, true);
                 } else if (cart.products.length == 0 && cart.gifts.length == 0 && cart.frequentlyBuyProductSchema.length == 0 && cart.services.length == 0 && cart.AddOnservicesSchema.length == 0) {
-                        return res.status(200).json({ success: true, msg: "Cart retrieved successfully", cart: cart });
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
                 } else {
                         cartResponse = await calculateCartResponse(cart, req.user._id);
                 }
