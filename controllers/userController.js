@@ -2165,7 +2165,7 @@ exports.getRecentlyServicesView = async (req, res, next) => {
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
                 }
-                return res.status(200).json({ success: true, msg: "recentlyView retrieved successfully", cart: cartResponse });
+                return res.status(200).json({ success: true, msg: "recentlyView retrieved successfully", cart: cart });
         } catch (error) {
                 console.log(error);
                 next(error);
@@ -2177,7 +2177,7 @@ exports.getRecentlyProductView = async (req, res, next) => {
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
                 }
-                return res.status(200).json({ success: true, msg: "recentlyView retrieved successfully", cart: cartResponse });
+                return res.status(200).json({ success: true, msg: "recentlyView retrieved successfully", cart: cart });
         } catch (error) {
                 console.log(error);
                 next(error);

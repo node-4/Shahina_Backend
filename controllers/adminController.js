@@ -1794,6 +1794,32 @@ exports.getGiftCards = async (req, res) => {
         }
         return res.status(201).json({ message: "Ingredients not Found", status: 404, data: {}, });
 };
+exports.updateGiftPrice = async (req, res) => {
+        try {
+                const data = await giftPrice.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        const data1 = await giftPrice.findByIdAndUpdate({ _id: data._id }, { $set: { giftCardrewards: req.body.giftCardrewards, price: req.body.price, } }, { new: true });
+                        return res.status(200).json({ status: 200, message: "GiftPrice update successfully.", data: data1 });
+                }
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.deleteGiftPrice = async (req, res) => {
+        try {
+                const data = await giftPrice.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        const data1 = await giftPrice.findByIdAndDelete(data._id);
+                        return res.status(200).json({ status: 200, message: "GiftPrice delete successfully.", data: {} });
+                }
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
 exports.deleteGiftCard = async (req, res) => {
         try {
                 const data = await giftCard.findById(req.params.id);

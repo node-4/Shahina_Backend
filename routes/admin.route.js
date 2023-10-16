@@ -95,6 +95,8 @@ module.exports = (app) => {
         app.post("/api/v1/admin/GiftCards/addgiftCard", [authJwt.verifyToken], upload.single('image'), auth.createGiftCard);
         app.get("/api/v1/admin/GiftCards/allgiftCard", auth.getGiftCards);
         app.get("/api/v1/GiftCards/:id", auth.getIdGiftCard);
+        app.put("/api/v1/GiftCards/updateGiftPrice/:id", [authJwt.verifyToken], auth.updateGiftPrice);
+        app.delete("/api/v1/GiftCards/deleteGiftPrice/:id", [authJwt.verifyToken], auth.deleteGiftPrice);
         app.delete("/api/v1/GiftCards/deletegiftCard/:id", [authJwt.verifyToken], auth.deleteGiftCard);
         app.post("/api/v1/admin/Slot/addSlot", [authJwt.verifyToken], auth.createSlot);
         app.get("/api/v1/admin/Slot/allSlot", auth.getSlot);
