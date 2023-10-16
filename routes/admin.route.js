@@ -4,7 +4,7 @@ var multer = require("multer");
 const path = require("path");
 const express = require("express");
 const router = express()
-const { productUpload, quiz, upload, bannerUpload, upload23,upload24, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
+const { productUpload, quiz, upload, bannerUpload, upload23, upload24, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
         aboutusUpload, subCategoryUpload, shopPageUpload, upload20, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
@@ -121,5 +121,9 @@ module.exports = (app) => {
         app.put("/api/v1/admin/AddOnServices/updateAddOnServices/:id", [authJwt.verifyToken], auth.updateAddOnServices);
         app.delete("/api/v1/admin/AddOnServices/deleteAddOnServices/:id", [authJwt.verifyToken], auth.removeAddOnServices);
         app.post("/api/v1/admin/createShipment", auth.createShipment);
-
+        app.post('/api/v1/admin/addtoCart/:type/:id', [authJwt.verifyToken], auth.addToCart);
+        app.get('/api/v1/admin/getCart/:userId', [authJwt.verifyToken], auth.getCart);
+        app.post('/api/v1/admin/checkout/:userId', [authJwt.verifyToken], auth.checkout);
+        app.get("/api/v1/admin/successOrder/:orderId", [authJwt.verifyToken], auth.successOrder);
+        app.get("/api/v1/admin/cancelOrder/:orderId", [authJwt.verifyToken], auth.cancelOrder);
 }
