@@ -32,6 +32,7 @@ const addOnservices = require("../models/Service/addOnservices");
 const giftCard = require("../models/giftCard");
 const giftPrice = require("../models/giftPrice");
 const memshipCancel = require("../models/memshipCancel");
+const recentlyView = require("../models/recentlyView");
 const moment = require("moment")
 const nodemailer = require("nodemailer");
 const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // test
@@ -2023,6 +2024,18 @@ exports.cancelMemberShip = async (req, res) => {
         } catch (error) {
                 console.error(error);
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.getRecentlyView = async (req, res, next) => {
+        try {
+                const cart = await recentlyView.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } },]);
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
+                }
+                return res.status(200).json({ success: true, msg: "recentlyView retrieved successfully", cart: cartResponse });
+        } catch (error) {
+                console.log(error);
+                next(error);
         }
 };
 const reffralCode = async () => {

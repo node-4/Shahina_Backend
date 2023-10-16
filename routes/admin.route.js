@@ -38,6 +38,7 @@ module.exports = (app) => {
         app.post("/api/v1/admin/Product/addProduct", [authJwt.verifyToken], upload23, auth.createProduct);
         app.get("/api/v1/Product/all/paginateProductSearch", auth.paginateProductSearch);
         app.get("/api/v1/Product/:id", auth.getIdProduct);
+        app.get("/api/v1/Product/byToken/:id", [authJwt.verifyToken], auth.getIdProductByToken);
         app.put("/api/v1/Product/editProduct/:id", [authJwt.verifyToken], upload23, auth.editProduct);
         app.delete("/api/v1/Product/deleteProduct/:id", [authJwt.verifyToken], auth.deleteProduct);
         app.post("/api/v1/product/createProductReview", [authJwt.verifyToken], auth.createProductReview);
@@ -46,6 +47,7 @@ module.exports = (app) => {
         app.get("/api/v1/Service/all/paginateServiceSearch", auth.paginateServiceSearch);
         app.get("/api/v1/Service/all/getServiceByToken", [authJwt.verifyToken], auth.getServiceByToken);
         app.get("/api/v1/Service/:id", auth.getIdService);
+        app.get("/api/v1/Service/byToken/:id", [authJwt.verifyToken], auth.getIdServiceByToken);
         app.put("/api/v1/Service/editService/:id", [authJwt.verifyToken], upload24, auth.editService);
         app.delete("/api/v1/Service/deleteService/:id", [authJwt.verifyToken], auth.deleteService);
         app.post("/api/v1/Subscription", auth.createSubscription);
@@ -57,6 +59,7 @@ module.exports = (app) => {
         app.post("/api/v1/Banner/createHomePageBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createHomePageBanner);
         app.post("/api/v1/Banner/createPromotionBanner", [authJwt.verifyToken], bannerUpload.single('image'), auth.createPromotionBanner);
         app.get("/api/v1/Banner/getBanner/:type", auth.getBanner);
+        app.get("/api/v1/Banner/getAllBanner", auth.getAllBanner);
         app.get("/api/v1/Banner/:id", auth.getIdBanner);
         app.delete("/api/v1/Banner/:id", [authJwt.verifyToken], auth.deleteBanner);
         app.put("/api/v1/Banner/updateBanner/:id", [authJwt.verifyToken], bannerUpload.single('image'), auth.updateBanner);

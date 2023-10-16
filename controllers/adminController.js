@@ -31,6 +31,7 @@ const acneQuizSuggession = require("../models/acneQuizSuggession");
 const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
 const deliverOrde = require("../models/deliverOrde");
+const recentlyView = require("../models/recentlyView");
 // const axios = require('axios');
 // const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 // const sendleApiBaseUrl = 'https://api.sendle.com';
@@ -601,6 +602,38 @@ exports.getIdProduct = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
+exports.getIdProductByToken = async (req, res) => {
+        try {
+                const data = await product.findById(req.params.id).populate('brandId')
+                if (!data || data.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        const findData = await recentlyView.findOne({ user: req.user._id });
+                        if (findData) {
+                                if (!findData.products.includes((data._id).toString())) {
+                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { products: data._id } }, { new: true });
+                                        if (updateSender) {
+                                                return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+                                        }
+                                } else {
+                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { products: data._id } }, { new: true });
+                                        if (updateSender) {
+                                                return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+                                        }
+                                }
+                        } else {
+                                let products = [];
+                                products.push(data._id)
+                                const saved = await recentlyView.create({ user: req.user._id, products: products });
+                                if (saved) {
+                                        return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+                                }
+                        }
+                }
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
 exports.editProduct = async (req, res) => {
         try {
                 const data = await product.findById(req.params.id);
@@ -883,6 +916,38 @@ exports.getIdService = async (req, res) => {
                         return res.status(400).send({ msg: "not found" });
                 }
                 return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.getIdServiceByToken = async (req, res) => {
+        try {
+                const data = await services.findById(req.params.id).populate('categoryId')
+                if (!data || data.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        const findData = await recentlyView.findOne({ user: req.user._id });
+                        if (findData) {
+                                if (!findData.services.includes((data._id).toString())) {
+                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { services: data._id } }, { new: true });
+                                        if (updateSender) {
+                                                return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+                                        }
+                                } else {
+                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { services: data._id } }, { new: true });
+                                        if (updateSender) {
+                                                return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+                                        }
+                                }
+                        } else {
+                                let services = [];
+                                services.push(data._id)
+                                const saved = await recentlyView.create({ user: req.user._id, services: services });
+                                if (saved) {
+                                        return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+                                }
+                        }
+                }
         } catch (err) {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
@@ -1237,6 +1302,17 @@ exports.createHomePageBanner = async (req, res) => {
 exports.getBanner = async (req, res) => {
         try {
                 const data = await banner.find({ type: req.params.type })
+                if (data.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                }
+                return res.status(200).json({ status: 200, message: "Banner data found.", data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.getAllBanner = async (req, res) => {
+        try {
+                const data = await banner.find({})
                 if (data.length === 0) {
                         return res.status(400).send({ msg: "not found" });
                 }
