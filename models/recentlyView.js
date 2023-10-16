@@ -5,14 +5,18 @@ const CartSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "user"
     },
-    products: [{
+    products: {
         type: Schema.Types.ObjectId,
         ref: "Product"
-    }],
-    services: [{
+    },
+    services: {
         type: Schema.Types.ObjectId,
         ref: "services"
-    }],
+    },
+    type: {
+        type: String,
+        enum: ["P", "S"]
+    }
 }, {
     timestamps: true
 })

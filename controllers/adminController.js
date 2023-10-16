@@ -608,23 +608,14 @@ exports.getIdProductByToken = async (req, res) => {
                 if (!data || data.length === 0) {
                         return res.status(400).send({ msg: "not found" });
                 } else {
-                        const findData = await recentlyView.findOne({ user: req.user._id });
+                        const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
                         if (findData) {
-                                if (!findData.products.includes((data._id).toString())) {
-                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { products: data._id } }, { new: true });
-                                        if (updateSender) {
-                                                return res.status(200).json({ status: 200, message: "Product data found.", data: data });
-                                        }
-                                } else {
-                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { products: data._id } }, { new: true });
-                                        if (updateSender) {
-                                                return res.status(200).json({ status: 200, message: "Product data found.", data: data });
-                                        }
+                                const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
+                                if (saved) {
+                                        return res.status(200).json({ status: 200, message: "Product data found.", data: data });
                                 }
                         } else {
-                                let products = [];
-                                products.push(data._id)
-                                const saved = await recentlyView.create({ user: req.user._id, products: products });
+                                const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
                                 if (saved) {
                                         return res.status(200).json({ status: 200, message: "Product data found.", data: data });
                                 }
@@ -926,23 +917,14 @@ exports.getIdServiceByToken = async (req, res) => {
                 if (!data || data.length === 0) {
                         return res.status(400).send({ msg: "not found" });
                 } else {
-                        const findData = await recentlyView.findOne({ user: req.user._id });
+                        const findData = await recentlyView.findOne({ user: req.user._id, services: data._id });
                         if (findData) {
-                                if (!findData.services.includes((data._id).toString())) {
-                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { services: data._id } }, { new: true });
-                                        if (updateSender) {
-                                                return res.status(200).json({ status: 200, message: "Service data found.", data: data });
-                                        }
-                                } else {
-                                        let updateSender = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $push: { services: data._id } }, { new: true });
-                                        if (updateSender) {
-                                                return res.status(200).json({ status: 200, message: "Service data found.", data: data });
-                                        }
+                                const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { services: data._id } }, { new: true });
+                                if (saved) {
+                                        return res.status(200).json({ status: 200, message: "Service data found.", data: data });
                                 }
                         } else {
-                                let services = [];
-                                services.push(data._id)
-                                const saved = await recentlyView.create({ user: req.user._id, services: services });
+                                const saved = await recentlyView.create({ user: req.user._id, services: data._id, type: "S" });
                                 if (saved) {
                                         return res.status(200).json({ status: 200, message: "Service data found.", data: data });
                                 }

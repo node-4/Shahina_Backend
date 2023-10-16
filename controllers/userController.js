@@ -2159,9 +2159,21 @@ exports.cancelMemberShip = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
-exports.getRecentlyView = async (req, res, next) => {
+exports.getRecentlyServicesView = async (req, res, next) => {
         try {
-                const cart = await recentlyView.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } },]);
+                const cart = await recentlyView.find({ user: req.user._id, type: "S" }).populate({ path: "services" }).sort({ "updateAt": -1 });
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
+                }
+                return res.status(200).json({ success: true, msg: "recentlyView retrieved successfully", cart: cartResponse });
+        } catch (error) {
+                console.log(error);
+                next(error);
+        }
+};
+exports.getRecentlyProductView = async (req, res, next) => {
+        try {
+                const cart = await recentlyView.find({ user: req.user._id, type: "P" }).populate({ path: "products" }).sort({ "updateAt": -1 });
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
                 }
