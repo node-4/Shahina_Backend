@@ -10,6 +10,9 @@ const cartProductsSchema = new schema({
         priceId: {
                 type: String,
         },
+        sizePrice: {
+                type: String,
+        },
         size: {
                 type: String,
         },
