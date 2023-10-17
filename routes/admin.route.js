@@ -10,6 +10,9 @@ module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
         app.post("/api/v1/admin/clientRegistration", [authJwt.verifyToken], auth.clientRegistration);
         app.post("/api/v1/admin/login", auth.signin);
+        app.get("/api/v1/admin/getAllUser", auth.getAllUser);
+        app.get("/api/v1/admin/viewUser/:id", auth.viewUser);
+        app.delete("/api/v1/admin/deleteUser/:id", [authJwt.verifyToken], auth.deleteUser);
         app.put("/api/v1/admin/update", [authJwt.verifyToken], auth.update);
         app.post("/api/v1/admin/Brand/addBrand", [authJwt.verifyToken], BrandUpload.single('image'), auth.createBrands);
         app.get("/api/v1/admin/Brand/allBrand", auth.getBrands);
@@ -120,10 +123,10 @@ module.exports = (app) => {
         app.put("/api/v1/FrequentlyBuyProduct/updateFrequentlyBuyProduct/:id", [authJwt.verifyToken], auth.updateFrequentlyBuyProduct);
         app.delete("/api/v1/admin/FrequentlyBuyProduct/deleteFrequentlyBuyProduct/:id", [authJwt.verifyToken], auth.removeFrequentlyBuyProduct);
         app.get("/api/v1/FrequentlyBuyProduct/byProduct/:productId", auth.getFrequentlyBuyProductbyProductId);
-        app.post("/api/v1/admin/AddOnServices/addAddOnServices", [authJwt.verifyToken], auth.createAddOnServices);
+        app.post("/api/v1/admin/AddOnServices/addAddOnServices", [authJwt.verifyToken], upload.single('image'), auth.createAddOnServices);
         app.get("/api/v1/admin/AddOnServices/allAddOnServices", auth.getAddOnServices);
         app.get("/api/v1/AddOnServices/getAddOnServiceByToken", [authJwt.verifyToken], auth.getAddOnServiceByToken);
-        app.put("/api/v1/admin/AddOnServices/updateAddOnServices/:id", [authJwt.verifyToken], auth.updateAddOnServices);
+        app.put("/api/v1/admin/AddOnServices/updateAddOnServices/:id", [authJwt.verifyToken], upload.single('image'), auth.updateAddOnServices);
         app.delete("/api/v1/admin/AddOnServices/deleteAddOnServices/:id", [authJwt.verifyToken], auth.removeAddOnServices);
         app.post("/api/v1/admin/createShipment", auth.createShipment);
         app.post('/api/v1/admin/addtoCart/:type/:id', [authJwt.verifyToken], auth.addToCart);

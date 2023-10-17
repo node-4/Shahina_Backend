@@ -130,6 +130,44 @@ exports.clientRegistration = async (req, res) => {
                 return res.status(500).json({ message: "Server error" });
         }
 };
+exports.getAllUser = async (req, res) => {
+        try {
+                const user = await User.find({ userType: "USER" });
+                if (user.length == 0) {
+                        return res.status(404).send({ message: "not found" });
+                }
+                return res.status(200).send({ message: "Get user details.", data: user });
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({
+                        message: "internal server error " + err.message,
+                });
+        }
+};
+exports.viewUser = async (req, res) => {
+        try {
+                const data = await User.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                }
+                return res.status(200).send({ msg: "Data found successfully", data: data });
+        } catch (err) {
+                console.log(err.message);
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.deleteUser = async (req, res) => {
+        try {
+                const data = await User.findByIdAndDelete(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                }
+                return res.status(200).send({ msg: "deleted", data: data });
+        } catch (err) {
+                console.log(err.message);
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
 exports.createCategory = async (req, res) => {
         try {
                 let findCategory = await Category.findOne({ name: req.body.name });
@@ -2141,7 +2179,7 @@ exports.createAddOnServices = async (req, res) => {
                 if (findSlot) {
                         return res.status(409).json({ message: "AddOnServices already exit.", status: 404, data: {} });
                 } else {
-                        const data = { name: req.body.name, price: req.body.price, time: req.body.time, description: req.body.description, };
+                        const data = { name: req.body.name, price: req.body.price, time: req.body.time,image:image, description: req.body.description, };
                         const category = await addOnservices.create(data);
                         return res.status(200).json({ message: "AddOnServices add successfully.", status: 200, data: category });
                 }

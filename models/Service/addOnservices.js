@@ -6,6 +6,9 @@ var storeSchema = new schema({
         name: {
                 type: String
         },
+        image: {
+                type: String
+        },
         time: {
                 type: String
         },
