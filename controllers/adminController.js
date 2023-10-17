@@ -32,7 +32,6 @@ const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
 const deliverOrde = require("../models/deliverOrde");
 const recentlyView = require("../models/recentlyView");
-// const axios = require('axios');
 // const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 // const sendleApiBaseUrl = 'https://api.sendle.com';
 // const sdk = require('api')('@sendle/v1.0#25eje35llbmpa1g');
@@ -3106,3 +3105,62 @@ const reffralCode = async () => {
 //                 throw error;
 //         }
 // }
+
+///////////////////////////////////////////////////
+// const axios = require('axios');
+// exports.chatapi = async (req, res) => {
+//         try {
+
+//                 const messageData = {
+//                         to: 'recipient_username',
+//                         content: 'Your message content here',
+//                 };
+//                 const apiKey = '1000.QF6WQFD0CHZACT3RZON8Z4B8LNKYEA';
+//                 const apiSecret = 'f0fa320fba3425f082393fd5231ce8e849c2910b09';
+//                 const apiEndpoint = 'https://chat.zoho.com/api/v1/messages';
+//                 const headers = {
+//                         'Authorization': `Bearer ${apiKey}:${apiSecret}`,
+//                         'Content-Type': 'application/json',
+//                 };
+//                 axios.post(apiEndpoint, messageData, { headers })
+//                         .then(response => {
+//                                 console.log('Message sent successfully');
+//                                 console.log(response.data);
+//                         })
+//                         .catch(error => {
+//                                 console.error('Error sending message');
+//                                 console.error(error.response.data);
+//                         })
+
+//         } catch (error) {
+//                 console.error('Error creating shipment:', error.response ? error.response.data : error.message);
+//                 throw error;
+//         }
+// }
+// const axios = require('axios');
+
+// exports.chatapi = async (req, res) => {
+//         try {
+//                 const messageData = {
+//                         to: 'recipient_username',
+//                         content: 'Your message content here',
+//                 };
+//                 const apiKey = '1000.QF6WQFD0CHZACT3RZON8Z4B8LNKYEA';
+//                 const apiSecret = 'f0fa320fba3425f082393fd5231ce8e849c2910b09';
+//                 const apiEndpoint = 'https://chat.zoho.com/api/v1/messages';
+//                 const headers = {
+//                         Authorization: `Bearer ${apiKey}:${apiSecret}`,
+//                         'Content-Type': 'application/json',
+//                 };
+//                 const response = await axios.post(apiEndpoint, messageData, { headers });
+//                 if (response.status === 200) {
+//                         return res.status(201).json({ message: "Message sent successfully", status: 201, data: response.data });
+//                 } else {
+//                         return res.status(503).json({ message: "Error sending message", status: 503, data: response.data });
+//                 }
+//         } catch (error) {
+//                 return res.status(503).json({ message: "Error creating shipment", status: 503, data: error.response ? error.response.data : error.message });
+//                 console.error('Error creating shipment:', error.response ? error.response.data : error.message);
+//                 throw error;
+//         }
+// };
