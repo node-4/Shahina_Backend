@@ -1670,9 +1670,10 @@ exports.removeClientReview = async (req, res) => {
 };
 exports.getProductOrder = async (req, res, next) => {
         try {
-                const orders = await productOrder.find({ orderStatus: "confirmed" }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } },
-                { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
-                { path: "coupon", select: "couponCode discount expirationDate" },]);
+                const orders = await productOrder.find({ orderStatus: "confirmed" }).populate([
+                        { path: "products.productId", select: { reviews: 0 } },
+                        { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
+                        { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (orders.length == 0) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
