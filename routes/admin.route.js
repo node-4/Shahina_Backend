@@ -134,7 +134,8 @@ module.exports = (app) => {
         app.post('/api/v1/admin/checkout/:userId', [authJwt.verifyToken], auth.checkout);
         app.get("/api/v1/admin/successOrder/:orderId", [authJwt.verifyToken], auth.successOrder);
         app.get("/api/v1/admin/cancelOrder/:orderId", [authJwt.verifyToken], auth.cancelOrder);
-
+        app.get("/api/v1/admin/viewproductOrder/:id", auth.getProductOrderbyId);
+        app.get("/api/v1/admin/viewserviceOrder/:id", auth.getServiceOrderbyId);
         // app.post('/api/v1/admin/chatapi', auth.chatapi);
 
 }

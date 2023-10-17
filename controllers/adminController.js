@@ -2260,6 +2260,36 @@ exports.removeAddOnServices = async (req, res) => {
                 return res.status(200).json({ message: "AddOnServices Deleted Successfully !" });
         }
 };
+exports.getProductOrderbyId = async (req, res, next) => {
+        try {
+                const orders = await productOrder.findById({ _id: req.params.id }).populate([
+                        { path: 'user' },
+                        { path: "products.productId", select: { reviews: 0 } },
+                        { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
+                        { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getServiceOrderbyId = async (req, res, next) => {
+        try {
+                const orders = await serviceOrder.findById({ _id: req.params.id }).populate([
+                        { path: 'user' },
+                        { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
 // public
 // const client = new SendleClient({
 //         sendleId: 'shahina_hoja_gmail_c',
