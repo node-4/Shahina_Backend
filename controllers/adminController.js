@@ -1202,8 +1202,8 @@ exports.createShopPage = async (req, res) => {
                                 }
                         }
                         data = {
-                                shopDetails: req.body.shopDetails || findData.shopDetails,
-                                shopImage: req.body.shopImage || findData.shopImage,
+                                shopDetails: shopDetails || findData.shopDetails,
+                                shopImage: shopImage || findData.shopImage,
                                 type: "shopPage"
                         };
                         const Banner = await banner.findByIdAndUpdate({ _id: findData._id }, { $set: data }, { new: true })
@@ -2166,7 +2166,7 @@ exports.removeFrequentlyBuyProduct = async (req, res) => {
         }
 };
 exports.getFrequentlyBuyProductbyProductId = async (req, res) => {
-        const categories = await frequentlyBuyProduct.findOne({ products: { $in: req.params.productId } });
+        const categories = await frequentlyBuyProduct.findOne({ products: { $in: req.params.productId } }).populate('products');
         if (categories) {
                 return res.status(201).json({ message: "Frequently Buy Product Found", status: 200, data: categories, });
         }
@@ -2179,7 +2179,11 @@ exports.createAddOnServices = async (req, res) => {
                 if (findSlot) {
                         return res.status(409).json({ message: "AddOnServices already exit.", status: 404, data: {} });
                 } else {
-                        const data = { name: req.body.name, price: req.body.price, time: req.body.time,image:image, description: req.body.description, };
+                        let image;
+                        if (req.file) {
+                                image = req.file ? req.file.path : "";
+                        }
+                        const data = { name: req.body.name, price: req.body.price, time: req.body.time, image: image, description: req.body.description, };
                         const category = await addOnservices.create(data);
                         return res.status(200).json({ message: "AddOnServices add successfully.", status: 200, data: category });
                 }
@@ -2230,8 +2234,14 @@ exports.updateAddOnServices = async (req, res) => {
                 return res.status(404).json({ message: "AddOnServices Not Found", status: 404, data: {} });
         }
         const category1 = await addOnservices.findOne({ _id: { $ne: id }, name: req.body.name });
-        if (!category1) {
+        if (category1) {
                 return res.status(404).json({ message: "AddOnServices already exit", status: 404, data: {} });
+        }
+        let image;
+        if (req.file) {
+                category.image = req.file ? req.file.path : "";
+        } else {
+                category.image = category.image;
         }
         category.name = req.body.name || category.name;
         category.price = req.body.price || category.price;
