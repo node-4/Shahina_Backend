@@ -3195,3 +3195,30 @@ const reffralCode = async () => {
 //                 throw error;
 //         }
 // };
+
+// const { createZohoChatClient } = require('@zohocrm/nodejs-sdk-2.0');
+
+// async function createZohoChatClient2(clientId, clientSecret) {
+//   try {
+//     const client = createZohoChatClient({
+//       auth: {
+//         clientId,
+//         clientSecret,
+//       },
+//     });
+
+//     // Ensure that the client is properly initialized before making further calls
+//     await client.initialize();
+
+//     const users = await client.getUsers();
+//     // Do something with the users list
+//     console.log(users);
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+// }
+
+// const clientId = '1000.QF6WQFD0CHZACT3RZON8Z4B8LNKYEA';
+// const clientSecret = 'f0fa320fba3425f082393fd5231ce8e849c2910b09';
+
+// createZohoChatClient2(clientId, clientSecret);
