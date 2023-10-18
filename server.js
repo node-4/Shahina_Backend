@@ -7,6 +7,10 @@ const compression = require("compression");
 const serverless = require("serverless-http");
 const app = express();
 const path = require("path");
+const server = require("http").createServer(app);
+const io = require("socket.io")(server);
+const chatController = require('./controllers/chatController');
+const userModel = require("./models/Auth/userModel");
 app.use(compression({ threshold: 500 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -28,7 +32,7 @@ mongoose.set("strictQuery", true);
 mongoose.connect(process.env.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true, }).then((data) => {
         console.log(`Mongodb connected with server: ${data.connection.host} : Shahina-Backend`);
 });
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
         console.log(`Listening on port ${process.env.PORT}!`);
 });
-module.exports = { handler: serverless(app) };
+module.exports = { handler: serverless(server) };
