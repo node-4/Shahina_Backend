@@ -1672,31 +1672,84 @@ exports.removeClientReview = async (req, res) => {
                 return res.status(200).json({ message: "clientReview Deleted Successfully !" });
         }
 };
-exports.getProductOrder = async (req, res, next) => {
+exports.getProductOrder = async (req, res) => {
         try {
-                const orders = await productOrder.find({ orderStatus: "confirmed" }).populate([
-                        { path: "products.productId", select: { reviews: 0 } },
-                        { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
-                        { path: "coupon", select: "couponCode discount expirationDate" },]);
-                if (orders.length == 0) {
-                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                console.log("------------------------");
+                const { search, fromDate, toDate, page, limit } = req.query;
+                let query = { orderStatus: "confirmed" };
+                if (search) {
+                        query.$or = [
+                                { "orderId": { $regex: req.query.search, $options: "i" }, },
+                        ]
                 }
-                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+                if (fromDate && !toDate) {
+                        query.createdAt = { $gte: fromDate };
+                }
+                if (!fromDate && toDate) {
+                        query.createdAt = { $lte: toDate };
+                }
+                if (fromDate && toDate) {
+                        query.$and = [
+                                { createdAt: { $gte: fromDate } },
+                                { createdAt: { $lte: toDate } },
+                        ]
+                }
+                let options = {
+                        page: Number(page) || 1,
+                        limit: Number(limit) || 50,
+                        sort: { createdAt: -1 },
+                        populate: ([
+                                { path: "products.productId", select: { reviews: 0 } },
+                                { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
+                                { path: "coupon", select: "couponCode discount expirationDate" },
+                                { path: 'user' }
+                        ])
+                };
+                let data = await productOrder.paginate(query, options);
+                return res.status(200).json({ status: 200, message: "Orders data found.", data: data });
+
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
-exports.getServiceOrders = async (req, res, next) => {
+exports.getServiceOrders = async (req, res) => {
         try {
-                const orders = await serviceOrder.find({ orderStatus: "confirmed" }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                if (orders.length == 0) {
-                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                console.log("------------------------");
+                const { search, fromDate, toDate, page, limit } = req.query;
+                let query = { orderStatus: "confirmed" };
+                if (search) {
+                        query.$or = [
+                                { "orderId": { $regex: req.query.search, $options: "i" }, },
+                        ]
                 }
-                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+                if (fromDate && !toDate) {
+                        query.createdAt = { $gte: fromDate };
+                }
+                if (!fromDate && toDate) {
+                        query.createdAt = { $lte: toDate };
+                }
+                if (fromDate && toDate) {
+                        query.$and = [
+                                { createdAt: { $gte: fromDate } },
+                                { createdAt: { $lte: toDate } },
+                        ]
+                }
+                let options = {
+                        page: Number(page) || 1,
+                        limit: Number(limit) || 50,
+                        sort: { createdAt: -1 },
+                        populate: ([
+                                { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
+                                { path: "services.serviceId", select: { reviews: 0 } },
+                                { path: "coupon", select: "couponCode discount expirationDate" },
+                                { path: 'user' }
+                        ])
+                };
+                let data = await serviceOrder.paginate(query, options);
+                return res.status(200).json({ status: 200, message: "Orders data found.", data: data });
+
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
 exports.createIngredients = async (req, res) => {
