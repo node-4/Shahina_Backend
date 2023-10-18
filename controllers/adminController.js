@@ -32,6 +32,7 @@ const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
 const deliverOrde = require("../models/deliverOrde");
 const recentlyView = require("../models/recentlyView");
+const Address = require("../models/Auth/addrees");
 // const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 // const sendleApiBaseUrl = 'https://api.sendle.com';
 // const sdk = require('api')('@sendle/v1.0#25eje35llbmpa1g');
@@ -2367,10 +2368,13 @@ exports.addToCart = async (req, res, next) => {
                         cart = await Cart.create({ user: req.body.userId });
                 }
                 const cartField = getCartFieldByItemType(itemType);
-                const itemIndex = cart[cartField].findIndex((cartItem) => cartItem[itemType + 'Id'].toString() === itemId);
+                const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId == (null || undefined) ? ((cartItem[itemType + 'Id'].toString() === itemId)) : ((cartItem[itemType + 'Id'].toString() === itemId) && (cartItem.priceId === req.body.priceId)));
                 if (itemIndex < 0) {
                         if (itemType == 'gift') {
                                 let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
+                                cart[cartField].push(obj);
+                        } else if (itemType == 'product') {
+                                let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
                                 cart[cartField].push(obj);
                         } else {
                                 let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
@@ -2380,6 +2384,11 @@ exports.addToCart = async (req, res, next) => {
                         if (itemType == 'gift') {
                                 cart[cartField][itemIndex].quantity = req.body.quantity;
                                 cart[cartField][itemIndex].email = req.body.email;
+                        } else if (itemType == 'product') {
+                                cart[cartField][itemIndex].quantity = req.body.quantity;
+                                cart[cartField][itemIndex].size = req.body.size;
+                                cart[cartField][itemIndex].priceId = req.body.priceId;
+                                cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
                         } else {
                                 cart[cartField][itemIndex].quantity = req.body.quantity;
                         }
@@ -2431,6 +2440,8 @@ exports.getCart = async (req, res, next) => {
                 let cartResponse;
                 if (cart.services.length > 0) {
                         cartResponse = await calculateCartResponse(cart, req.params.userId, true);
+                } else if (cart.products.length == 0 && cart.gifts.length == 0 && cart.frequentlyBuyProductSchema.length == 0 && cart.services.length == 0 && cart.AddOnservicesSchema.length == 0) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
                 } else {
                         cartResponse = await calculateCartResponse(cart, req.params.userId);
                 }
@@ -2472,18 +2483,37 @@ const calculateCartResponse = async (cart, userId, isServiceCart = false) => {
                 const cartResponse = cart.toObject();
                 let total = 0, subTotal = 0, grandTotal = 0;
                 cartResponse.products.forEach((cartProduct) => {
-                        if (cartProduct.productId.discountActive === true) {
-                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                        if (cartProduct.productId.multipleSize == true) {
+                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                if (cartProduct.productId.discountActive === true) {
+                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                } else {
+                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.discount = 0.00;
+                                                }
+                                                subTotal += cartProduct.subTotal;
+                                                discount += cartProduct.discount;
+                                                total += cartProduct.total;
+                                        }
+                                }
                         } else {
-                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                cartProduct.discount = 0.00;
+                                if (cartProduct.productId.discountActive === true) {
+                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
+                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                } else {
+                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.discount = 0.00;
+                                }
+                                subTotal += cartProduct.subTotal;
+                                discount += cartProduct.discount;
+                                total += cartProduct.total;
                         }
-                        subTotal += cartProduct.subTotal;
-                        discount += cartProduct.discount;
-                        total += cartProduct.total;
                 });
                 cartResponse.gifts.forEach((cartGift) => {
                         if (cartGift.giftId.discountActive === true) {
@@ -3032,6 +3062,9 @@ exports.cancelOrder = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+
+
+
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let OTP = '';
