@@ -38,6 +38,7 @@ const Address = require("../models/Auth/addrees");
 const coupanModel = require("../models/Auth/coupan");
 const transactionModel = require("../models/transactionModel");
 const notification = require("../models/notification");
+const nodemailer = require("nodemailer");
 // const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 // const sendleApiBaseUrl = 'https://api.sendle.com';
 // const sdk = require('api')('@sendle/v1.0#25eje35llbmpa1g');
@@ -3090,17 +3091,18 @@ exports.successOrder = async (req, res) => {
                                         let info = await transporter.sendMail(mailOptions);
                                 }
                         }
+                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                         let mailOption1 = { from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `, };
                         let info1 = await transporter.sendMail(mailOption1);
                         if (info1) {
                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
                                 if (deleteCart) {
-                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
                                 }
                         } else {
                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
                                 if (deleteCart) {
-                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update });
+                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
                                 }
                         }
                 } else {
