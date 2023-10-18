@@ -3062,7 +3062,38 @@ exports.cancelOrder = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-
+exports.deleteCartItem = async (req, res, next) => {
+        try {
+                const itemType = req.params.type;
+                const itemId = req.params.id;
+                let cart = await Cart.findOne({ user: req.params.userId });
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                }
+                const cartField = getCartFieldByItemType(itemType);
+                if (!cartField) {
+                        return res.status(400).json({ success: false, msg: "Invalid item type" });
+                }
+                const itemIndex = cart[cartField].findIndex((cartItem) => cartItem[itemType + 'Id'].toString() === itemId);
+                if (itemIndex === -1) {
+                        return res.status(404).json({ success: false, msg: `${itemType} not found in cart`, cart: {} });
+                }
+                cart[cartField].splice(itemIndex, 1);
+                await cart.save();
+                let cartResponse;
+                if (cart.services.length > 0) {
+                        cartResponse = await calculateCartResponse(cart, req.params.userId, true);
+                } else if (cart.products.length == 0 && cart.gifts.length == 0 && cart.frequentlyBuyProductSchema.length == 0 && cart.services.length == 0 && cart.AddOnservicesSchema.length == 0) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                } else {
+                        cartResponse = await calculateCartResponse(cart, req.params.userId);
+                }
+                return res.status(200).json({ success: true, msg: `${itemType} removed from cart`, cart: cartResponse });
+        } catch (error) {
+                console.log(error);
+                next(error);
+        }
+};
 
 
 const reffralCode = async () => {

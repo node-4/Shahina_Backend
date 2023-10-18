@@ -136,6 +136,7 @@ module.exports = (app) => {
         app.get("/api/v1/admin/cancelOrder/:orderId", [authJwt.verifyToken], auth.cancelOrder);
         app.get("/api/v1/admin/viewproductOrder/:id", auth.getProductOrderbyId);
         app.get("/api/v1/admin/viewserviceOrder/:id", auth.getServiceOrderbyId);
+        app.delete('/api/admin/cart/delete/:type/:id/:userId', [authJwt.verifyToken], auth.deleteCartItem);
         // app.post('/api/v1/admin/chatapi', auth.chatapi);
 
 }
