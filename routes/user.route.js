@@ -43,8 +43,7 @@ module.exports = (app) => {
         app.post("/api/v1/cancelMemberShips", [authJwt.verifyToken], auth.cancelMemberShip);
         app.get('/api/v1/getRecentlyProductView', [authJwt.verifyToken], auth.getRecentlyProductView);
         app.get('/api/v1/getRecentlyServicesView', [authJwt.verifyToken], auth.getRecentlyServicesView);
-
-
+        app.post("/api/v1/placeOrder1/:orderId", [authJwt.verifyToken], auth.placeOrder1);
 
         // Product cart start
         // app.post('/api/v1/cart/:id', [authJwt.verifyToken], auth.addToCart)

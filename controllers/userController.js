@@ -1869,7 +1869,266 @@ const ticketCode = async () => {
         }
         return OTP;
 }
+exports.placeOrder1 = async (req, res) => {
+        try {
+                let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
+                if (findUserOrder) {
+                        let memberShipPer, subTotals = 0
+                        const data3 = await User.findOne({ _id: req.user._id });
+                        if (data3) {
+                                if (data3.isSubscription == true) {
+                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                        if (findSubscription) {
+                                                memberShipPer = Number(findSubscription.discount)
+                                        }
+                                } else {
+                                        memberShipPer = 0;
+                                }
+                        }
+                        let line_items = [];
+                        if (findUserOrder.productOrder != (null || undefined)) {
+                                let discount = 0, total = 0, subTotal = 0;
+                                let findOrder = await productOrder.findById({ _id: findUserOrder.productOrder }).populate([{ path: "products.productId", select: { reviews: 0 } },
+                                { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },
+                                { path: "coupon", select: "couponCode discount expirationDate" },]);
+                                findOrder.products.forEach((cartProduct) => {
+                                        let price;
+                                        if (cartProduct.productId.multipleSize == true) {
+                                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                if (cartProduct.productId.discountActive === true) {
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                        price = cartProduct.productId.discountPrice * cartProduct.quantity
+                                                                } else {
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.discount = 0.00;
+                                                                        price = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                }
+                                                                subTotal += cartProduct.subTotal;
+                                                                discount += cartProduct.discount;
+                                                                total += cartProduct.total;
+                                                                let obj2 = {
+                                                                        price_data: {
+                                                                                currency: "usd",
+                                                                                product_data: {
+                                                                                        name: `${cartProduct.productId.name} (${cartProduct.size})`,
+                                                                                },
+                                                                                unit_amount: `${Math.round(price * 100)}`,
+                                                                        },
+                                                                        quantity: 1,
+                                                                }
+                                                                subTotals = subTotals + price
+                                                                line_items.push(obj2)
+                                                        }
+                                                }
+                                        } else {
+                                                if (cartProduct.productId.discountActive === true) {
+                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                        price = cartProduct.productId.discountPrice * cartProduct.quantity
+                                                } else {
+                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.discount = 0.00;
+                                                        price = cartProduct.productId.price * cartProduct.quantity
+                                                }
+                                                subTotal += cartProduct.subTotal;
+                                                discount += cartProduct.discount;
+                                                total += cartProduct.total;
+                                                let obj2 = {
+                                                        price_data: {
+                                                                currency: "usd",
+                                                                product_data: {
+                                                                        name: `${cartProduct.productId.name}`,
+                                                                },
+                                                                unit_amount: `${Math.round(price * 100)}`,
+                                                        },
+                                                        quantity: 1,
+                                                }
+                                                console.log("1805", obj2);
+                                                line_items.push(obj2)
+                                                subTotals = subTotals + price
+                                        }
+                                });
+                                findOrder.frequentlyBuyProductSchema.forEach((cartProduct) => {
+                                        let price;
+                                        cartProduct.total = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                        cartProduct.subTotal = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity;
+                                        cartProduct.discount = 0;
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                        price = cartProduct.frequentlyBuyProductId.price * cartProduct.quantity
+                                        let obj2 = {
+                                                price_data: {
+                                                        currency: "usd",
+                                                        product_data: {
+                                                                name: `Frequently`,
+                                                        },
+                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                },
+                                                quantity: 1,
+                                        }
+                                        subTotals = subTotals + price
+                                        line_items.push(obj2)
+                                });
+                                let delivery = Number(findOrder.shipping);
+                                let obj3 = {
+                                        price_data: {
+                                                currency: "usd",
+                                                product_data: {
+                                                        name: `Delivery Charge`,
+                                                },
+                                                unit_amount: `${Math.round(delivery * 100)}`,
+                                        },
+                                        quantity: 1,
+                                }
+                                subTotals = subTotals + delivery
+                                line_items.push(obj3)
+                        }
+                        if (findUserOrder.giftOrder != (null || undefined)) {
+                                let total = 0, subTotal = 0;
+                                let findOrder3 = await coupanModel.findById({ _id: findUserOrder.giftOrder, orderStatus: "unconfirmed" });
+                                let price;
+                                findOrder3.total = findOrder3.price * 1;
+                                findOrder3.subTotal = findOrder3.price * 1;
+                                price = findOrder3.price * 1
+                                subTotal += findOrder3.subTotal;
+                                total += findOrder3.total;
+                                let obj2 = {
+                                        price_data: {
+                                                currency: "usd",
+                                                product_data: {
+                                                        name: `${findOrder3.title}`,
+                                                },
+                                                unit_amount: `${Math.round(price * 100)}`,
+                                        },
+                                        quantity: 1,
+                                }
+                                subTotals = subTotals + price
+                                line_items.push(obj2)
+                        }
+                        if (findUserOrder.serviceOrder != (null || undefined)) {
+                                let findOrder1 = await serviceOrder.findById({ _id: findUserOrder.serviceOrder }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                                let discount = 0, total = 0, subTotal = 0;
+                                findOrder1.services.forEach((cartProduct) => {
+                                        let price;
+                                        if (cartProduct.serviceId.discountActive == true) {
+                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                                                price = cartProduct.serviceId.discountPrice * cartProduct.quantity
+                                        } else {
+                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                cartProduct.discount = 0;
+                                                price = cartProduct.serviceId.price * cartProduct.quantity
+                                        }
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                        let obj2 = {
+                                                price_data: {
+                                                        currency: "usd",
+                                                        product_data: {
+                                                                name: `${cartProduct.serviceId.name}`,
+                                                        },
+                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                },
+                                                quantity: 1,
+                                        }
+                                        subTotals = subTotals + price
+                                        line_items.push(obj2)
+                                });
+                                findOrder1.AddOnservicesSchema.forEach((cartGift) => {
+                                        let price;
+                                        cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                                        cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                                        cartGift.discount = 0;
+                                        subTotal += cartGift.subTotal;
+                                        discount += cartGift.discount;
+                                        total += cartGift.total;
+                                        price = cartGift.addOnservicesId.price * cartGift.quantity
+                                        let obj2 = {
+                                                price_data: {
+                                                        currency: "usd",
+                                                        product_data: {
+                                                                name: `${cartGift.addOnservicesId.name}`,
+                                                        },
+                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                },
+                                                quantity: 1,
+                                        }
+                                        subTotals = subTotals + price
+                                        line_items.push(obj2)
+                                });
+                                let delivery = Number(findOrder1.serviceCharge);
+                                let obj4 = {
+                                        price_data: {
+                                                currency: "usd",
+                                                product_data: {
+                                                        name: `Service Charge`,
+                                                },
+                                                unit_amount: `${Math.round(delivery * 100)}`,
+                                        },
+                                        quantity: 1,
+                                }
+                                subTotals = subTotals + delivery
+                                line_items.push(obj4)
+                        }
+                        console.log(line_items);
+                        if (memberShipPer > 0) {
+                                let couponId = await stripe.coupons.create({
+                                        name: "Member Ship Discount",
+                                        percent_off: memberShipPer,
+                                        duration: "once",
+                                })
+                                const paymentIntent = await stripe.paymentIntents.create({
+                                        amount: Math.round(subTotals * 100),
+                                        currency: 'usd',
+                                        payment_method_types: ['card'],
+                                        customer: req.user.stripeCustomerId,
+                                        receipt_email: req.user.email,
+                                        description: 'Order Payment',
+                                        statement_descriptor: 'ORDER',
+                                        metadata: {
+                                                order_id: findUserOrder.orderId,
+                                                line_items: JSON.stringify(line_items),
+                                        },
+                                        application_fee_amount: 0,
+                                        ...(couponId ? { coupon: couponId.id } : {}),
+                                });
+                                return res.status(200).json({ paymentIntent: paymentIntent })
+                        } else {
+                                const paymentIntent = await stripe.paymentIntents.create({
+                                        amount: Math.round(subTotals * 100),
+                                        currency: 'usd',
+                                        payment_method_types: ['card'],
+                                        customer: req.user.stripeCustomerId,
+                                        receipt_email: req.user.email,
+                                        description: 'Order Payment',
+                                        statement_descriptor: 'ORDER',
+                                        metadata: {
+                                                order_id: findUserOrder.orderId,
+                                                line_items: JSON.stringify(line_items),
+                                        },
+                                        application_fee_amount: 0,
+                                });
+                                return res.status(200).json({ paymentIntent: paymentIntent })
+                        }
 
+                } else {
+                        return res.status(404).json({ message: 'No data found', data: {} });
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: 'Server error.', data: {} });
+        }
+};
 
 
 
