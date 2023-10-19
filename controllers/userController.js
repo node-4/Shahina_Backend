@@ -1136,6 +1136,8 @@ exports.checkout = async (req, res) => {
                                         let saveOrder1 = await userOrders.create(orderObj);
                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 }
+                        } else {
+                                return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
                         }
                 } else {
                         let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftId", select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
@@ -1350,6 +1352,8 @@ exports.checkout = async (req, res) => {
                                         let saveOrder1 = await userOrders.create(orderObj);
                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 }
+                        } else {
+                                return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
                         }
                 }
         } catch (error) {
