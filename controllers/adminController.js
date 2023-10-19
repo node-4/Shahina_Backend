@@ -3270,6 +3270,34 @@ exports.allNotification = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 }
+exports.addCoupan = async (req, res) => {
+        try {
+                const d = new Date(req.body.expirationDate);
+                req.body.expirationDate = d.toISOString();
+                const de = new Date(req.body.activationDate);
+                req.body.activationDate = de.toISOString();
+                req.body.code = await reffralCode();
+                let saveStore = await coupanModel(req.body).save();
+                if (saveStore) {
+                        return res.json({ status: 200, message: 'Coupan add successfully.', data: saveStore });
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.deleteCoupan = async (req, res) => {
+        try {
+                const data = await coupanModel.findById(req.params.id);
+                if (!data) {
+                        return res.status(404).json({ message: "Coupan not found.", status: 404, data: {} });
+                }
+                await coupanModel.findByIdAndDelete({ _id: req.params.id });
+                return res.status(200).json({ message: "Coupan  delete.", status: 200, data: {} });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let OTP = '';

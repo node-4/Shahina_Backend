@@ -1034,7 +1034,7 @@ exports.checkout = async (req, res) => {
                                         let saveOrder = await productOrder.create(cartResponse);
                                         productOrderId = saveOrder._id;
                                 }
-                                if (cartResponse.services.length > 0 && cartResponse.AddOnservicesSchema.length > 0) {
+                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
                                         if (data3) {
                                                 if (data3.isSubscription == true) {
                                                         const findSubscription = await Subscription.findById(data3.subscriptionId);
@@ -1045,29 +1045,33 @@ exports.checkout = async (req, res) => {
                                                         memberShipPer = 0;
                                                 }
                                         }
-                                        cartResponse.services.forEach((cartProduct) => {
-                                                if (cartProduct.serviceId.discountActive == true) {
-                                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                        cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
-                                                        let discount1 = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                                                        cartProduct.discount = discount1.toFixed(2)
-                                                } else {
-                                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                        cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                                        cartProduct.discount = discount;
-                                                }
-                                                subTotal += cartProduct.subTotal;
-                                                discount += cartProduct.discount;
-                                                total += cartProduct.total;
-                                        });
-                                        cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
-                                                cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
-                                                cartGift.discount = 0;
-                                                subTotal += cartGift.subTotal;
-                                                discount += cartGift.discount;
-                                                total += cartGift.total;
-                                        });
+                                        if (cartResponse.services.length > 0) {
+                                                cartResponse.services.forEach((cartProduct) => {
+                                                        if (cartProduct.serviceId.discountActive == true) {
+                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                                                let discount1 = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                                                                cartProduct.discount = discount1.toFixed(2)
+                                                        } else {
+                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.discount = discount;
+                                                        }
+                                                        subTotal += cartProduct.subTotal;
+                                                        discount += cartProduct.discount;
+                                                        total += cartProduct.total;
+                                                });
+                                        }
+                                        if (cartResponse.AddOnservicesSchema.length > 0) {
+                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                                        cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                                                        cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                                                        cartGift.discount = 0;
+                                                        subTotal += cartGift.subTotal;
+                                                        discount += cartGift.discount;
+                                                        total += cartGift.total;
+                                                });
+                                        }
                                         if (cartResponse.coupon) {
                                                 coupan = 0.01 * findCart.coupon.discount * subTotal;
                                         }
@@ -1163,20 +1167,6 @@ exports.checkout = async (req, res) => {
                                                         memberShipPer = 0;
                                                 }
                                         }
-                                        // cartResponse.products.forEach((cartProduct) => {
-                                        //         if (cartProduct.productId.discountActive == true) {
-                                        //                 cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
-                                        //                 cartProduct.subTotal = cartProduct.productId.discountPrice * cartProduct.quantity;
-                                        //                 cartProduct.discount = (cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity;
-                                        //         } else {
-                                        //                 cartProduct.total = cartProduct.productId.price * cartProduct.quantity;
-                                        //                 cartProduct.subTotal = cartProduct.productId.price * cartProduct.quantity;
-                                        //                 cartProduct.discount = 0;
-                                        //         }
-                                        //         subTotal += cartProduct.subTotal;
-                                        //         discount += cartProduct.discount;
-                                        //         total += cartProduct.total;
-                                        // });
                                         cartResponse.products.forEach((cartProduct) => {
                                                 if (cartProduct.productId.multipleSize == true) {
                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
@@ -1250,7 +1240,7 @@ exports.checkout = async (req, res) => {
                                         let saveOrder = await productOrder.create(cartResponse);
                                         productOrderId = saveOrder._id;
                                 }
-                                if (cartResponse.services.length > 0 && cartResponse.AddOnservicesSchema.length > 0) {
+                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
                                         if (data3) {
                                                 if (data3.isSubscription == true) {
                                                         const findSubscription = await Subscription.findById(data3.subscriptionId);
@@ -1261,29 +1251,33 @@ exports.checkout = async (req, res) => {
                                                         memberShipPer = 0;
                                                 }
                                         }
-                                        cartResponse.services.forEach((cartProduct) => {
-                                                if (cartProduct.serviceId.discountActive == true) {
-                                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                        cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
-                                                        let discount1 = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                                                        cartProduct.discount = discount1.toFixed(2)
-                                                } else {
-                                                        cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                        cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                                        cartProduct.discount = discount;
-                                                }
-                                                subTotal += cartProduct.subTotal;
-                                                discount += cartProduct.discount;
-                                                total += cartProduct.total;
-                                        });
-                                        cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
-                                                cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
-                                                cartGift.discount = 0;
-                                                subTotal += cartGift.subTotal;
-                                                discount += cartGift.discount;
-                                                total += cartGift.total;
-                                        });
+                                        if (cartResponse.services.length > 0) {
+                                                cartResponse.services.forEach((cartProduct) => {
+                                                        if (cartProduct.serviceId.discountActive == true) {
+                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                                                let discount1 = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                                                                cartProduct.discount = discount1.toFixed(2)
+                                                        } else {
+                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.discount = discount;
+                                                        }
+                                                        subTotal += cartProduct.subTotal;
+                                                        discount += cartProduct.discount;
+                                                        total += cartProduct.total;
+                                                });
+                                        }
+                                        if (cartResponse.AddOnservicesSchema.length > 0) {
+                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                                        cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                                                        cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                                                        cartGift.discount = 0;
+                                                        subTotal += cartGift.subTotal;
+                                                        discount += cartGift.discount;
+                                                        total += cartGift.total;
+                                                });
+                                        }
                                         if (cartResponse.coupon) {
                                                 coupan = 0.01 * findCart.coupon.discount * subTotal;
                                         }
