@@ -15,6 +15,7 @@ module.exports = (app) => {
         app.post("/api/v1/user/:id", auth.verifyOtp);
         app.get("/api/v1/user/getProfile", [authJwt.verifyToken], auth.getProfile);
         app.put("/api/v1/user/updateProfile", [authJwt.verifyToken], userProfileUpload.single('image'), auth.updateProfile);
+        app.put("/api/v1/user/removeProfile", [authJwt.verifyToken], auth.removeProfile);
         app.post("/api/v1/user/social/Login", auth.socialLogin);
         app.post("/api/v1/user/address/new", [authJwt.verifyToken], auth.createAddress);
         app.get("/api/v1/user/getAddress", [authJwt.verifyToken], auth.getallAddress);
