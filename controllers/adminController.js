@@ -3272,6 +3272,12 @@ exports.allNotification = async (req, res) => {
 }
 exports.addCoupan = async (req, res) => {
         try {
+                if (req.body.completeVisit != (null || undefined)) {
+                        const data = await coupanModel.findOne({ used: false, user: req.body.user, completeVisit: { $gt: 0 } });
+                        if (data) {
+                                return res.json({ status: 409, message: 'Coupan already exit.', data: {} });
+                        }
+                }
                 const d = new Date(req.body.expirationDate);
                 req.body.expirationDate = d.toISOString();
                 const de = new Date(req.body.activationDate);
