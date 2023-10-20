@@ -98,6 +98,11 @@ const DocumentSchema = schema({
                 enum: ["unconfirmed", "confirmed"],
                 default: "unconfirmed",
         },
+        serviceStatus: {
+                type: String,
+                enum: ["Pending", "Done"],
+                default: "Pending",
+        },
         paymentStatus: {
                 type: String,
                 enum: ["pending", "paid", "failed"],

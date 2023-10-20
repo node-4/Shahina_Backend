@@ -1711,11 +1711,19 @@ exports.getProductOrderbyId = async (req, res, next) => {
 };
 exports.getServiceOrders = async (req, res, next) => {
         try {
-                const orders = await serviceOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                if (orders.length == 0) {
-                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                if (req.query.serviceStatus != (null || undefined)) {
+                        const orders = await serviceOrder.find({ user: req.user._id, orderStatus: "confirmed", serviceStatus: req.query.serviceStatus }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (orders.length == 0) {
+                                return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                        }
+                        return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+                } else {
+                        const orders = await serviceOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (orders.length == 0) {
+                                return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                        }
+                        return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
                 }
-                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
         } catch (error) {
                 console.log(error);
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
