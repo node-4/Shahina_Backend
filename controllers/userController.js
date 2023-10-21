@@ -456,6 +456,33 @@ exports.getSubscription = async (req, res) => {
                 return res.status(500).json({ message: err.message });
         }
 };
+exports.getSubscriptionApp = async (req, res) => {
+        try {
+                const data = await User.findOne({ _id: req.user._id, isSubscription: true });
+                if (data) {
+                        const findSubscription = await Subscription.find();
+                        const modifiedSubscriptions = findSubscription.map(sub => {
+                                return {
+                                        ...sub.toObject(),
+                                        isUserSubscribed: sub._id.equals(data.subscriptionId),
+                                };
+                        });
+                        return res.status(200).json({ status: 200, message: "Subscription detail successfully.", data: modifiedSubscriptions, });
+                } else {
+                        const findSubscription = await Subscription.find();
+                        const modifiedSubscriptions = findSubscription.map(sub => {
+                                return {
+                                        ...sub.toObject(),
+                                        isUserSubscribed: false,
+                                };
+                        });
+                        return res.status(200).json({ status: 200, message: "Subscription detail successfully.", data: modifiedSubscriptions, });
+                }
+        } catch (err) {
+                return res.status(500).json({ message: err.message });
+        }
+};
+
 exports.takeSubscription = async (req, res) => {
         try {
                 const user = await User.findOne({ _id: req.user._id, });

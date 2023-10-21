@@ -22,6 +22,7 @@ module.exports = (app) => {
         app.delete('/api/v1/user/address/:id', [authJwt.verifyToken], auth.deleteAddress);
         app.get('/api/v1/user/address/:id', [authJwt.verifyToken], auth.getAddressbyId);
         app.get('/api/v1/getSubscription', auth.getSubscription);
+        app.get('/api/v1/getSubscriptionForApp', [authJwt.verifyToken], auth.getSubscriptionApp);
         app.post("/api/v1/takeSubscription/:id", [authJwt.verifyToken], auth.takeSubscription);
         app.post("/api/v1/verifySubscription/:transactionId", [authJwt.verifyToken], auth.verifySubscription);
         app.get("/api/v1/getAllcoupan", [authJwt.verifyToken], auth.getAllcoupan);
