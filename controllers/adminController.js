@@ -2358,8 +2358,8 @@ exports.getServiceOrderbyId = async (req, res, next) => {
 // });
 // test 
 const client = new SendleClient({
-        sendleId: 'sandbox_shahina_hoja_gmail_c',
-        apiKey: 'sandbox_j4M7X3X6MjFVPRKKrGJ7YPfT',
+        sendleId: 'SANDBOX_shahina_hoja_gmail_c',
+        apiKey: 'sandbox_W5xZ3WFY8zBPdpQP5x8w3WQf',
         sandbox: false,
 });
 exports.createShipment = async (req, res) => {

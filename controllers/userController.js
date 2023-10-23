@@ -1098,10 +1098,12 @@ exports.checkout = async (req, res) => {
                                                                 cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
                                                                 let discount1 = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
                                                                 cartProduct.discount = discount1.toFixed(2)
+                                                                discount = discount1.toFixed(2)
                                                         } else {
                                                                 cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
                                                                 cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
                                                                 cartProduct.discount = discount;
+                                                                discount = discount
                                                         }
                                                         subTotal += cartProduct.subTotal;
                                                         discount += cartProduct.discount;
@@ -1125,7 +1127,7 @@ exports.checkout = async (req, res) => {
                                         cartResponse.time = findCart.time;
                                         cartResponse.suggesstion = findCart.suggesstion;
                                         cartResponse.total = total;
-                                        cartResponse.discount = Number(discount);
+                                        // cartResponse.discount = Number(discount);
                                         cartResponse.coupan = coupan;
                                         cartResponse.subTotal = subTotal;
                                         cartResponse.serviceCharge = serviceCharge;
@@ -1138,6 +1140,7 @@ exports.checkout = async (req, res) => {
                                         cartResponse.serviceAddresss = data1;
                                         orderObjPaidAmount = orderObjPaidAmount + grandTotal;
                                         cartResponse._id = new mongoose.Types.ObjectId();
+                                        console.log(cartResponse);
                                         let saveOrder = await serviceOrder.create(cartResponse);
                                         serviceOrderId = saveOrder._id;
                                 }
