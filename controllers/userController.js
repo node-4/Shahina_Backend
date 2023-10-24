@@ -1081,19 +1081,33 @@ exports.checkout = async (req, res) => {
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0;
+                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0, productArray = [], frequentlyBuyProductArray = [];
                                         cartResponse.products.forEach((cartProduct) => {
                                                 if (cartProduct.productId.multipleSize == true) {
                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
                                                                 if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
                                                                         if (cartProduct.productId.discountActive === true) {
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         } else {
                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         }
                                                                         subTotal += cartProduct.subTotal;
                                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -1105,10 +1119,22 @@ exports.checkout = async (req, res) => {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.discountPrice,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem);
                                                         } else {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.price,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem)
                                                         }
                                                         subTotal += cartProduct.subTotal;
                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -1120,6 +1146,12 @@ exports.checkout = async (req, res) => {
                                                 cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
                                                 subTotal += cartFBP.subTotal;
                                                 total += cartFBP.total;
+                                                const newCartItem = {
+                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                        quantity: cartFBP.quantity,
+                                                };
+                                                frequentlyBuyProductArray.push(newCartItem);
                                         });
                                         cartResponse.subTotal = subTotal;
                                         cartResponse.discount = onProductDiscount;
@@ -1137,6 +1169,8 @@ exports.checkout = async (req, res) => {
                                                 cartResponse.shipping = shipping;
                                                 cartResponse.total = cartResponse.subTotal + shipping;
                                         }
+                                        cartResponse.products = productArray;
+                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
                                         orderObjPaidAmount = orderObjPaidAmount + cartResponse.total;
                                         cartResponse._id = new mongoose.Types.ObjectId();
                                         let saveOrder = await productOrder.create(cartResponse);
@@ -1264,19 +1298,33 @@ exports.checkout = async (req, res) => {
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0;
+                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0, productArray = [], frequentlyBuyProductArray = [];
                                         cartResponse.products.forEach((cartProduct) => {
                                                 if (cartProduct.productId.multipleSize == true) {
                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
                                                                 if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
                                                                         if (cartProduct.productId.discountActive === true) {
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         } else {
                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         }
                                                                         subTotal += cartProduct.subTotal;
                                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -1288,10 +1336,22 @@ exports.checkout = async (req, res) => {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.discountPrice,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem);
                                                         } else {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.price,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem)
                                                         }
                                                         subTotal += cartProduct.subTotal;
                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -1303,6 +1363,12 @@ exports.checkout = async (req, res) => {
                                                 cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
                                                 subTotal += cartFBP.subTotal;
                                                 total += cartFBP.total;
+                                                const newCartItem = {
+                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                        quantity: cartFBP.quantity,
+                                                };
+                                                frequentlyBuyProductArray.push(newCartItem);
                                         });
                                         cartResponse.subTotal = subTotal;
                                         cartResponse.discount = onProductDiscount;
@@ -1320,6 +1386,8 @@ exports.checkout = async (req, res) => {
                                                 cartResponse.shipping = shipping;
                                                 cartResponse.total = cartResponse.subTotal + shipping;
                                         }
+                                        cartResponse.products = productArray;
+                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
                                         orderObjPaidAmount = orderObjPaidAmount + cartResponse.total;
                                         cartResponse._id = new mongoose.Types.ObjectId();
                                         let saveOrder = await productOrder.create(cartResponse);
@@ -1453,65 +1521,31 @@ exports.placeOrder = async (req, res) => {
                                 { path: "coupon", select: "couponCode discount expirationDate" },]);
                                 findOrder.products.forEach((cartProduct) => {
                                         let price;
-                                        if (cartProduct.productId.multipleSize == true) {
-                                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-                                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
-                                                                if (cartProduct.productId.discountActive === true) {
-                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                                        price = cartProduct.productId.discountPrice * cartProduct.quantity
-                                                                } else {
-                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.discount = 0.00;
-                                                                        price = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                }
-                                                                subTotal += cartProduct.subTotal;
-                                                                discount += cartProduct.discount;
-                                                                total += cartProduct.total;
-                                                                let obj2 = {
-                                                                        price_data: {
-                                                                                currency: "usd",
-                                                                                product_data: {
-                                                                                        name: `${cartProduct.productId.name} (${cartProduct.size})`,
-                                                                                },
-                                                                                unit_amount: `${Math.round(price * 100)}`,
-                                                                        },
-                                                                        quantity: 1,
-                                                                }
-                                                                console.log("1381", obj2);
-                                                                line_items.push(obj2)
-                                                        }
-                                                }
-                                        } else {
-                                                if (cartProduct.productId.discountActive === true) {
-                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                        price = cartProduct.productId.discountPrice * cartProduct.quantity
-                                                } else {
-                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.discount = 0.00;
-                                                        price = cartProduct.productId.price * cartProduct.quantity
-                                                }
-                                                subTotal += cartProduct.subTotal;
-                                                discount += cartProduct.discount;
-                                                total += cartProduct.total;
-                                                let obj2 = {
-                                                        price_data: {
-                                                                currency: "usd",
-                                                                product_data: {
-                                                                        name: `${cartProduct.productId.name}`,
-                                                                },
-                                                                unit_amount: `${Math.round(price * 100)}`,
-                                                        },
-                                                        quantity: 1,
-                                                }
-                                                console.log("1805", obj2);
-                                                line_items.push(obj2)
+                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.discount = 0.00;
+                                        price = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                        let name;
+                                        if(cartProduct.size!=(null||undefined)){
+                                                name= `${cartProduct.productId.name} (${cartProduct.size})`;
+                                        }else{
+                                                name= `${cartProduct.productId.name}`;
                                         }
+                                        let obj2 = {
+                                                price_data: {
+                                                        currency: "usd",
+                                                        product_data: {
+                                                                name: name,
+                                                        },
+                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                },
+                                                quantity: 1,
+                                        }
+                                        console.log("1381", obj2);
+                                        line_items.push(obj2)
                                 });
                                 findOrder.frequentlyBuyProductSchema.forEach((cartProduct) => {
                                         let price;
@@ -2034,19 +2068,33 @@ exports.checkoutApp = async (req, res) => {
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0;
+                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0, productArray = [], frequentlyBuyProductArray = [];
                                         cartResponse.products.forEach((cartProduct) => {
                                                 if (cartProduct.productId.multipleSize == true) {
                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
                                                                 if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
                                                                         if (cartProduct.productId.discountActive === true) {
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         } else {
                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         }
                                                                         subTotal += cartProduct.subTotal;
                                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -2058,10 +2106,22 @@ exports.checkoutApp = async (req, res) => {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.discountPrice,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem);
                                                         } else {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.price,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem)
                                                         }
                                                         subTotal += cartProduct.subTotal;
                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -2073,6 +2133,12 @@ exports.checkoutApp = async (req, res) => {
                                                 cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
                                                 subTotal += cartFBP.subTotal;
                                                 total += cartFBP.total;
+                                                const newCartItem = {
+                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                        quantity: cartFBP.quantity,
+                                                };
+                                                frequentlyBuyProductArray.push(newCartItem);
                                         });
                                         cartResponse.subTotal = subTotal;
                                         cartResponse.discount = onProductDiscount;
@@ -2090,6 +2156,8 @@ exports.checkoutApp = async (req, res) => {
                                                 cartResponse.shipping = shipping;
                                                 cartResponse.total = cartResponse.subTotal + shipping;
                                         }
+                                        cartResponse.products = productArray;
+                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
                                         orderObjPaidAmount = orderObjPaidAmount + cartResponse.total;
                                         cartResponse._id = new mongoose.Types.ObjectId();
                                         let saveOrder = await productOrder.create(cartResponse);
@@ -2217,19 +2285,33 @@ exports.checkoutApp = async (req, res) => {
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0;
+                                        let onProductDiscount = 0, shipping = 0, total = 0, subTotal = 0, productArray = [], frequentlyBuyProductArray = [];
                                         cartResponse.products.forEach((cartProduct) => {
                                                 if (cartProduct.productId.multipleSize == true) {
                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
                                                                 if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
                                                                         if (cartProduct.productId.discountActive === true) {
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         } else {
                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                                const newCartItem = {
+                                                                                        productId: cartProduct.productId._id,
+                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                        size: cartProduct.size,
+                                                                                        quantity: cartProduct.quantity,
+                                                                                };
+                                                                                productArray.push(newCartItem);
                                                                         }
                                                                         subTotal += cartProduct.subTotal;
                                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -2241,10 +2323,22 @@ exports.checkoutApp = async (req, res) => {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.discountPrice,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem);
                                                         } else {
                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.onProductDiscount = 0.00;
+                                                                const newCartItem = {
+                                                                        productId: cartProduct.productId._id,
+                                                                        price: cartProduct.productId.price,
+                                                                        quantity: cartProduct.quantity,
+                                                                };
+                                                                productArray.push(newCartItem)
                                                         }
                                                         subTotal += cartProduct.subTotal;
                                                         onProductDiscount += cartProduct.onProductDiscount;
@@ -2256,6 +2350,12 @@ exports.checkoutApp = async (req, res) => {
                                                 cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
                                                 subTotal += cartFBP.subTotal;
                                                 total += cartFBP.total;
+                                                const newCartItem = {
+                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                        quantity: cartFBP.quantity,
+                                                };
+                                                frequentlyBuyProductArray.push(newCartItem);
                                         });
                                         cartResponse.subTotal = subTotal;
                                         cartResponse.discount = onProductDiscount;
@@ -2273,6 +2373,8 @@ exports.checkoutApp = async (req, res) => {
                                                 cartResponse.shipping = shipping;
                                                 cartResponse.total = cartResponse.subTotal + shipping;
                                         }
+                                        cartResponse.products = productArray;
+                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
                                         orderObjPaidAmount = orderObjPaidAmount + cartResponse.total;
                                         cartResponse._id = new mongoose.Types.ObjectId();
                                         let saveOrder = await productOrder.create(cartResponse);
@@ -2406,67 +2508,32 @@ exports.placeOrderApp = async (req, res) => {
                                 { path: "coupon", select: "couponCode discount expirationDate" },]);
                                 findOrder.products.forEach((cartProduct) => {
                                         let price;
-                                        if (cartProduct.productId.multipleSize == true) {
-                                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-                                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
-                                                                if (cartProduct.productId.discountActive === true) {
-                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                                        price = cartProduct.productId.discountPrice * cartProduct.quantity
-                                                                } else {
-                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.discount = 0.00;
-                                                                        price = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                }
-                                                                subTotal += cartProduct.subTotal;
-                                                                discount += cartProduct.discount;
-                                                                total += cartProduct.total;
-                                                                let obj2 = {
-                                                                        price_data: {
-                                                                                currency: "usd",
-                                                                                product_data: {
-                                                                                        name: `${cartProduct.productId.name} (${cartProduct.size})`,
-                                                                                },
-                                                                                unit_amount: `${Math.round(price * 100)}`,
-                                                                        },
-                                                                        quantity: 1,
-                                                                }
-                                                                subTotals = subTotals + price
-                                                                console.log("1381", obj2);
-                                                                line_items.push(obj2)
-                                                        }
-                                                }
-                                        } else {
-                                                if (cartProduct.productId.discountActive === true) {
-                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.discount = parseFloat(((cartProduct.productId.price - cartProduct.productId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                        price = cartProduct.productId.discountPrice * cartProduct.quantity
-                                                } else {
-                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.discount = 0.00;
-                                                        price = cartProduct.productId.price * cartProduct.quantity
-                                                }
-                                                subTotal += cartProduct.subTotal;
-                                                discount += cartProduct.discount;
-                                                total += cartProduct.total;
-                                                let obj2 = {
-                                                        price_data: {
-                                                                currency: "usd",
-                                                                product_data: {
-                                                                        name: `${cartProduct.productId.name}`,
-                                                                },
-                                                                unit_amount: `${Math.round(price * 100)}`,
-                                                        },
-                                                        quantity: 1,
-                                                }
-                                                subTotals = subTotals + price
-                                                console.log("1805", obj2);
-                                                line_items.push(obj2)
+                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.discount = 0.00;
+                                        price = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        subTotal += cartProduct.subTotal;
+                                        discount += cartProduct.discount;
+                                        total += cartProduct.total;
+                                        let name;
+                                        if(cartProduct.size!=(null||undefined)){
+                                                name= `${cartProduct.productId.name} (${cartProduct.size})`;
+                                        }else{
+                                                name= `${cartProduct.productId.name}`;
                                         }
+                                        let obj2 = {
+                                                price_data: {
+                                                        currency: "usd",
+                                                        product_data: {
+                                                                name: name,
+                                                        },
+                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                },
+                                                quantity: 1,
+                                        }
+                                        subTotals = subTotals + price
+                                        console.log("1381", obj2);
+                                        line_items.push(obj2)
                                 });
                                 findOrder.frequentlyBuyProductSchema.forEach((cartProduct) => {
                                         let price;
@@ -2592,13 +2659,13 @@ exports.placeOrderApp = async (req, res) => {
                                 line_items: metadataString,
                         };
 
-                        console.log(memberShipPer);
                         if (memberShipPer > 0) {
                                 if (offerDiscount > 0) {
                                         subTotals = subTotals - memberShipPer - offerDiscount;
                                 } else {
                                         subTotals = subTotals - memberShipPer
                                 };
+                                console.log(memberShipPer, subTotals, offerDiscount);
                                 const paymentIntent = await stripe.paymentIntents.create({
                                         amount: Math.round(subTotals * 100),
                                         currency: 'usd',

@@ -7,10 +7,7 @@ const cartProductsSchema = new schema({
                 type: schema.Types.ObjectId,
                 ref: "Product"
         },
-        priceId: {
-                type: String,
-        },
-        sizePrice: {
+        price: {
                 type: String,
         },
         size: {
@@ -25,6 +22,9 @@ const cartfrequentlyBuyProductSchema = new schema({
         frequentlyBuyProductId: {
                 type: schema.Types.ObjectId,
                 ref: "frequentlyBuyProduct"
+        },
+        price: {
+                type: String,
         },
         quantity: {
                 type: Number,
