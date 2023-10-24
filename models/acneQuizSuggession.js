@@ -18,6 +18,10 @@ const testimonialSchema = new Schema(
                         type: Schema.Types.ObjectId,
                         ref: "Product"
                 },
+                frequentlyBuyProductId: {
+                        type: Schema.Types.ObjectId,
+                        ref: "frequentlyBuyProduct"
+                },
         },
         { timestamps: true }
 );

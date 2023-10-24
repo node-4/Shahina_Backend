@@ -84,6 +84,7 @@ module.exports = (app) => {
         app.delete("/api/v1/News/:id", [authJwt.verifyToken], auth.removeNews);
         app.put("/api/v1/News/updateNews/:id", [authJwt.verifyToken], newsUpload.single('image'), auth.updateNews);
         app.post("/api/v1/clientReview/addclientReview", [authJwt.verifyToken], auth.createClientReview);
+        app.put("/api/v1/clientReview/put/:id", [authJwt.verifyToken], auth.updateClientReview);
         app.get("/api/v1/clientReview", auth.getAllClientReviews);
         app.delete("/api/v1/clientReview/:id", [authJwt.verifyToken], auth.removeClientReview);
         app.get("/api/v1/clientReview/get/:id", [authJwt.verifyToken], auth.getClientReviewById);

@@ -26,4 +26,8 @@ module.exports = (app) => {
         app.delete("/api/v1/static/faq/:id", [authJwt.verifyToken], staticContent.deleteFaq);
         app.get("/api/v1/static/faq/All", staticContent.getAllFaqs);
         app.get("/api/v1/static/faq/:id", staticContent.getFaqById);
+        app.post('/api/v1/static/createReturnPrivacy', [authJwt.verifyToken], staticContent.createReturnPrivacy);
+        app.get('/api/v1/static/getReturnPrivacy', staticContent.getReturnPrivacy);
+        app.post('/api/v1/static/createShippingPrivacy', [authJwt.verifyToken], staticContent.createShippingPrivacy);
+        app.get('/api/v1/static/getShippingPrivacy', staticContent.getShippingPrivacy);
 }

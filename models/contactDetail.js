@@ -10,9 +10,6 @@ const DocumentSchema = schema({
         fb: {
                 type: String
         },
-        twitter: {
-                type: String
-        },
         google: {
                 type: String
         },

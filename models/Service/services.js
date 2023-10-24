@@ -31,10 +31,6 @@ var storeSchema = new schema({
                 type: Number,
                 default: 0
         },
-        discountActive: {
-                type: Boolean,
-                default: false
-        },
         rating: {
                 type: Number,
                 default: 0
@@ -43,7 +39,10 @@ var storeSchema = new schema({
                 type: Number,
                 default: 0
         },
-
+        type: {
+                type: String,
+                enum: ["offer", "Service"]
+        },
 }, { timestamps: true });
 storeSchema.plugin(mongoosePaginate);
 storeSchema.plugin(mongooseAggregatePaginate);

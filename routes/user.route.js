@@ -7,6 +7,7 @@ const { productUpload, upload, bannerUpload, blogUpload, gallaryUpload, Nutritio
 
 module.exports = (app) => {
         app.post("/api/v1/user/registration", auth.registration);
+        app.post("/api/v1/user/registrationforApp", auth.registrationforApp);
         app.post("/api/v1/user/signin", auth.signin);
         app.post("/api/v1/user/forgetPassword", auth.forgetPassword);
         app.post("/api/v1/user/forgotVerifyotp", auth.forgotVerifyotp);
@@ -14,6 +15,7 @@ module.exports = (app) => {
         app.post("/api/v1/user/resendOtp/:id", auth.resendOTP);
         app.post("/api/v1/user/:id", auth.verifyOtp);
         app.get("/api/v1/user/getProfile", [authJwt.verifyToken], auth.getProfile);
+        app.put("/api/v1/user/checkIn", [authJwt.verifyToken], auth.checkIn);
         app.put("/api/v1/user/updateProfile", [authJwt.verifyToken], userProfileUpload.single('image'), auth.updateProfile);
         app.put("/api/v1/user/removeProfile", [authJwt.verifyToken], auth.removeProfile);
         app.post("/api/v1/user/social/Login", auth.socialLogin);
@@ -26,6 +28,7 @@ module.exports = (app) => {
         app.post("/api/v1/takeSubscription/:id", [authJwt.verifyToken], auth.takeSubscription);
         app.post("/api/v1/verifySubscription/:transactionId", [authJwt.verifyToken], auth.verifySubscription);
         app.get("/api/v1/getAllcoupan", [authJwt.verifyToken], auth.getAllcoupan);
+        app.get('/api/v1/getServiceByTokenFormembership', [authJwt.verifyToken], auth.getServiceByTokenFormembership);
         app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
         app.post('/api/v1/add-to-cart/:type/:id', [authJwt.verifyToken], auth.addToCart);
         app.delete('/api/cart/delete/:type/:id', [authJwt.verifyToken], auth.deleteCartItem);
@@ -50,6 +53,7 @@ module.exports = (app) => {
         app.post("/api/v1/placeOrder1/:orderId", [authJwt.verifyToken], auth.placeOrderApp);
         app.get("/api/v1/successOrderApp/:orderId", [authJwt.verifyToken], auth.successOrderApp);
         app.get("/api/v1/cancelOrderApp/:orderId", [authJwt.verifyToken], auth.cancelOrderApp);
+        app.get("/api/v1/overAllSearch", auth.overAllSearch);
 
         // Product cart start
         // app.post('/api/v1/cart/:id', [authJwt.verifyToken], auth.addToCart)

@@ -79,18 +79,6 @@ const DocumentSchema = schema({
                 type: Number,
                 default: 0
         },
-        memberShip: {
-                type: Number,
-                default: 0
-        },
-        memberShipPer: {
-                type: Number,
-                default: 0
-        },
-        grandTotal: {
-                type: Number,
-                default: 0
-        },
         pickupFromStore: {
                 type: Boolean,
                 default: false,
@@ -145,6 +133,11 @@ const DocumentSchema = schema({
                 zipCode: {
                         type: String,
                 },
+        },
+        deliveryStatus: {
+                type: String,
+                enum: ["Pending", "Done"],
+                default: "Pending",
         },
         orderStatus: {
                 type: String,

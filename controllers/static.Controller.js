@@ -303,3 +303,65 @@ exports.deleteFaq = async (req, res) => {
                 return res.status(500).json({ message: "Something went wrong ", status: 500, data: err.message });
         }
 };
+exports.createShippingPrivacy = async (req, res) => {
+        try {
+                const data = await staticContent.findOne({ type: "SHIPPINGPOLICY" });
+                if (!data) {
+                        if (!req.body.privacy) {
+                                return res.status(400).send("please specify privacy");
+                        }
+                        const result = await staticContent.create({ privacy: req.body.privacy, type: "SHIPPINGPOLICY" });
+                        return res.status(200).json({ status: 200, message: "Data create successfully.", data: result });
+                } else {
+                        let privacy = req.body.privacy || data.privacy;
+                        const data1 = await staticContent.findByIdAndUpdate({ _id: data._id }, { privacy: privacy, type: data.type }, { new: true, });
+                        return res.status(200).json({ status: 200, message: "update successfully.", data: data1 });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getShippingPrivacy = async (req, res) => {
+        try {
+                const data = await staticContent.find({ type: "SHIPPINGPOLICY" });
+                if (!data || data.length === 0) {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+                return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.createReturnPrivacy = async (req, res) => {
+        try {
+                const data = await staticContent.findOne({ type: "RETURNPOLICY" });
+                if (!data) {
+                        if (!req.body.privacy) {
+                                return res.status(400).send("please specify privacy");
+                        }
+                        const result = await staticContent.create({ privacy: req.body.privacy, type: "RETURNPOLICY" });
+                        return res.status(200).json({ status: 200, message: "Data create successfully.", data: result });
+                } else {
+                        let privacy = req.body.privacy || data.privacy;
+                        const data1 = await staticContent.findByIdAndUpdate({ _id: data._id }, { privacy: privacy, type: data.type }, { new: true, });
+                        return res.status(200).json({ status: 200, message: "update successfully.", data: data1 });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getReturnPrivacy = async (req, res) => {
+        try {
+                const data = await staticContent.find({ type: "RETURNPOLICY" });
+                if (!data || data.length === 0) {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+                return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};

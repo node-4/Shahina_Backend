@@ -52,6 +52,7 @@ exports.registration = async (req, res) => {
                         req.body.password = bcrypt.hashSync(req.body.password, 8);
                         req.body.userType = "ADMIN";
                         req.body.accountVerification = true;
+                        req.body.refferalCode = await reffralCode();
                         const userCreate = await User.create(req.body);
                         return res.status(200).send({ message: "registered successfully ", data: userCreate, });
                 } else {
@@ -859,10 +860,11 @@ exports.createService = async (req, res) => {
                         let docs = req.files['beforeAfterImage'];
                         beforeAfterImage = docs[0].path
                 }
-                if (req.body.discountActive == 'true') {
-                        req.body.discountPrice = (req.body.price - ((req.body.price * req.body.discount) / 100)).toFixed(2)
-                } else {
-                        req.body.discountPrice = 0
+                if (req.body.type == 'offer') {
+                        const price = req.body.price;
+                        const discountPrice = req.body.discountPrice;
+                        const discountDifference = price - discountPrice;
+                        req.body.discount = Number((discountDifference / price) * 100).toFixed();
                 }
                 req.body.images = images;
                 req.body.beforeAfterImage = beforeAfterImage;
@@ -875,6 +877,42 @@ exports.createService = async (req, res) => {
                 return res.status(500).send({ message: "Internal server error while creating Service", });
         }
 };
+// exports.createService = async (req, res) => {
+//         try {
+//                 const data = await Category.findById(req.body.categoryId);
+//                 if (!data || data.length === 0) {
+//                         return res.status(400).send({ status: 404, msg: "not found" });
+//                 }
+//                 let images = [], beforeAfterImage;
+//                 if (req.files['image'] != (null || undefined)) {
+//                         let docs = req.files['image'];
+//                         for (let i = 0; i < docs.length; i++) {
+//                                 let obj = {
+//                                         img: docs[i].path
+//                                 }
+//                                 images.push(obj)
+//                         }
+//                 }
+//                 if (req.files['beforeAfterImage'] != (null || undefined)) {
+//                         let docs = req.files['beforeAfterImage'];
+//                         beforeAfterImage = docs[0].path
+//                 }
+//                 if (req.body.discountActive == 'true') {
+//                         req.body.discountPrice = (req.body.price - ((req.body.price * req.body.discount) / 100)).toFixed(2)
+//                 } else {
+//                         req.body.discountPrice = 0
+//                 }
+//                 req.body.images = images;
+//                 req.body.beforeAfterImage = beforeAfterImage;
+//                 const ProductCreated = await services.create(req.body);
+//                 if (ProductCreated) {
+//                         return res.status(201).send({ status: 200, message: "Service add successfully", data: ProductCreated, });
+//                 }
+//         } catch (err) {
+//                 console.log(err);
+//                 return res.status(500).send({ message: "Internal server error while creating Service", });
+//         }
+// };
 exports.paginateServiceSearch = async (req, res) => {
         try {
                 const { search, fromDate, toDate, categoryId, status, page, limit } = req.query;
@@ -1008,10 +1046,33 @@ exports.editService = async (req, res) => {
                         } else {
                                 beforeAfterImage = data.beforeAfterImage
                         }
-                        if (req.body.discountActive == 'true') {
-                                req.body.discountPrice = req.body.price - ((req.body.price * req.body.discount) / 100)
+                        let price = 0, discount = 0, discountPrice = 0;
+                        if (req.body.type != (null || undefined) && (req.body.type == 'offer')) {
+                                if ((req.body.price != (null || undefined)) && (req.body.discountPrice != (null || undefined))) {
+                                        const price1 = req.body.price;
+                                        price = req.body.price
+                                        discountPrice = req.body.discountPrice;
+                                        const discountDifference = price1 - discountPrice;
+                                        discount = Number((discountDifference / price1) * 100).toFixed();
+                                } else {
+                                        price = data.price;
+                                        discountPrice = data.discountPrice;
+                                        discount = data.discount;
+                                }
+                        } else if (req.body.type != (null || undefined) && (req.body.type == 'Service')) {
+                                if (req.body.price != (null || undefined)) {
+                                        price = req.body.price;
+                                        discountPrice = 0;
+                                        discount = 0;
+                                } else {
+                                        price = data.price;
+                                        discountPrice = data.discountPrice;
+                                        discount = data.discount;
+                                }
                         } else {
-                                req.body.discountPrice = 0
+                                price = data.price;
+                                discountPrice = data.discountPrice;
+                                discount = data.discount;
                         }
                         req.body.images = images;
                         let productObj = {
@@ -1019,11 +1080,10 @@ exports.editService = async (req, res) => {
                                 name: req.body.name || data.name,
                                 images: images,
                                 beforeAfterImage: beforeAfterImage,
-                                price: req.body.price || data.price,
+                                price: price,
                                 description: req.body.description || data.description,
-                                discountPrice: req.body.discountPrice || data.discountPrice,
-                                discount: req.body.discount || data.discount,
-                                discountActive: req.body.discountActive || data.discountActive,
+                                discountPrice: discountPrice,
+                                discount: discount,
                         }
                         const data1 = await services.findByIdAndUpdate({ _id: data._id }, { $set: productObj }, { new: true });
                         return res.status(200).json({ status: 200, message: "Service update successfully.", data: data1 });
@@ -1406,6 +1466,7 @@ exports.createPromotionBanner = async (req, res) => {
                                 title: req.body.title || findData.title,
                                 desc: req.body.desc || findData.desc,
                                 off: req.body.off || findData.off,
+                                refferalCode: req.user.refferalCode || findData.refferalCode,
                                 appleLink: req.body.appleLink || findData.appleLink,
                                 playstoreLink: req.body.playstoreLink || findData.playstoreLink,
                                 bannerImage: bannerImage || findData.bannerImage,
@@ -1420,6 +1481,7 @@ exports.createPromotionBanner = async (req, res) => {
                         data = {
                                 title: req.body.title,
                                 desc: req.body.desc,
+                                refferalCode: req.user.refferalCode,
                                 off: req.body.off,
                                 appleLink: req.body.appleLink,
                                 playstoreLink: req.body.playstoreLink,
@@ -1495,7 +1557,6 @@ exports.addContactDetails = async (req, res) => {
                                         image: image || findContact.image,
                                         name: req.body.name || findContact.name,
                                         fb: req.body.fb || findContact.fb,
-                                        twitter: req.body.twitter || findContact.twitter,
                                         google: req.body.google || findContact.google,
                                         instagram: req.body.instagram || findContact.instagram,
                                         map: req.body.map || findContact.map,
@@ -1640,6 +1701,18 @@ exports.createClientReview = async (req, res) => {
                 console.error(error);
                 return res.status(500).json({ error: "Failed to create clientReview" });
         }
+};
+exports.updateClientReview = async (req, res) => {
+        const { id } = req.params;
+        const category = await ClientReview.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "News Not Found", status: 404, data: {} });
+        }
+        category.userName = req.body.userName || category.userName;
+        category.title = req.body.title || category.title;
+        category.description = req.body.description || category.description;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
 };
 exports.getAllClientReviews = async (req, res) => {
         try {
@@ -2108,11 +2181,21 @@ exports.createAcneQuizSuggession = async (req, res) => {
                 if (findAcneQuizSuggession) {
                         return res.status(409).json({ message: "Acne Quiz Suggession already exit.", status: 404, data: {} });
                 } else {
-                        const findProduct = await product.findById({ _id: req.body.productId })
-                        if (!findProduct || findProduct.length === 0) {
-                                return res.status(400).send({ msg: "not found" });
+                        let data;
+                        if (req.body.productId != (null || undefined)) {
+                                const findProduct = await product.findById({ _id: req.body.productId })
+                                if (!findProduct || findProduct.length === 0) {
+                                        return res.status(400).send({ msg: "not found" });
+                                }
+                                data = { answer1: req.body.answer1, answer2: req.body.answer2, answer3: req.body.answer3, answer4: req.body.answer4, productId: findProduct._id };
                         }
-                        const data = { answer1: req.body.answer1, answer2: req.body.answer2, answer3: req.body.answer3, answer4: req.body.answer4, productId: findProduct._id };
+                        if (req.body.frequentlyBuyProductId != (null || undefined)) {
+                                const findProduct = await frequentlyBuyProduct.findById({ _id: req.body.frequentlyBuyProductId })
+                                if (!findProduct || findProduct.length === 0) {
+                                        return res.status(400).send({ msg: "not found" });
+                                }
+                                data = { answer1: req.body.answer1, answer2: req.body.answer2, answer3: req.body.answer3, answer4: req.body.answer4, frequentlyBuyProductId: findProduct._id };
+                        }
                         const category = await acneQuizSuggession.create(data);
                         return res.status(200).json({ message: "Acne Quiz Suggession add successfully.", status: 200, data: category });
                 }
@@ -2134,18 +2217,25 @@ exports.updateAcneQuizSuggession = async (req, res) => {
         if (!category) {
                 return res.status(404).json({ message: "Acne Quiz Suggession Not Found", status: 404, data: {} });
         }
-        let productId;
+        let productId, frequentlyBuyProductId;
         if (req.body.productId != (null || undefined)) {
                 const findProduct = await product.findById({ _id: req.body.productId })
                 if (!findProduct || findProduct.length === 0) {
                         return res.status(400).send({ msg: "not found" });
                 } else {
-                        productId = findProduct._id;
+                        category.productId = findProduct._id;
+                }
+        } else if (req.body.frequentlyBuyProductId != (null || undefined)) {
+                const findProduct = await frequentlyBuyProduct.findById({ _id: req.body.frequentlyBuyProductId })
+                if (!findProduct || findProduct.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                } else {
+                        category.frequentlyBuyProductId = findProduct._id;
                 }
         } else {
-                productId = category.productId;
+                category.productId = category.productId;
+                category.frequentlyBuyProductId = category.frequentlyBuyProductId;
         }
-        category.productId = productId;
         category.answer1 = req.body.answer1 || category.answer1;
         category.answer2 = req.body.answer2 || category.answer2;
         category.answer3 = req.body.answer3 || category.answer3;
@@ -2164,7 +2254,7 @@ exports.removeAcneQuizSuggession = async (req, res) => {
         }
 };
 exports.getAcneQuizSuggessionByAnswer = async (req, res) => {
-        const categories = await acneQuizSuggession.findOne({ answer1: req.query.answer1, answer2: req.query.answer2, answer3: req.query.answer3, answer4: req.query.answer4, }).select('productId').populate({ path: 'productId' })
+        const categories = await acneQuizSuggession.findOne({ answer1: req.query.answer1, answer2: req.query.answer2, answer3: req.query.answer3, answer4: req.query.answer4, }).select('productId').populate([{ path: 'productId' }, { path: "frequentlyBuyProductId" }])
         if (categories) {
                 return res.status(201).json({ message: "Acne Quiz Suggession Found", status: 200, data: categories, });
         }
@@ -3283,9 +3373,17 @@ exports.addCoupan = async (req, res) => {
                 const de = new Date(req.body.activationDate);
                 req.body.activationDate = de.toISOString();
                 req.body.code = await reffralCode();
+                req.body.orderStatus = "confirmed";
+                req.body.paymentStatus = 'paid'
                 let saveStore = await coupanModel(req.body).save();
                 if (saveStore) {
-                        return res.json({ status: 200, message: 'Coupan add successfully.', data: saveStore });
+                        const data = await User.findOne({ _id: req.body.user, });
+                        if (data) {
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { checkIn: data.checkIn + (req.body.completeVisit || 0) } }, { new: true });
+                                if (update) {
+                                        return res.json({ status: 200, message: 'Coupan add successfully.', data: saveStore });
+                                }
+                        }
                 }
         } catch (error) {
                 console.error(error);

@@ -149,6 +149,9 @@ const productSchema = mongoose.Schema({
                 type: String,
                 enum: ["OUTOFSTOCK", "STOCK"],
         },
+        beforeAfterImage: {
+                type: String
+        },
         acneType: {
                 type: String,
         },

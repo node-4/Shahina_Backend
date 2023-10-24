@@ -10,6 +10,9 @@ const DocumentSchema = schema({
         off: {
                 type: String
         },
+        refferalCode: {
+                type: String
+        },
         appleLink: {
                 type: String
         },

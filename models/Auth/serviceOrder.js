@@ -50,23 +50,7 @@ const DocumentSchema = schema({
                 ref: "Coupon",
                 default: null,
         },
-        total: {
-                type: Number,
-                default: 0
-        },
-        discount: {
-                type: Number,
-                default: 0
-        },
-        coupan: {
-                type: Number,
-                default: 0
-        },
-        subTotal: {
-                type: Number,
-                default: 0
-        },
-        serviceCharge: {
+        memberShipPer: {
                 type: Number,
                 default: 0
         },
@@ -74,11 +58,15 @@ const DocumentSchema = schema({
                 type: Number,
                 default: 0
         },
-        memberShipPer: {
+        offerDiscount: {
                 type: Number,
                 default: 0
         },
-        grandTotal: {
+        subTotal: {
+                type: Number,
+                default: 0
+        },
+        total: {
                 type: Number,
                 default: 0
         },

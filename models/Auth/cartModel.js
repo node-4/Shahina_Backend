@@ -20,7 +20,7 @@ const cartProductsSchema = new Schema({
     }
 }, { _id: false })
 const cartGiftsSchema = new Schema({
-    giftId: {
+    giftPriceId: {
         type: Schema.Types.ObjectId,
         ref: "giftPrice"
     },
