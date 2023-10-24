@@ -1444,7 +1444,7 @@ exports.placeOrder = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
                 if (findUserOrder) {
-                        let memberShipPer = 0;
+                        let memberShipPer = 0, offerDiscount = 0;
                         let line_items = [];
                         if (findUserOrder.productOrder != (null || undefined)) {
                                 let discount = 0, total = 0, subTotal = 0;
@@ -1623,14 +1623,23 @@ exports.placeOrder = async (req, res) => {
                                         line_items.push(obj2)
                                 });
                                 memberShipPer = findOrder1.memberShip;
+                                offerDiscount = findOrder1.offerDiscount;
                         }
                         if (memberShipPer > 0) {
+                                let amount_off = 0, name;
+                                if (offerDiscount > 0) {
+                                        amount_off = (memberShipPer + offerDiscount).toFixed() * 100;
+                                        name = `Member Ship ${memberShipPer.toFixed()} & Offer Discount ${offerDiscount.toFixed()}`
+                                } else {
+                                        amount_off = (memberShipPer).toFixed() * 100;
+                                        name = `Member Ship ${memberShipPer.toFixed()}`
+                                };
                                 const couponId = await stripe.coupons.create({
-                                        name: "Member Ship Discount",
+                                        name: name,
                                         currency: 'usd',
-                                        amount_off: memberShipPer.toFixed() * 100,
+                                        amount_off: amount_off,
                                         duration: "once",
-                                })
+                                });
                                 const session = await stripe.checkout.sessions.create({
                                         payment_method_types: ["card"],
                                         success_url: `https://shahina-web.vercel.app/thanks/${findUserOrder.orderId}`,
@@ -1641,7 +1650,32 @@ exports.placeOrder = async (req, res) => {
                                         mode: "payment",
                                         discounts: [
                                                 {
-                                                        coupon: couponId.id, // Replace with your coupon ID
+                                                        coupon: couponId.id,
+                                                },
+                                        ],
+                                });
+                                return res.status(200).json({ status: "success", session: session, });
+                        } else if (offerDiscount > 0) {
+                                let amount_off = 0, name;
+                                amount_off = (offerDiscount).toFixed() * 100;
+                                name = `Offer Discount ${offerDiscount.toFixed()}`
+                                const couponId = await stripe.coupons.create({
+                                        name: name,
+                                        currency: 'usd',
+                                        amount_off: amount_off,
+                                        duration: "once",
+                                });
+                                const session = await stripe.checkout.sessions.create({
+                                        payment_method_types: ["card"],
+                                        success_url: `https://shahina-web.vercel.app/thanks/${findUserOrder.orderId}`,
+                                        cancel_url: `https://shahina-web.vercel.app/failed/${findUserOrder.orderId}`,
+                                        customer_email: req.user.email,
+                                        client_reference_id: findUserOrder.orderId,
+                                        line_items: line_items,
+                                        mode: "payment",
+                                        discounts: [
+                                                {
+                                                        coupon: couponId.id,
                                                 },
                                         ],
                                 });
@@ -1903,7 +1937,7 @@ exports.cancelMemberShip = async (req, res) => {
 };
 exports.getRecentlyServicesView = async (req, res, next) => {
         try {
-                const cart = await recentlyView.find({ user: req.user._id, type: "S" }).populate({ path: "services", select:"name images price discountPrice discount" }).sort({ "updateAt": -1 });
+                const cart = await recentlyView.find({ user: req.user._id, type: "S" }).populate({ path: "services", select: "name images price discountPrice discount" }).sort({ "updateAt": -1 });
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
                 }
@@ -1915,7 +1949,7 @@ exports.getRecentlyServicesView = async (req, res, next) => {
 };
 exports.getRecentlyProductView = async (req, res, next) => {
         try {
-                const cart = await recentlyView.find({ user: req.user._id, type: "P" }).populate({ path: "products" ,select:"name productImages price sizePrice"}).sort({ "updateAt": -1 });
+                const cart = await recentlyView.find({ user: req.user._id, type: "P" }).populate({ path: "products", select: "name productImages price sizePrice" }).sort({ "updateAt": -1 });
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
                 }
@@ -2363,7 +2397,7 @@ exports.placeOrderApp = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
                 if (findUserOrder) {
-                        let memberShipPer = 0;
+                        let memberShipPer = 0.00, offerDiscount = 0, subTotals = 0;
                         let line_items = [];
                         if (findUserOrder.productOrder != (null || undefined)) {
                                 let discount = 0, total = 0, subTotal = 0;
@@ -2399,6 +2433,7 @@ exports.placeOrderApp = async (req, res) => {
                                                                         },
                                                                         quantity: 1,
                                                                 }
+                                                                subTotals = subTotals + price
                                                                 console.log("1381", obj2);
                                                                 line_items.push(obj2)
                                                         }
@@ -2428,6 +2463,7 @@ exports.placeOrderApp = async (req, res) => {
                                                         },
                                                         quantity: 1,
                                                 }
+                                                subTotals = subTotals + price
                                                 console.log("1805", obj2);
                                                 line_items.push(obj2)
                                         }
@@ -2451,6 +2487,7 @@ exports.placeOrderApp = async (req, res) => {
                                                 },
                                                 quantity: 1,
                                         }
+                                        subTotals = subTotals + price
                                         console.log("1433", obj2);
                                         line_items.push(obj2)
                                 });
@@ -2465,6 +2502,7 @@ exports.placeOrderApp = async (req, res) => {
                                         },
                                         quantity: 1,
                                 }
+                                subTotals = subTotals + delivery
                                 line_items.push(obj3)
                         }
                         if (findUserOrder.giftOrder != (null || undefined)) {
@@ -2486,6 +2524,7 @@ exports.placeOrderApp = async (req, res) => {
                                         },
                                         quantity: 1,
                                 }
+                                subTotals = subTotals + price
                                 console.log("1469", obj2);
                                 line_items.push(obj2)
                         }
@@ -2518,6 +2557,7 @@ exports.placeOrderApp = async (req, res) => {
                                                 },
                                                 quantity: 1,
                                         }
+                                        subTotals = subTotals + price
                                         line_items.push(obj2)
                                 });
                                 findOrder1.AddOnservicesSchema.forEach((cartGift) => {
@@ -2539,43 +2579,65 @@ exports.placeOrderApp = async (req, res) => {
                                                 },
                                                 quantity: 1,
                                         }
+                                        subTotals = subTotals + price
                                         line_items.push(obj2)
                                 });
                                 memberShipPer = findOrder1.memberShip;
+                                offerDiscount = findOrder1.offerDiscount;
                         }
+                        let metadataString = line_items.slice(0, 3).map(item => item.price_data.product_data.name).join(', ');
+                        console.log(line_items);
+                        const metadata = {
+                                order_id: findUserOrder.orderId,
+                                line_items: metadataString,
+                        };
+
+                        console.log(memberShipPer);
                         if (memberShipPer > 0) {
-                                const couponId = await stripe.coupons.create({
-                                        name: "Member Ship Discount",
+                                if (offerDiscount > 0) {
+                                        subTotals = subTotals - memberShipPer - offerDiscount;
+                                } else {
+                                        subTotals = subTotals - memberShipPer
+                                };
+                                const paymentIntent = await stripe.paymentIntents.create({
+                                        amount: Math.round(subTotals * 100),
                                         currency: 'usd',
-                                        amount_off: memberShipPer.toFixed() * 100,
-                                        duration: "once",
-                                })
-                                const session = await stripe.checkout.sessions.create({
-                                        payment_method_types: ["card"],
-                                        success_url: `https://shahina-web.vercel.app/thanks/${findUserOrder.orderId}`,
-                                        cancel_url: `https://shahina-web.vercel.app/failed/${findUserOrder.orderId}`,
-                                        customer_email: req.user.email,
-                                        client_reference_id: findUserOrder.orderId,
-                                        line_items: line_items,
-                                        mode: "payment",
-                                        discounts: [
-                                                {
-                                                        coupon: couponId.id, // Replace with your coupon ID
-                                                },
-                                        ],
+                                        payment_method_types: ['card'],
+                                        customer: req.user.stripeCustomerId,
+                                        receipt_email: req.user.email,
+                                        description: 'Order Payment',
+                                        statement_descriptor: 'ORDER',
+                                        metadata: metadata,
+                                        application_fee_amount: 0,
                                 });
-                                return res.status(200).json({ status: "success", session: session, });
+                                return res.status(200).json({ paymentIntent: paymentIntent })
+                        } else if (offerDiscount > 0 && memberShipPer == 0) {
+                                subTotals = subTotals - offerDiscount;
+                                const paymentIntent = await stripe.paymentIntents.create({
+                                        amount: Math.round(subTotals * 100),
+                                        currency: 'usd',
+                                        payment_method_types: ['card'],
+                                        customer: req.user.stripeCustomerId,
+                                        receipt_email: req.user.email,
+                                        description: 'Order Payment',
+                                        statement_descriptor: 'ORDER',
+                                        metadata: metadata,
+                                        application_fee_amount: 0,
+                                });
+                                return res.status(200).json({ paymentIntent: paymentIntent })
                         } else {
-                                const session = await stripe.checkout.sessions.create({
-                                        payment_method_types: ["card"],
-                                        success_url: `https://shahina-web.vercel.app/thanks/${findUserOrder.orderId}`,
-                                        cancel_url: `https://shahina-web.vercel.app/failed/${findUserOrder.orderId}`,
-                                        customer_email: req.user.email,
-                                        client_reference_id: findUserOrder.orderId,
-                                        line_items: line_items,
-                                        mode: "payment",
+                                const paymentIntent = await stripe.paymentIntents.create({
+                                        amount: Math.round(subTotals * 100),
+                                        currency: 'usd',
+                                        payment_method_types: ['card'],
+                                        customer: req.user.stripeCustomerId,
+                                        receipt_email: req.user.email,
+                                        description: 'Order Payment',
+                                        statement_descriptor: 'ORDER',
+                                        metadata: metadata,
+                                        application_fee_amount: 0,
                                 });
-                                return res.status(200).json({ status: "success", session: session, });
+                                return res.status(200).json({ paymentIntent: paymentIntent })
                         }
                 } else {
                         return res.status(404).json({ message: "No data found", data: {} });
@@ -2666,16 +2728,6 @@ exports.overAllSearch = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 }
-
-
-
-
-
-
-
-
-
-
 // const calculateCartResponse = async (cart, userId, isServiceCart = false) => {
 //         try {
 //                 await cart.populate([
