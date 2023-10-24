@@ -1903,7 +1903,7 @@ exports.cancelMemberShip = async (req, res) => {
 };
 exports.getRecentlyServicesView = async (req, res, next) => {
         try {
-                const cart = await recentlyView.find({ user: req.user._id, type: "S" }).populate({ path: "services" }).sort({ "updateAt": -1 });
+                const cart = await recentlyView.find({ user: req.user._id, type: "S" }).populate({ path: "services", select:"name images price discountPrice discount" }).sort({ "updateAt": -1 });
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
                 }
@@ -1915,7 +1915,7 @@ exports.getRecentlyServicesView = async (req, res, next) => {
 };
 exports.getRecentlyProductView = async (req, res, next) => {
         try {
-                const cart = await recentlyView.find({ user: req.user._id, type: "P" }).populate({ path: "products" }).sort({ "updateAt": -1 });
+                const cart = await recentlyView.find({ user: req.user._id, type: "P" }).populate({ path: "products" ,select:"name productImages price sizePrice"}).sort({ "updateAt": -1 });
                 if (!cart) {
                         return res.status(200).json({ success: false, msg: "No recentlyView", cart: {} });
                 }

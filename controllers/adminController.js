@@ -1828,6 +1828,40 @@ exports.getServiceOrders = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
+exports.getServiceOrderswithDate = async (req, res) => {
+        try {
+                let aggregationPipeline = [{ $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" } }, totalOrders: { $sum: 1 } } },{ $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }];
+                let totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
+                let datewiseOrders = await serviceOrder.find({ orderStatus: "confirmed", }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" }, { path: 'user' }]).sort({ createdAt: 1 });
+                const datewiseData = datewiseOrders.reduce((result, order) => {
+                        const { createdAt } = order;
+                        const orderDate = `${createdAt.getDate()}/${createdAt.getMonth() + 1}/${createdAt.getFullYear()}`;
+                        if (!result[orderDate]) {
+                                result[orderDate] = {
+                                        totalOrders: 0,
+                                        orders: [],
+                                };
+                        }
+                        result[orderDate].orders.push(order);
+                        return result;
+                }, {});
+                totalOrderCounts.forEach((order) => {
+                        const { year, month, day } = order._id;
+                        const date = `${day}/${month}/${year}`;
+                        if (datewiseData[date]) {
+                                datewiseData[date].totalOrders = order.totalOrders;
+                        }
+                });
+
+                return res.status(200).json({
+                        status: 200,
+                        message: "Orders data found.",
+                        data: datewiseData,
+                });
+        } catch (err) {
+                return res.status(500).send({ msg: "Internal server error", error: err.message });
+        }
+};
 exports.createIngredients = async (req, res) => {
         try {
                 let findIngredients = await ingredients.findOne({ name: req.body.name, type: req.body.type });
