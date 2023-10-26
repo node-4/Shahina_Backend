@@ -59,19 +59,27 @@ const DocumentSchema = schema({
                 ref: "Coupon",
                 default: null,
         },
-        total: {
+        memberShipPer: {
                 type: Number,
                 default: 0
         },
-        discount: {
+        memberShip: {
                 type: Number,
                 default: 0
         },
-        coupan: {
+        offerDiscount: {
                 type: Number,
                 default: 0
         },
         subTotal: {
+                type: Number,
+                default: 0
+        },
+        total: {
+                type: Number,
+                default: 0
+        },
+        coupan: {
                 type: Number,
                 default: 0
         },
