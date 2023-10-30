@@ -1891,8 +1891,8 @@ exports.cancelOrder = async (req, res) => {
 exports.getProductOrders = async (req, res, next) => {
         try {
                 const orders = await productOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([
-                        { path: "products.productId", select: { reviews: 0 } },
-                        { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        { path: "products.productId", select: 'name description size sizePrice price productImages' },
+                        { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: 'name description size sizePrice price productImages' }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (orders.length == 0) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
