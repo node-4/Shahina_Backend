@@ -30,6 +30,7 @@ module.exports = (app) => {
         app.get("/api/v1/getAllcoupan", [authJwt.verifyToken], auth.getAllcoupan);
         app.get('/api/v1/getServiceByTokenFormembership', [authJwt.verifyToken], auth.getServiceByTokenFormembership);
         app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
+        app.put('/api/v1/applyCoupan', [authJwt.verifyToken], auth.applyCoupan);
         app.post('/api/v1/add-to-cart/:type/:id', [authJwt.verifyToken], auth.addToCart);
         app.delete('/api/cart/delete/:type/:id', [authJwt.verifyToken], auth.deleteCartItem);
         app.put("/api/v1/cart/addDateAndtimetoServiceCart", [authJwt.verifyToken], auth.addDateAndtimetoServiceCart);

@@ -22,6 +22,12 @@ const DocumentSchema = schema({
     type: schema.Types.ObjectId,
     ref: "serviceOrder",
   },
+  orderObjTotalAmount: {
+    type: String,
+  },
+  couponDiscount: {
+    type: String,
+  },
   orderObjPaidAmount: {
     type: String,
   },
