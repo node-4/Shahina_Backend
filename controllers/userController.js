@@ -963,29 +963,6 @@ const calculateCartResponse = async (cart, userId) => {
                 cartResponse.offerDiscount = parseFloat(offerDiscount.toFixed(2));
                 cartResponse.membershipDiscount = parseFloat(membershipDiscount.toFixed(2));
                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                if (cartResponse.coupon) {
-                        if (cartResponse.coupon.completeVisit == 5 && data3.orderVisit > 5) {
-                                if (cartResponse.coupon.used == false) {
-                                        if (cartResponse.coupon.per == "Percentage") {
-                                                cartResponse.couponDiscount = ((total * cartResponse.coupon.discount) / 100);
-                                                total = total - ((total * cartResponse.coupon.discount) / 100);
-                                        } else {
-                                                cartResponse.couponDiscount = cartResponse.coupon.discount;
-                                                total = total - cartResponse.coupon.discount;
-                                        }
-                                }
-                        } else {
-                                if (cartResponse.coupon.used == false) {
-                                        if (cartResponse.coupon.per == "Percentage") {
-                                                cartResponse.couponDiscount = ((total * cartResponse.coupon.discount) / 100);
-                                                total = total - ((total * cartResponse.coupon.discount) / 100);
-                                        } else {
-                                                cartResponse.couponDiscount = cartResponse.coupon.discount;
-                                                total = total - cartResponse.coupon.discount;
-                                        }
-                                }
-                        }
-                }
                 cartResponse.total = parseFloat((total + shipping).toFixed(2));
                 cartResponse.pickUp = data1;
                 cartResponse.deliveryAddresss = data2;
@@ -2110,16 +2087,190 @@ exports.getCartApp = async (req, res, next) => {
                 }
                 let cartResponse;
                 if (cart.services.length > 0) {
-                        cartResponse = await calculateCartResponse(cart, req.user._id, true);
+                        cartResponse = await calculateCartResponse1(cart, req.user._id, true);
                 } else if (cart.products.length == 0 && cart.gifts.length == 0 && cart.frequentlyBuyProductSchema.length == 0 && cart.services.length == 0 && cart.AddOnservicesSchema.length == 0) {
                         return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
                 } else {
-                        cartResponse = await calculateCartResponse(cart, req.user._id);
+                        cartResponse = await calculateCartResponse1(cart, req.user._id);
                 }
                 return res.status(200).json({ success: true, msg: "Cart retrieved successfully", cart: cartResponse });
         } catch (error) {
                 console.log(error);
                 next(error);
+        }
+};
+const calculateCartResponse1 = async (cart, userId) => {
+        try {
+                await cart.populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftPriceId", populate: { path: 'giftId', model: 'gift' }, select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" }]);
+                const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
+                const data2 = await Address.findOne({ user: userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
+                const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
+                const data3 = await User.findOne({ _id: userId });
+                const data4 = await contact.findOne().select('name image phone email numOfReviews ratings -_id');
+                let offerDiscount = 0, onProductDiscount = 0, membershipDiscount = 0, shipping = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                const cartResponse = cart.toObject();
+                if (cartResponse.services.length > 0) {
+                        for (const cartProduct of cartResponse.services) {
+                                if (cartProduct.serviceId.type === "offer") {
+                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
+                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                        offerDiscount += cartProduct.offerDiscount;
+                                        subTotal += cartProduct.subTotal;
+                                        total += cartProduct.total;
+                                }
+                                if (cartProduct.serviceId.type === "Service") {
+                                        if (data3.isSubscription === true) {
+                                                console.log(data3.isSubscription);
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        membershipDiscountPercentage = findSubscription.discount;
+                                                }
+                                                membershipDiscount = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                cartProduct.offerDiscount = 0.00;
+                                                offerDiscount += cartProduct.offerDiscount;
+                                                total += cartProduct.total;
+                                                subTotal += cartProduct.subTotal;
+                                        } else {
+                                                membershipDiscount = 0;
+                                                cartProduct.membershipDiscount = membershipDiscount
+                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                cartProduct.offerDiscount = 0.00;
+                                                offerDiscount += cartProduct.offerDiscount;
+                                                subTotal += cartProduct.subTotal;
+                                                total += cartProduct.total;
+                                        }
+                                }
+                        }
+                }
+                if (cartResponse.AddOnservicesSchema.length > 0) {
+                        cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                subTotal += cartGift.subTotal;
+                                total += cartGift.total;
+                        });
+                }
+                if (cartResponse.products.length > 0) {
+                        for (const cartProduct of cartResponse.products) {
+                                if (cartProduct.productId.multipleSize == true) {
+                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                        if (data3.isSubscription === true) {
+                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                if (findSubscription) {
+                                                                        membershipDiscountPercentage = findSubscription.discount;
+                                                                }
+                                                                membershipDiscount = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                subTotal += cartProduct.subTotal;
+                                                                total += cartProduct.total;
+                                                        } else {
+                                                                membershipDiscount = 0;
+                                                                cartProduct.membershipDiscount = membershipDiscount
+                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                subTotal += cartProduct.subTotal;
+                                                                total += cartProduct.total;
+                                                        }
+                                                }
+                                        }
+                                } else {
+                                        if (data3.isSubscription === true) {
+                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                if (findSubscription) {
+                                                        membershipDiscountPercentage = findSubscription.discount;
+                                                }
+                                                membershipDiscount = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                cartProduct.offerDiscount = 0.00;
+                                                offerDiscount += cartProduct.offerDiscount;
+                                                subTotal += cartProduct.subTotal;
+                                                total += cartProduct.total;
+                                        } else {
+                                                membershipDiscount = 0;
+                                                cartProduct.membershipDiscount = membershipDiscount
+                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                cartProduct.offerDiscount = 0.00;
+                                                offerDiscount += cartProduct.offerDiscount;
+                                                subTotal += cartProduct.subTotal;
+                                                total += cartProduct.total;
+                                        }
+                                }
+                        }
+                        if (cartResponse.pickupFromStore == true) {
+                                shipping = 0.00;
+                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                        } else {
+                                shipping = 10.00;
+                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                        }
+                }
+                if (cartResponse.gifts.length > 0) {
+                        cartResponse.gifts.forEach((cartGift) => {
+                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                subTotal += cartGift.subTotal;
+                                total += cartGift.total;
+                        });
+                }
+                if (cartResponse.frequentlyBuyProductSchema.length > 0) {
+                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                subTotal += cartFBP.subTotal;
+                                total += cartFBP.total;
+                        });
+                }
+                cartResponse.subTotal = parseFloat(subTotal.toFixed(2));
+                cartResponse.onProductDiscount = parseFloat(onProductDiscount.toFixed(2));
+                cartResponse.offerDiscount = parseFloat(offerDiscount.toFixed(2));
+                cartResponse.membershipDiscount = parseFloat(membershipDiscount.toFixed(2));
+                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                if (cartResponse.coupon) {
+                        if (cartResponse.coupon.completeVisit == 5 && data3.orderVisit > 5) {
+                                if (cartResponse.coupon.used == false) {
+                                        if (cartResponse.coupon.per == "Percentage") {
+                                                cartResponse.couponDiscount = ((total * cartResponse.coupon.discount) / 100);
+                                                total = total - ((total * cartResponse.coupon.discount) / 100);
+                                        } else {
+                                                cartResponse.couponDiscount = cartResponse.coupon.discount;
+                                                total = total - cartResponse.coupon.discount;
+                                        }
+                                }
+                        } else {
+                                if (cartResponse.coupon.used == false) {
+                                        if (cartResponse.coupon.per == "Percentage") {
+                                                cartResponse.couponDiscount = ((total * cartResponse.coupon.discount) / 100);
+                                                total = total - ((total * cartResponse.coupon.discount) / 100);
+                                        } else {
+                                                cartResponse.couponDiscount = cartResponse.coupon.discount;
+                                                total = total - cartResponse.coupon.discount;
+                                        }
+                                }
+                        }
+                }
+                cartResponse.total = parseFloat((total + shipping).toFixed(2));
+                cartResponse.pickUp = data1;
+                cartResponse.deliveryAddresss = data2;
+                cartResponse.contactDetail = data4;
+                cartResponse.billingAddresss = data5;
+                return cartResponse;
+        } catch (error) {
+                throw error;
         }
 };
 // exports.checkoutApp = async (req, res) => {
