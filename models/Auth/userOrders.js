@@ -25,6 +25,10 @@ const DocumentSchema = schema({
   orderObjTotalAmount: {
     type: String,
   },
+  applyCoupan: {
+    type: schema.Types.ObjectId,
+    ref: "Coupon",
+  },
   couponDiscount: {
     type: String,
   },

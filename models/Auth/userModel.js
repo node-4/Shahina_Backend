@@ -81,11 +81,15 @@ var userSchema = new schema(
                         type: Number,
                         default: 0,
                 },
-                checkIn: {
+                orderVisit: {
                         type: Number,
                         default: 0,
                 },
                 totalVisit: {
+                        type: Number,
+                        default: 0,
+                },
+                checkIn: {
                         type: Number,
                         default: 0,
                 },

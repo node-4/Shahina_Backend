@@ -99,7 +99,11 @@ const CartSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Coupon",
         default: null,
-    }
+    },
+    couponUsed: {
+        type: Boolean,
+        default: false,
+    },
 }, {
     timestamps: true
 })
