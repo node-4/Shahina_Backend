@@ -995,25 +995,59 @@ exports.getIdService = async (req, res) => {
 };
 exports.getIdServiceByToken = async (req, res) => {
         try {
-                const data = await services.findById(req.params.id).populate('categoryId')
-                if (!data || data.length === 0) {
-                        return res.status(400).send({ msg: "not found" });
+                const data = await services.findById(req.params.id).populate('categoryId');
+                if (!data) {
+                        return res.status(400).send({ msg: "Service not found" });
                 } else {
-                        const findData = await recentlyView.findOne({ user: req.user._id, services: data._id });
-                        if (findData) {
-                                const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { services: data._id } }, { new: true });
-                                if (saved) {
-                                        return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+                        if (data.type = "Service") {
+                                const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
+                                let membshipPrice = 0;
+                                let membershipDiscount = 0;
+                                let membershipDiscountPer = 0;
+                                if (userData.isSubscription == true) {
+                                        membershipDiscountPer = userData.subscriptionId.discount;
+                                        membershipDiscount = parseFloat(data.price) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
+                                        membshipPrice = parseFloat(data.price) - parseFloat(membershipDiscount).toFixed(2);
+                                } else {
+                                        membershipDiscountPer = 0
+                                        membershipDiscount = 0
+                                        membshipPrice = 0;
+                                }
+                                const serviceWithDynamicFields = {
+                                        ...data.toObject(),
+                                        membershipDiscountPer,
+                                        membershipDiscount,
+                                        membshipPrice,
+                                };
+                                const findData = await recentlyView.findOne({ user: req.user._id, services: data._id });
+                                if (findData) {
+                                        const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { services: data._id } }, { new: true });
+                                        if (saved) {
+                                                return res.status(200).json({ status: 200, message: "Service data found.", data: serviceWithDynamicFields });
+                                        }
+                                } else {
+                                        const saved = await recentlyView.create({ user: req.user._id, services: data._id, type: "S" });
+                                        if (saved) {
+                                                return res.status(200).json({ status: 200, message: "Service data found.", data: serviceWithDynamicFields });
+                                        }
                                 }
                         } else {
-                                const saved = await recentlyView.create({ user: req.user._id, services: data._id, type: "S" });
-                                if (saved) {
-                                        return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+                                const findData = await recentlyView.findOne({ user: req.user._id, services: data._id });
+                                if (findData) {
+                                        const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { services: data._id } }, { new: true });
+                                        if (saved) {
+                                                return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+                                        }
+                                } else {
+                                        const saved = await recentlyView.create({ user: req.user._id, services: data._id, type: "S" });
+                                        if (saved) {
+                                                return res.status(200).json({ status: 200, message: "Service data found.", data: data });
+                                        }
                                 }
                         }
                 }
         } catch (err) {
-                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+                return res.status(500).send({ msg: "Internal server error", error: err.message });
         }
 };
 exports.editService = async (req, res) => {
@@ -1830,7 +1864,7 @@ exports.getServiceOrders = async (req, res) => {
 };
 exports.getServiceOrderswithDate = async (req, res) => {
         try {
-                let aggregationPipeline = [{ $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" } }, totalOrders: { $sum: 1 } } },{ $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }];
+                let aggregationPipeline = [{ $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" } }, totalOrders: { $sum: 1 } } }, { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }];
                 let totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
                 let datewiseOrders = await serviceOrder.find({ orderStatus: "confirmed", }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" }, { path: 'user' }]).sort({ createdAt: 1 });
                 const datewiseData = datewiseOrders.reduce((result, order) => {

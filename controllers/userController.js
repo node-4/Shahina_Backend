@@ -705,6 +705,7 @@ exports.getServiceByTokenFormembership = async (req, res, next) => {
                 const servicesWithDynamicFields = [];
                 const userData = await User.findOne({ _id: req.user._id, }).select('-password').populate('subscriptionId');
                 for (const service of servicesList) {
+                        console.log(service);
                         let membshipPrice = 0;
                         if (userData.isSubscription == true) {
                                 membshipPrice = 0;
