@@ -649,27 +649,48 @@ exports.getIdProduct = async (req, res) => {
 };
 exports.getIdProductByToken = async (req, res) => {
         try {
-                const data = await product.findById(req.params.id).populate('brandId')
-                if (!data || data.length === 0) {
-                        return res.status(400).send({ msg: "not found" });
+                const data = await product.findById(req.params.id).populate('brandId');
+                if (!data) {
+                        return res.status(400).send({ msg: "Product not found" });
                 } else {
+                        const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
+                        let membshipPrice = 0;
+                        let membershipDiscount = 0;
+                        let membershipDiscountPer = 0;
+                        if (userData.isSubscription == true) {
+                                membershipDiscountPer = userData.subscriptionId.discount;
+                                const finalPrice = data.multipleSize ? data.sizePrice.find((size) => size.status === 'STOCK').price : data.price;
+                                membershipDiscount = parseFloat(finalPrice) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
+                                membshipPrice = parseFloat(finalPrice) - parseFloat(membershipDiscount).toFixed(2);
+                        } else {
+                                membershipDiscountPer = 0;
+                                membershipDiscount = 0;
+                                membshipPrice = 0;
+                        }
+                        const serviceWithDynamicFields = {
+                                ...data.toObject(),
+                                membershipDiscountPer,
+                                membershipDiscount,
+                                membshipPrice,
+                        };
                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
                         if (findData) {
                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
                                 if (saved) {
-                                        return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+                                        return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
                                 }
                         } else {
                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
                                 if (saved) {
-                                        return res.status(200).json({ status: 200, message: "Product data found.", data: data });
+                                        return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
                                 }
                         }
                 }
         } catch (err) {
-                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+                return res.status(500).send({ msg: "Internal server error", error: err.message });
         }
 };
+
 exports.editProduct = async (req, res) => {
         try {
                 const data = await product.findById(req.params.id);
