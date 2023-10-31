@@ -288,4 +288,26 @@ module.exports = {
       });
     });
   },
+  sendMail1: (email, code, callback) => {
+    var transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        "user": "info@shahinahoja.com",
+        "pass": "gganlypsemwqhwlh"
+      }
+    });
+    let mailOptions = {
+      from: 'info@shahinahoja.com',
+      to: email,
+      subject: 'Gift Card Provide by Your friend',
+      text: `Gift Card Provide by Your friend Coupan Code is ${code}`,
+    };
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        callback(error, null)
+      } else {
+        callback(null, info.response)
+      }
+    });
+  },
 }

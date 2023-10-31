@@ -145,6 +145,6 @@ module.exports = (app) => {
         app.get("/api/v1/admin/getAllTransaction", [authJwt.verifyToken], auth.getAllTransaction);
         app.post("/api/v1/admin/notification/sendNotification", authJwt.verifyToken, auth.sendNotification);
         app.get("/api/v1/admin/notification/allNotification", authJwt.verifyToken, auth.allNotification);
+        app.post("/api/v1/admin/uploadClient", authJwt.verifyToken, upload.single('file'), auth.uploadClient);
         // app.post('/api/v1/admin/chatapi', auth.chatapi);
-
 }

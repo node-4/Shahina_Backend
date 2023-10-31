@@ -34,6 +34,7 @@ const giftPrice = require("../models/giftPrice");
 const memshipCancel = require("../models/memshipCancel");
 const recentlyView = require("../models/recentlyView");
 const moment = require("moment")
+const commonFunction = require("../middlewares/commonFunction");
 const nodemailer = require("nodemailer");
 const logger = require("@zohocrm/nodejs-sdk-2.0/routes/logger/logger");
 // const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // shahina test
@@ -3703,7 +3704,9 @@ exports.successOrderApp = async (req, res) => {
                         }
                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                        let mailOption1 = { from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `, };
+                        let mailOption1 = {
+                                from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `,
+                        };
                         let info1 = await transporter.sendMail(mailOption1);
                         if (info1) {
                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });

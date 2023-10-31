@@ -39,6 +39,7 @@ const coupanModel = require("../models/Auth/coupan");
 const transactionModel = require("../models/transactionModel");
 const notification = require("../models/notification");
 const commonFunction = require("../middlewares/commonFunction");
+const XLSX = require("xlsx");
 const nodemailer = require("nodemailer");
 // const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 // const sendleApiBaseUrl = 'https://api.sendle.com';
@@ -3508,7 +3509,7 @@ exports.addCoupan = async (req, res) => {
                 }
                 if (req.file) {
                         req.body.image = req.file.path;
-                } 
+                }
                 const d = new Date(req.body.expirationDate);
                 req.body.expirationDate = d.toISOString();
                 const de = new Date(req.body.activationDate);
@@ -3541,6 +3542,42 @@ exports.deleteCoupan = async (req, res) => {
                 return res.status(200).json({ message: "Coupan  delete.", status: 200, data: {} });
         } catch (err) {
                 return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+const fs = require("fs");
+exports.uploadClient = async (req, res) => {
+        try {
+                const file = req.file;
+                const path = file.path;
+                const workbook = XLSX.readFile(file.path);
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const orders = XLSX.utils.sheet_to_json(sheet);
+                console.log(orders);
+                orders.forEach(async (orderData) => {
+                        const orderObj = {
+                                firstName: orderData["firstName"],
+                                lastName: orderData["lastName"],
+                                gender: orderData["gender"],
+                                dob: orderData["dob"],
+                                phone: orderData["phone"],
+                                email: orderData["email"],
+                                refferalCode: await reffralCode(),
+                                password: bcrypt.hashSync(orderData["password"], 8),
+                                userType: "USER"
+                        };
+                        const order = await User.create(orderObj);
+                });
+                fs.unlink(path, (err) => {
+                        if (err) {
+                                console.error(err);
+                                return res.status(500).json({ message: "Error deleting file" });
+                        }
+                });
+
+                res.status(200).json({ message: "Data uploaded successfully" });
+        } catch (error) {
+                console.log(error);
+                res.status(500).json({ status: 0, message: error.message });
         }
 };
 const reffralCode = async () => {
