@@ -29,6 +29,9 @@ const couponSchema = new mongoose.Schema({
   activationDate: {
     type: String
   },
+  image: {
+    type: String
+  },
   discount: {
     type: String
   },
