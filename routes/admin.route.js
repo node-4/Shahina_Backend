@@ -140,7 +140,7 @@ module.exports = (app) => {
         app.get("/api/v1/admin/viewserviceOrder/:id", auth.getServiceOrderbyId);
         app.delete('/api/admin/cart/delete/:type/:id/:userId', [authJwt.verifyToken], auth.deleteCartItem);
         app.get("/api/v1/admin/getAllcoupan", [authJwt.verifyToken], auth.getAllcoupan);
-        app.post("/api/v1/admin/addCoupan", [authJwt.verifyToken], auth.addCoupan);
+        app.post("/api/v1/admin/addCoupan", [authJwt.verifyToken], upload.single('image'), auth.addCoupan);
         app.delete("/api/v1/admin/Coupan/:id", [authJwt.verifyToken], auth.deleteCoupan);
         app.get("/api/v1/admin/getAllTransaction", [authJwt.verifyToken], auth.getAllTransaction);
         app.post("/api/v1/admin/notification/sendNotification", authJwt.verifyToken, auth.sendNotification);

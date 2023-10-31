@@ -3506,6 +3506,9 @@ exports.addCoupan = async (req, res) => {
                                 return res.json({ status: 409, message: 'Coupan already exit.', data: {} });
                         }
                 }
+                if (req.file) {
+                        req.body.image = req.file.path;
+                } 
                 const d = new Date(req.body.expirationDate);
                 req.body.expirationDate = d.toISOString();
                 const de = new Date(req.body.activationDate);
