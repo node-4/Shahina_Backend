@@ -65,6 +65,9 @@ var userSchema = new schema(
                         type: Boolean,
                         default: false,
                 },
+                deviceToken: {
+                        type: String
+                },
                 userType: {
                         type: String,
                         enum: ["USER", "GUEST", "ADMIN"],

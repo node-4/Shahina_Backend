@@ -177,27 +177,20 @@ exports.registrationforApp = async (req, res) => {
 };
 exports.signin = async (req, res) => {
         try {
-                const { phone, password } = req.body;
+                const { phone, password, deviceToken } = req.body;
                 const user = await User.findOne({ phone: phone, userType: "USER" });
                 if (!user) {
-                        return res
-                                .status(404)
-                                .send({ message: "user not found ! not registered" });
+                        return res.status(404).send({ message: "user not found ! not registered" });
                 }
                 const isValidPassword = bcrypt.compareSync(password, user.password);
                 if (!isValidPassword) {
                         return res.status(401).send({ message: "Wrong password" });
                 }
-                const accessToken = jwt.sign({ id: user._id }, authConfig.secret, {
-                        expiresIn: authConfig.accessTokenTime,
-                });
-                let obj = {
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        phone: user.phone,
-                        email: user.email,
-                        userType: user.userType,
+                const accessToken = jwt.sign({ id: user._id }, authConfig.secret, { expiresIn: authConfig.accessTokenTime });
+                if (deviceToken != (null || undefined)) {
+                        await User.findByIdAndUpdate({ _id: user._id }, { $set: { deviceToken: deviceToken } }, { new: true });
                 }
+                let obj = { firstName: user.firstName, lastName: user.lastName, phone: user.phone, email: user.email, userType: user.userType, }
                 return res.status(201).send({ data: obj, accessToken: accessToken });
         } catch (error) {
                 console.error(error);
@@ -849,17 +842,19 @@ const calculateCartResponse = async (cart, userId) => {
                                                 if (findSubscription) {
                                                         membershipDiscountPercentage = findSubscription.discount;
                                                 }
-                                                membershipDiscount = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
                                                 cartProduct.offerDiscount = 0.00;
                                                 offerDiscount += cartProduct.offerDiscount;
                                                 total += cartProduct.total;
                                                 subTotal += cartProduct.subTotal;
                                         } else {
-                                                membershipDiscount = 0;
-                                                cartProduct.membershipDiscount = membershipDiscount
+                                                let x = 0;
+                                                cartProduct.membershipDiscount = x
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.offerDiscount = 0.00;
@@ -888,17 +883,19 @@ const calculateCartResponse = async (cart, userId) => {
                                                                 if (findSubscription) {
                                                                         membershipDiscountPercentage = findSubscription.discount;
                                                                 }
-                                                                membershipDiscount = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                cartProduct.membershipDiscount = parseFloat(x)
+                                                                membershipDiscount += x;
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
                                                                 cartProduct.offerDiscount = 0.00;
                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                 subTotal += cartProduct.subTotal;
                                                                 total += cartProduct.total;
                                                         } else {
-                                                                membershipDiscount = 0;
-                                                                cartProduct.membershipDiscount = membershipDiscount
+                                                                let x = 0;
+                                                                cartProduct.membershipDiscount = x
+                                                                membershipDiscount += x;
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.offerDiscount = 0.00;
@@ -914,17 +911,19 @@ const calculateCartResponse = async (cart, userId) => {
                                                 if (findSubscription) {
                                                         membershipDiscountPercentage = findSubscription.discount;
                                                 }
-                                                membershipDiscount = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
                                                 cartProduct.offerDiscount = 0.00;
                                                 offerDiscount += cartProduct.offerDiscount;
                                                 subTotal += cartProduct.subTotal;
                                                 total += cartProduct.total;
                                         } else {
-                                                membershipDiscount = 0;
-                                                cartProduct.membershipDiscount = membershipDiscount
+                                                let x = 0;
+                                                cartProduct.membershipDiscount = x
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.offerDiscount = 0.00;
@@ -2126,17 +2125,19 @@ const calculateCartResponse1 = async (cart, userId) => {
                                                 if (findSubscription) {
                                                         membershipDiscountPercentage = findSubscription.discount;
                                                 }
-                                                membershipDiscount = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
                                                 cartProduct.offerDiscount = 0.00;
                                                 offerDiscount += cartProduct.offerDiscount;
                                                 total += cartProduct.total;
                                                 subTotal += cartProduct.subTotal;
                                         } else {
-                                                membershipDiscount = 0;
-                                                cartProduct.membershipDiscount = membershipDiscount
+                                                let x = 0;
+                                                cartProduct.membershipDiscount = x
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.offerDiscount = 0.00;
@@ -2165,17 +2166,19 @@ const calculateCartResponse1 = async (cart, userId) => {
                                                                 if (findSubscription) {
                                                                         membershipDiscountPercentage = findSubscription.discount;
                                                                 }
-                                                                membershipDiscount = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                cartProduct.membershipDiscount = parseFloat(x)
+                                                                membershipDiscount += x;
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
                                                                 cartProduct.offerDiscount = 0.00;
                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                 subTotal += cartProduct.subTotal;
                                                                 total += cartProduct.total;
                                                         } else {
-                                                                membershipDiscount = 0;
-                                                                cartProduct.membershipDiscount = membershipDiscount
+                                                                let x = 0;
+                                                                cartProduct.membershipDiscount = x
+                                                                membershipDiscount += x;
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.offerDiscount = 0.00;
@@ -2191,17 +2194,19 @@ const calculateCartResponse1 = async (cart, userId) => {
                                                 if (findSubscription) {
                                                         membershipDiscountPercentage = findSubscription.discount;
                                                 }
-                                                membershipDiscount = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
+                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
+                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
                                                 cartProduct.offerDiscount = 0.00;
                                                 offerDiscount += cartProduct.offerDiscount;
                                                 subTotal += cartProduct.subTotal;
                                                 total += cartProduct.total;
                                         } else {
-                                                membershipDiscount = 0;
-                                                cartProduct.membershipDiscount = membershipDiscount
+                                                let x = 0;
+                                                cartProduct.membershipDiscount = x
+                                                membershipDiscount += x;
                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                 cartProduct.offerDiscount = 0.00;

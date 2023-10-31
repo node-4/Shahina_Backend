@@ -38,6 +38,7 @@ const Address = require("../models/Auth/addrees");
 const coupanModel = require("../models/Auth/coupan");
 const transactionModel = require("../models/transactionModel");
 const notification = require("../models/notification");
+const commonFunction = require("../middlewares/commonFunction");
 const nodemailer = require("nodemailer");
 // const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
 // const sendleApiBaseUrl = 'https://api.sendle.com';
@@ -3375,26 +3376,49 @@ exports.sendNotification = async (req, res) => {
                                         return res.status(404).json({ status: 404, message: "User not found" });
                                 } else {
                                         for (let i = 0; i < userData.length; i++) {
-                                                let obj = {
-                                                        userId: userData[i]._id,
-                                                        title: req.body.title,
-                                                        body: req.body.body,
-                                                        date: req.body.date,
-                                                        image: req.body.image,
-                                                        time: req.body.time,
+                                                if (userData.deviceToken != null || userData.deviceToken != undefined) {
+                                                        let result = await commonFunction.pushNotificationforUser(userData[i].deviceToken, req.body.title, req.body.body);
+                                                        let obj = {
+                                                                userId: userData[i]._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj)
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully." });
+                                                } else {
+                                                        let obj = {
+                                                                userId: userData[i]._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj)
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully." });
                                                 }
-                                                await notification.create(obj)
                                         }
-                                        let obj1 = {
-                                                userId: admin._id,
-                                                title: req.body.title,
-                                                body: req.body.body,
-                                                date: req.body.date,
-                                                image: req.body.image,
-                                                time: req.body.time,
-                                        }
-                                        await notification.create(obj1)
-                                        return res.status(200).json({ status: 200, message: "Notification send successfully." });
                                 }
                         }
                         if (req.body.total == "SINGLE") {
@@ -3402,26 +3426,51 @@ exports.sendNotification = async (req, res) => {
                                 if (!userData) {
                                         return res.status(404).json({ status: 404, message: "Employee not found" });
                                 } else {
-                                        let obj = {
-                                                userId: userData._id,
-                                                title: req.body.title,
-                                                body: req.body.body,
-                                                date: req.body.date,
-                                                image: req.body.image,
-                                                time: req.body.time,
-                                        }
-                                        let data = await notification.create(obj)
-                                        if (data) {
-                                                let obj1 = {
-                                                        userId: admin._id,
+                                        if (userData.deviceToken != null || userData.deviceToken != undefined) {
+                                                let result = await commonFunction.pushNotificationforUser(userData.deviceToken, req.body.title, req.body.body);
+                                                let obj = {
+                                                        userId: userData._id,
                                                         title: req.body.title,
                                                         body: req.body.body,
                                                         date: req.body.date,
                                                         image: req.body.image,
                                                         time: req.body.time,
                                                 }
-                                                await notification.create(obj1)
-                                                return res.status(200).json({ status: 200, message: "Notification send successfully.", data: data });
+                                                let data = await notification.create(obj)
+                                                if (data) {
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully.", data: data });
+                                                }
+                                        } else {
+                                                let obj = {
+                                                        userId: userData._id,
+                                                        title: req.body.title,
+                                                        body: req.body.body,
+                                                        date: req.body.date,
+                                                        image: req.body.image,
+                                                        time: req.body.time,
+                                                }
+                                                let data = await notification.create(obj)
+                                                if (data) {
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully.", data: data });
+                                                }
                                         }
                                 }
                         }
