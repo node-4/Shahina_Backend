@@ -36,6 +36,8 @@ const recentlyView = require("../models/recentlyView");
 const moment = require("moment")
 const commonFunction = require("../middlewares/commonFunction");
 const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
 const logger = require("@zohocrm/nodejs-sdk-2.0/routes/logger/logger");
 // const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // shahina test
 const stripe = require("stripe")('sk_test_51J0NhySIdiNJWVEcYKjXhXets6lbhBeYQm9aY9r6sXw8whvRamiUKQFly1k0pQjy8zaeYkxopVCdUVWmPo4Nqeex0030Zxmibo'); // varun test
@@ -2492,96 +2494,96 @@ exports.getServiceOrderbyId = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-// exports.takeSubscriptionFromWebsite = async (req, res) => {
-//         try {
-//                 const user = await User.findOne({ _id: req.user._id, });
-//                 if (!user) {
-//                         return res.status(404).send({ status: 404, message: "User not found" });
-//                 } else {
-//                         let id = req.params.id;
-//                         const findSubscription = await Subscription.findById(id);
-//                         if (findSubscription) {
-//                                 const findTransaction = await transactionModel.findOne({ user: user._id, type: "Subscription", Status: "pending" });
-//                                 if (findTransaction) {
-//                                         let deleteData = await transactionModel.findByIdAndDelete({ _id: findTransaction._id })
-//                                         let obj = {
-//                                                 user: user._id,
-//                                                 subscriptionId: findSubscription._id,
-//                                                 amount: findSubscription.price,
-//                                                 paymentMode: req.body.paymentMode,
-//                                                 type: "Subscription",
-//                                                 Status: "pending",
-//                                         }
-//                                         let update = await transactionModel.create(obj);
-//                                         if (update) {
-//                                                 let line_items = [];
-//                                                 let obj2 = {
-//                                                         price_data: {
-//                                                                 // currency: "usd",
-//                                                                 currency: "inr",
-//                                                                 product_data: {
-//                                                                         name: `${findSubscription.plan} Subscription`,
-//                                                                 },
-//                                                                 unit_amount: `${Math.round(findSubscription.price * 100)}`,
-//                                                         },
-//                                                         quantity: 1,
-//                                                 }
-//                                                 line_items.push(obj2)
-//                                                 const session = await stripe.checkout.sessions.create({
-//                                                         payment_method_types: ["card"],
-//                                                         success_url: `https://shahina-web.vercel.app/verifySubscription/${update._id}`,
-//                                                         cancel_url: `https://shahina-web.vercel.app/faildeSub/${update._id}`,
-//                                                         customer_email: req.user.email,
-//                                                         client_reference_id: update._id,
-//                                                         line_items: line_items,
-//                                                         mode: "payment",
-//                                                 });
-//                                                 return res.status(200).json({ status: "success", session: session, });
-//                                         }
-//                                 } else {
-//                                         let obj = {
-//                                                 user: user._id,
-//                                                 subscriptionId: findSubscription._id,
-//                                                 amount: findSubscription.price,
-//                                                 paymentMode: req.body.paymentMode,
-//                                                 type: "Subscription",
-//                                                 Status: "pending",
-//                                         }
-//                                         let update = await transactionModel.create(obj);
-//                                         if (update) {
-//                                                 let line_items = [];
-//                                                 let obj2 = {
-//                                                         price_data: {
-//                                                                 currency: "usd",
-//                                                                 product_data: {
-//                                                                         name: `${findSubscription.plan} Subscription`,
-//                                                                 },
-//                                                                 unit_amount: `${Math.round(findSubscription.price * 100)}`,
-//                                                         },
-//                                                         quantity: 1,
-//                                                 }
-//                                                 line_items.push(obj2)
-//                                                 const session = await stripe.checkout.sessions.create({
-//                                                         payment_method_types: ["card"],
-//                                                         success_url: `https://shahina-web.vercel.app/verifySubscription/${update._id}`,
-//                                                         cancel_url: `https://shahina-web.vercel.app/faildeSub/${update._id}`,
-//                                                         customer_email: req.user.email,
-//                                                         client_reference_id: update._id,
-//                                                         line_items: line_items,
-//                                                         mode: "payment",
-//                                                 });
-//                                                 return res.status(200).json({ status: "success", session: session, });
-//                                         }
-//                                 }
-//                         } else {
-//                                 return res.status(404).send({ status: 404, message: "Subscription not found" });
-//                         }
-//                 }
-//         } catch (error) {
-//                 console.error(error);
-//                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
-//         }
-// };
+exports.takeSubscriptionFromWebsite = async (req, res) => {
+        try {
+                const user = await User.findOne({ _id: req.user._id, });
+                if (!user) {
+                        return res.status(404).send({ status: 404, message: "User not found" });
+                } else {
+                        let id = req.params.id;
+                        const findSubscription = await Subscription.findById(id);
+                        if (findSubscription) {
+                                const findTransaction = await transactionModel.findOne({ user: user._id, type: "Subscription", Status: "pending" });
+                                if (findTransaction) {
+                                        let deleteData = await transactionModel.findByIdAndDelete({ _id: findTransaction._id })
+                                        let obj = {
+                                                user: user._id,
+                                                subscriptionId: findSubscription._id,
+                                                amount: findSubscription.price,
+                                                paymentMode: req.body.paymentMode,
+                                                type: "Subscription",
+                                                Status: "pending",
+                                        }
+                                        let update = await transactionModel.create(obj);
+                                        if (update) {
+                                                let line_items = [];
+                                                let obj2 = {
+                                                        price_data: {
+                                                                // currency: "usd",
+                                                                currency: "inr",
+                                                                product_data: {
+                                                                        name: `${findSubscription.plan} Subscription`,
+                                                                },
+                                                                unit_amount: `${Math.round(findSubscription.price * 100)}`,
+                                                        },
+                                                        quantity: 1,
+                                                }
+                                                line_items.push(obj2)
+                                                const session = await stripe.checkout.sessions.create({
+                                                        payment_method_types: ["card"],
+                                                        success_url: `https://shahina-web.vercel.app/verifySubscription/${update._id}`,
+                                                        cancel_url: `https://shahina-web.vercel.app/faildeSub/${update._id}`,
+                                                        customer_email: req.user.email,
+                                                        client_reference_id: update._id,
+                                                        line_items: line_items,
+                                                        mode: "payment",
+                                                });
+                                                return res.status(200).json({ status: "success", session: session, });
+                                        }
+                                } else {
+                                        let obj = {
+                                                user: user._id,
+                                                subscriptionId: findSubscription._id,
+                                                amount: findSubscription.price,
+                                                paymentMode: req.body.paymentMode,
+                                                type: "Subscription",
+                                                Status: "pending",
+                                        }
+                                        let update = await transactionModel.create(obj);
+                                        if (update) {
+                                                let line_items = [];
+                                                let obj2 = {
+                                                        price_data: {
+                                                                currency: "usd",
+                                                                product_data: {
+                                                                        name: `${findSubscription.plan} Subscription`,
+                                                                },
+                                                                unit_amount: `${Math.round(findSubscription.price * 100)}`,
+                                                        },
+                                                        quantity: 1,
+                                                }
+                                                line_items.push(obj2)
+                                                const session = await stripe.checkout.sessions.create({
+                                                        payment_method_types: ["card"],
+                                                        success_url: `https://shahina-web.vercel.app/verifySubscription/${update._id}`,
+                                                        cancel_url: `https://shahina-web.vercel.app/faildeSub/${update._id}`,
+                                                        customer_email: req.user.email,
+                                                        client_reference_id: update._id,
+                                                        line_items: line_items,
+                                                        mode: "payment",
+                                                });
+                                                return res.status(200).json({ status: "success", session: session, });
+                                        }
+                                }
+                        } else {
+                                return res.status(404).send({ status: 404, message: "Subscription not found" });
+                        }
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
 exports.cancelMemberShip = async (req, res) => {
         try {
                 const user = await User.findOne({ _id: req.user._id, });
@@ -3727,6 +3729,425 @@ exports.successOrderApp = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+// exports.successOrderApp = async (req, res) => {
+//         try {
+//                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId }).populate('applyCoupan');
+//                 if (findUserOrder) {
+//                         const user = await User.findById({ _id: findUserOrder.userId });
+//                         if (!user) {
+//                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
+//                         }
+//                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                         let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
+//                         let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId user", select: { reviews: 0 } });
+//                         if (find1) {
+//                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                         }
+//                         if (find2) {
+//                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                                 if (findUserOrder.applyCoupan != (null || undefined)) {
+//                                         if (user.orderVisit >= findUserOrder.applyCoupan.completeVisit) {
+//                                                 await User.findOneAndUpdate({ _id: user._id }, { $set: { orderVisit: user.orderVisit - findUserOrder.applyCoupan.completeVisit } }, { new: true });
+//                                                 let findCoupan = await coupanModel.findOne({ _id: findUserOrder.applyCoupan._id });
+
+//                                                 if (findCoupan) {
+//                                                         await coupanModel.findOneAndUpdate({ _id: findCoupan._id }, { $set: { used: true } }, { new: true });
+//                                                 }
+//                                         }
+//                                 }
+//                                 if (find2.services.length > 0) {
+//                                         // let attachments = [];
+//                                         // for (let i = 0; i < find2.services.length; i++) {
+//                                         //         let servicePdfPath;
+//                                         //         if ((find2.services[i].serviceId.name == "JetPeel Facial") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/JetPeelPreandPost.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `JetPeelPreandPost.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "PRP Hair Loss Treatment") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/LaserhairremovalPrepCare.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `LaserhairremovalPrepCare.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "PRP Microneedling") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/MicroneedlingPre.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `MicroneedlingPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "Cosmelan MD Peel") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PreandPostCosmelanDepigmentationInstructions.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `PreandPostCosmelanDepigmentationInstructions.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "IPL Acne Treatment") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PreandPostTreatmentInstructionsforIPL.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `PreandPostTreatmentInstructionsforIPL.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "PreparingforDMKEnzymeTherapy") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PreparingforDMKEnzymeTherapy.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `TCAPeelPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "JeTOP Hair Loss Treatment") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "PRPMicroneedlingPre&PostCare") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PRPMicroneedlingPre&PostCare.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `PRPMicroneedlingPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "RFSkinTighteningPre") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/RFSkinTighteningPre.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `JetPeelPreandPost.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "RKMicroneedling") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/RKMicroneedling.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `TCAPeelPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "TCA Peel") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/TCAPeelPre.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `TCAPeelPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "ThePerfectDermaPeel") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/ThePerfectDermaPeel.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `TCAPeelPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "Hydrafacial Signature") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/HydraFacialPre.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `HydraFacialPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "FaceandBodyContouringCelluliteReductionTreatmentCare") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/FaceandBodyContouringCelluliteReductionTreatmentCare.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `JetPeelPreandPost.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "Laser Skin Resurafacing") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/ErbiumYag2940nmLaserSkinResurfacingPRE.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `ErbiumYag2940nmLaserSkinResurfacingPRE.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "Dermamelan Peel") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/DermamelanPeelPre.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `TCAPeelPre.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         //         if ((find2.services[i].serviceId.name == "Aquagold Microneedling") == true) {
+//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/AQUAGOLD.pdf');
+//                                         //                 const readAttachment = new Promise((resolve, reject) => {
+//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
+//                                         //                                 if (err) {
+//                                         //                                         console.error('Error reading PDF file:', err);
+//                                         //                                         reject(err);
+//                                         //                                 } else {
+//                                         //                                         attachments.push({
+//                                         //                                                 filename: `AQUAGOLD.pdf`,
+//                                         //                                                 content: data,
+//                                         //                                         });
+//                                         //                                         resolve();
+//                                         //                                 }
+//                                         //                         });
+//                                         //                 });
+//                                         //                 await readAttachment;
+//                                         //         };
+//                                         // }
+//                                         const attachments = [];
+//                                         const serviceToPdfPathMap = {
+//                                             "JetPeel Facial": "JetPeelPreandPost.pdf",
+//                                             "PRP Hair Loss Treatment": "LaserhairremovalPrepCare.pdf",
+//                                             "PRP Microneedling": "MicroneedlingPre.pdf",
+//                                             "Cosmelan MD Peel": "PreandPostCosmelanDepigmentationInstructions.pdf",
+//                                             "IPL Acne Treatment": "PreandPostTreatmentInstructionsforIPL.pdf",
+//                                             "PreparingforDMKEnzymeTherapy": "PreparingforDMKEnzymeTherapy.pdf",
+//                                             "JeTOP Hair Loss Treatment": "PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf",
+//                                             "PRPMicroneedlingPre&PostCare": "PRPMicroneedlingPre&PostCare.pdf",
+//                                             "RFSkinTighteningPre": "RFSkinTighteningPre.pdf",
+//                                             "RKMicroneedling": "RKMicroneedling.pdf",
+//                                             "TCA Peel": "TCAPeelPre.pdf",
+//                                             "ThePerfectDermaPeel": "ThePerfectDermaPeel.pdf",
+//                                             "Hydrafacial Signature": "HydraFacialPre.pdf",
+//                                             "FaceandBodyContouringCelluliteReductionTreatmentCare": "FaceandBodyContouringCelluliteReductionTreatmentCare.pdf",
+//                                             "Laser Skin Resurafacing": "ErbiumYag2940nmLaserSkinResurfacingPRE.pdf",
+//                                             "Dermamelan Peel": "DermamelanPeelPre.pdf",
+//                                             "Aquagold Microneedling": "AQUAGOLD.pdf",
+//                                         };   
+//                                         for (const service of find2.services) {
+//                                             const serviceName = service.serviceId.name;
+//                                             const pdfFileName = serviceToPdfPathMap[serviceName];
+//                                             if (pdfFileName) {
+//                                                 const servicePdfPath = path.join(__dirname, './FormPdf', pdfFileName);
+//                                                 const data = fs.readFileSync(servicePdfPath);
+//                                                 attachments.push({
+//                                                     filename: pdfFileName,
+//                                                     content: data,
+//                                                 });
+//                                             }
+//                                         }  
+//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+//                                         let mailOptions = {
+//                                                 from: 'info@shahinahoja.com',
+//                                                 to: find2.user.email,
+//                                                 subject: 'Service Order Confirmation',
+//                                                 text: `Your service order with orderId ${findUserOrder.orderId} has been confirmed.`,
+//                                                 attachments: attachments,
+//                                         };
+//                                         let info = await transporter.sendMail(mailOptions);
+//                                 }
+//                         }
+//                         let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
+//                         if (find3) {
+//                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                                 if (findOrder3) {
+//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+//                                         let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provided by Your friend Coupan Code is ${findOrder3.code}` };
+//                                         let info = await transporter.sendMail(mailOptions);
+//                                 }
+//                         }
+
+//                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
+//                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+//                         let mailOption1 = {
+//                                 from: '<do_not_reply@gmail.com>',
+//                                 to: 'info@shahinahoja.com',
+//                                 subject: 'Order Received',
+//                                 text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount}`,
+//                         };
+//                         let info1 = await transporter.sendMail(mailOption1);
+
+//                         if (info1) {
+//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+//                                 if (deleteCart) {
+//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+//                                 }
+//                         } else {
+//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+//                                 if (deleteCart) {
+//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+//                                 }
+//                         }
+//                 } else {
+//                         return res.status(404).json({ message: "No data found", data: {} });
+//                 }
+//         } catch (error) {
+//                 console.log(error);
+//                 return res.status(501).send({ status: 501, message: "server error.", data: {} });
+//         }
+// };
 exports.cancelOrderApp = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
@@ -3787,36 +4208,36 @@ exports.applyCoupan = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
-exports.takeSubscriptionFromWebsite = async (req, res) => {
-        try {
-                const user = await User.findOne({ _id: req.user._id });
-                if (!user) {
-                        return res.status(404).send({ status: 404, message: "User not found" });
-                }
-                const subscriptionId = req.params.id;
-                const findSubscription = await Subscription.findById(subscriptionId);
-                if (!findSubscription) {
-                        return res.status(404).send({ status: 404, message: "Subscription not found" });
-                }
-                const priceId = 'price_1O7C7mSIdiNJWVEcBUJDf9dr';
-                const existingSubscription = await stripe.subscriptions.list({ customer: "cus_Ov2hBcjct7M4L4", });
-                if (existingSubscription.data.length > 0) {
-                        return res.status(400).json({ status: "error", message: "User is already subscribed to this plan" });
-                }
-                const subscription = await stripe.subscriptions.create({
-                        customer: "cus_Ov2hBcjct7M4L4",
-                        items: [{ price: priceId }],
-                        payment_settings: {
-                                payment_method_types: ['card'],
-                        },
+// exports.takeSubscriptionFromWebsite = async (req, res) => {
+//         try {
+//                 const user = await User.findOne({ _id: req.user._id });
+//                 if (!user) {
+//                         return res.status(404).send({ status: 404, message: "User not found" });
+//                 }
+//                 const subscriptionId = req.params.id;
+//                 const findSubscription = await Subscription.findById(subscriptionId);
+//                 if (!findSubscription) {
+//                         return res.status(404).send({ status: 404, message: "Subscription not found" });
+//                 }
+//                 const priceId = 'price_1O7C7mSIdiNJWVEcBUJDf9dr';
+//                 const existingSubscription = await stripe.subscriptions.list({ customer: "cus_Ov2hBcjct7M4L4", });
+//                 if (existingSubscription.data.length > 0) {
+//                         return res.status(400).json({ status: "error", message: "User is already subscribed to this plan" });
+//                 }
+//                 const subscription = await stripe.subscriptions.create({
+//                         customer: "cus_Ov2hBcjct7M4L4",
+//                         items: [{ price: priceId }],
+//                         payment_settings: {
+//                                 payment_method_types: ['card'],
+//                         },
 
-                });
-                return res.status(200).json({ status: "success", subscription: subscription });
-        } catch (error) {
-                console.error(error);
-                return res.status(500).send({ status: 500, message: "Server error" + error.message });
-        }
-};
+//                 });
+//                 return res.status(200).json({ status: "success", subscription: subscription });
+//         } catch (error) {
+//                 console.error(error);
+//                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
+//         }
+// };
 exports.cancelBooking = async (req, res, next) => {
         try {
                 const orders = await serviceOrder.findOne({ _id: req.params.id, orderStatus: "confirmed", user: req.user._id });
