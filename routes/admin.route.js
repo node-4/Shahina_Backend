@@ -4,7 +4,7 @@ var multer = require("multer");
 const path = require("path");
 const express = require("express");
 const router = express()
-const { productUpload, quiz, upload, bannerUpload, upload23, upload24, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
+const { productUpload, quiz, upload, bannerUpload,upload100, upload23, upload24, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
         aboutusUpload, subCategoryUpload, shopPageUpload, upload20, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
@@ -145,6 +145,6 @@ module.exports = (app) => {
         app.get("/api/v1/admin/getAllTransaction", [authJwt.verifyToken], auth.getAllTransaction);
         app.post("/api/v1/admin/notification/sendNotification", authJwt.verifyToken, auth.sendNotification);
         app.get("/api/v1/admin/notification/allNotification", authJwt.verifyToken, auth.allNotification);
-        app.post("/api/v1/admin/uploadClient", authJwt.verifyToken, upload.single('file'), auth.uploadClient);
+        app.post("/api/v1/admin/uploadClient", authJwt.verifyToken, upload100.single('file'), auth.uploadClient);
         // app.post('/api/v1/admin/chatapi', auth.chatapi);
 }

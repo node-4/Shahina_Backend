@@ -3,6 +3,16 @@ const authConfig = require("../configs/auth.config");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({ cloud_name: authConfig.cloud_name, api_key: authConfig.api_key, api_secret: authConfig.api_secret, });
+const storage100 = multer.diskStorage({
+        destination: function (req, file, cb) {
+                cb(null, "fwdformsforservices/");
+        },
+        filename: function (req, file, cb) {
+                cb(null, file.originalname);
+        },
+});
+const upload100 = multer({ storage: storage100 });
+
 const storage = new CloudinaryStorage({ cloudinary: cloudinary, params: { folder: "shahina/images/product", allowed_formats: ["jpg", "avif", "webp", "jpeg", "png", "PNG", "xlsx", "xls", "pdf", "PDF"], }, });
 const upload = multer({ storage: storage });
 const productUpload = upload.fields([{ name: 'images', maxCount: 20 }, { name: 'image', maxCount: 1 }]);
@@ -59,4 +69,4 @@ const upload23 = upload.fields([{ name: 'image', maxCount: 20 }, { name: 'result
 
 const upload24 = upload.fields([{ name: 'image', maxCount: 20 }, { name: 'beforeAfterImage', maxCount: 1 }]);
 
-module.exports = { upload, productUpload, upload23, upload24, quiz, newsUpload, bannerUpload, aboutUs, servicePageUpload, upload20, shopPageUpload, blogUpload, aboutusUpload, gallaryUpload, NutritionUpload, SkinTypeUpload, ProductTypeUpload, SkinConditionUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };
+module.exports = { upload, productUpload, upload23, upload24, quiz,upload100, newsUpload, bannerUpload, aboutUs, servicePageUpload, upload20, shopPageUpload, blogUpload, aboutusUpload, gallaryUpload, NutritionUpload, SkinTypeUpload, ProductTypeUpload, SkinConditionUpload, subCategoryUpload, categoryUpload, serviceUpload, E4UUpload, userProfileUpload, BrandUpload, offerUpload };

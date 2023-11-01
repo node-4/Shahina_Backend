@@ -83,7 +83,7 @@ const DocumentSchema = schema({
         },
         orderStatus: {
                 type: String,
-                enum: ["unconfirmed", "confirmed"],
+                enum: ["unconfirmed", "confirmed","cancel"],
                 default: "unconfirmed",
         },
         serviceStatus: {

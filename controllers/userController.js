@@ -2463,13 +2463,13 @@ exports.getProductOrderbyId = async (req, res, next) => {
 exports.getServiceOrders = async (req, res, next) => {
         try {
                 if (req.query.serviceStatus != (null || undefined)) {
-                        const orders = await serviceOrder.find({ user: req.user._id, orderStatus: "confirmed", serviceStatus: req.query.serviceStatus }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        const orders = await serviceOrder.find({ user: req.user._id, orderStatus: { $ne: "unconfirmed" }, serviceStatus: req.query.serviceStatus }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (orders.length == 0) {
                                 return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                         }
                         return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
                 } else {
-                        const orders = await serviceOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        const orders = await serviceOrder.find({ user: req.user._id, orderStatus: { $ne: "unconfirmed" } }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (orders.length == 0) {
                                 return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                         }
@@ -3680,7 +3680,7 @@ exports.successOrderApp = async (req, res) => {
                         if (find1) {
                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         }
-                        let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId });
+                        let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId", select: { reviews: 0 } });
                         if (find2) {
                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                                 if (findUserOrder.applyCoupan != (null || undefined)) {
@@ -3815,6 +3815,19 @@ exports.takeSubscriptionFromWebsite = async (req, res) => {
         } catch (error) {
                 console.error(error);
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.cancelBooking = async (req, res, next) => {
+        try {
+                const orders = await serviceOrder.findOne({ _id: req.params.id, orderStatus: "confirmed", user: req.user._id });
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { orderStatus: "cancel" } }, { new: true })
+                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 // exports.takeSubscriptionFromWebsite = async (req, res) => {

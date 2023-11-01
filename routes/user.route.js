@@ -55,7 +55,7 @@ module.exports = (app) => {
         app.get("/api/v1/successOrderApp/:orderId", [authJwt.verifyToken], auth.successOrderApp);
         app.get("/api/v1/cancelOrderApp/:orderId", [authJwt.verifyToken], auth.cancelOrderApp);
         app.get("/api/v1/overAllSearch", auth.overAllSearch);
-
+        app.put("/api/v1/cancelBooking/:id", [authJwt.verifyToken], auth.cancelBooking);
         // Product cart start
         // app.post('/api/v1/cart/:id', [authJwt.verifyToken], auth.addToCart)
         // app.post('/api/v1/cart/FBP/:id', [authJwt.verifyToken], auth.addFBPToCart)
