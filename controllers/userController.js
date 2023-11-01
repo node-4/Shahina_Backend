@@ -4164,8 +4164,8 @@ exports.cancelOrderApp = async (req, res) => {
 exports.overAllSearch = async (req, res) => {
         try {
                 const query = req.query.search;
-                const productResults = await product.find({ $or: [{ name: { $regex: query, $options: 'i' } }, { description: { $regex: query, $options: 'i' } },], })
-                const serviceResults = await services.find({ $or: [{ name: { $regex: query, $options: 'i' } }, { description: { $regex: query, $options: 'i' } },], });
+                const productResults = await product.find({ $or: [{ name: { $regex: query, $options: 'i' } },], })
+                const serviceResults = await services.find({ $or: [{ name: { $regex: query, $options: 'i' } }], });
                 const response = {
                         products: productResults.map((product) => ({
                                 type: 'product',
