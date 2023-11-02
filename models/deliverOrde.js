@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 const DocumentSchema = mongoose.Schema({
+    productOrderId: {
+        type: schema.Types.ObjectId,
+        ref: "productOrder",
+    },
     first_mile_option: { type: String },
     description: { type: String },
     weight: {

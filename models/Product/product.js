@@ -91,16 +91,6 @@ const productSchema = mongoose.Schema({
         price: {
                 type: String,
         },
-        discountPrice: {
-                type: String,
-        },
-        discountAllow: {
-                type: Boolean,
-                default: false
-        },
-        discount: {
-                type: Number,
-        },
         ratings: {
                 type: Number,
                 default: 0,

@@ -547,11 +547,6 @@ exports.createProduct = async (req, res) => {
                 }
                 if (req.body.stock > 0) { req.body.status = "STOCK" }
                 if (req.body.stock <= 0) { req.body.status = "OUTOFSTOCK" }
-                if (req.body.discountAllow == 'true') {
-                        req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
-                } else {
-                        req.body.discountPrice = 0;
-                }
                 if (req.body.multipleSize == 'true') {
                         for (let i = 0; i < req.body.sizes.length; i++) {
                                 let status;
@@ -754,11 +749,6 @@ exports.editProduct = async (req, res) => {
                         }
                         if (req.body.quantity > 0) { req.body.status = "STOCK" }
                         if (req.body.quantity <= 0) { req.body.status = "OUTOFSTOCK" }
-                        if (req.body.discountAllow == 'true') {
-                                req.body.discountPrice = (Number(req.body.price) - (Number(req.body.price) * req.body.discount) / 100)
-                        } else {
-                                req.body.discountPrice = 0;
-                        }
                         let productObj = {
                                 brandId: req.body.brandId || data.brandId,
                                 nutritionId: req.body.nutritionId || data.nutritionId,
@@ -771,10 +761,7 @@ exports.editProduct = async (req, res) => {
                                 howTouse: howTouse || data.howTouse,
                                 ingredients: req.body.ingredients || data.ingredients,
                                 price: req.body.price || data.price,
-                                costPrice: req.body.costPrice || data.costPrice,
                                 quantity: req.body.quantity || data.quantity,
-                                discount: req.body.discount || data.discount,
-                                discountPrice: req.body.discountPrice || data.discountPrice,
                                 ratings: data.ratings,
                                 productImages: productImages || data.productImages,
                                 result: result || data.result,
@@ -2541,7 +2528,7 @@ exports.getServiceOrderbyId = async (req, res, next) => {
 const client = new SendleClient({
         sendleId: 'SANDBOX_shahina_hoja_gmail_c',
         apiKey: 'sandbox_W5xZ3WFY8zBPdpQP5x8w3WQf',
-        sandbox: false,
+        sandbox: true,
 });
 exports.createShipment = async (req, res) => {
         try {
@@ -2584,6 +2571,10 @@ exports.createShipment = async (req, res) => {
                 //                 },
                 //         },
                 // }
+                const orders = await productOrder.findById({ _id: req.body.productOrderId });
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
                 const order = await client.orders.create(req.body);
                 if (order) {
                         req.body = order
@@ -2593,6 +2584,17 @@ exports.createShipment = async (req, res) => {
         } catch (error) {
                 console.error('Internal Server Error:', error);
                 return res.status(500).json({ error: 'Internal Server Error' });
+        }
+};
+exports.getAllShipment = async (req, res) => {
+        try {
+                const data = await deliverOrde.find({})
+                if (data.length === 0) {
+                        return res.status(400).send({ msg: "not found" });
+                }
+                return res.status(200).json({ status: 200, message: "Shipment data found.", data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
 exports.addToCart = async (req, res, next) => {
