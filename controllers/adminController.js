@@ -540,9 +540,9 @@ exports.createProduct = async (req, res) => {
                         for (let i = 0; i < req.body.title.length; i++) {
                                 let obj = {
                                         title: req.body.title[i],
-                                        addDescription: req.body.addDescription[i]
+                                        description: req.body.addDescription[i]
                                 }
-                                howTouse.push(obj)
+                                additionalInfo.push(obj)
                         }
                 }
                 if (req.body.stock > 0) { req.body.status = "STOCK" }
@@ -747,6 +747,32 @@ exports.editProduct = async (req, res) => {
                                 }
                                 howTouse.push(obj)
                         }
+
+                        if (req.body.title != undefined) {
+                                for (let i = 0; i < req.body.title.length; i++) {
+                                        let obj = {
+                                                title: req.body.title[i],
+                                                description: req.body.addDescription[i]
+                                        }
+                                        additionalInfo.push(obj)
+                                }
+                        }
+                        if (req.body.multipleSize == 'true') {
+                                for (let i = 0; i < req.body.sizes.length; i++) {
+                                        let status;
+                                        if (req.body.multipleStock[i] > 0) { status = "STOCK" }
+                                        if (req.body.multipleStock[i] <= 0) { status = "OUTOFSTOCK" }
+                                        let obj = {
+                                                size: req.body.sizes[i],
+                                                price: req.body.multiplePrice[i],
+                                                stock: req.body.multipleStock[i],
+                                                status: status
+                                        }
+                                        sizePrice.push(obj)
+                                }
+                        } else {
+                                req.body.sizePrice = data.sizePrice;
+                        }
                         if (req.body.quantity > 0) { req.body.status = "STOCK" }
                         if (req.body.quantity <= 0) { req.body.status = "OUTOFSTOCK" }
                         let productObj = {
@@ -757,7 +783,7 @@ exports.editProduct = async (req, res) => {
                                 skinTypeId: req.body.skinTypeId || data.skinTypeId,
                                 name: req.body.name || data.name,
                                 description: req.body.description || data.description,
-                                contents: req.body.contents || data.contents,
+                                additionalInfoadditionalInfo: additionalInfoadditionalInfo || data.additionalInfoadditionalInfo,
                                 howTouse: howTouse || data.howTouse,
                                 ingredients: req.body.ingredients || data.ingredients,
                                 price: req.body.price || data.price,
