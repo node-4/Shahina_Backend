@@ -45,6 +45,7 @@ module.exports = (app) => {
         app.put("/api/v1/Product/editProduct/:id", [authJwt.verifyToken], upload23, auth.editProduct);
         app.delete("/api/v1/Product/deleteProduct/:id", [authJwt.verifyToken], auth.deleteProduct);
         app.post("/api/v1/product/createProductReview", [authJwt.verifyToken], auth.createProductReview);
+        app.put("/api/v1/product/deleteProductReview", [authJwt.verifyToken], auth.deleteProductReview);
         app.get("/api/v1/product/getProductReviews/:id", [authJwt.verifyToken], auth.getProductReviews);
         app.post("/api/v1/admin/Service/addService", [authJwt.verifyToken], upload24, auth.createService);
         app.get("/api/v1/Service/all/paginateServiceSearch", auth.paginateServiceSearch);

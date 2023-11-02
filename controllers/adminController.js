@@ -876,6 +876,39 @@ exports.getProductReviews = async (req, res, next) => {
         }
         return res.status(200).json({ status: 200, reviews: findProduct.reviews, });
 };
+exports.deleteProductReview = async (req, res, next) => {
+        try {
+                const id = req.body.reviewId;
+                const productId = req.body.productId;
+                const findProduct = await product.findById(productId)
+                if (!findProduct) {
+                        return res.status(404).json({ status: 404, message: "Product not found", data: {} });
+                }
+                const reviewIndex = findProduct.reviews.findIndex(
+                        (review) => review._id.toString() === id.toString()
+                );
+                if (reviewIndex === -1) {
+                        return res.status(404).json({ status: 404, message: "Review not found", data: {} });
+                }
+                findProduct.reviews.splice(reviewIndex, 1);
+                findProduct.numOfReviews = findProduct.reviews.length;
+                if (findProduct.reviews.length > 0) {
+                        let avg = 0;
+                        findProduct.reviews.forEach((rev) => {
+                                avg += rev.rating;
+                        });
+                        findProduct.ratings = avg / findProduct.reviews.length;
+                } else {
+                        findProduct.ratings = 0;
+                }
+                await findProduct.save({ validateBeforeSave: false });
+                return res.status(200).json({ status: 200, message: "Review deleted", data: findProduct.reviews });
+        } catch (error) {
+                console.log(error);
+                return res.status(500).send({ status: 500, message: "Server error.", data: {} });
+        }
+};
+
 exports.createService = async (req, res) => {
         try {
                 const data = await Category.findById(req.body.categoryId);
