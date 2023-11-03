@@ -1999,112 +1999,103 @@ exports.getServiceOrders = async (req, res) => {
 // };
 exports.getServiceOrderswithDate = async (req, res) => {
         try {
-            // Your aggregation pipeline to count total orders per date
-            let aggregationPipeline = [
-                {
-                    $group: {
-                        _id: {
-                            year: { $year: "$date" },
-                            month: { $month: "$date" },
-                            day: { $dayOfMonth: "$date" },
+                let aggregationPipeline = [
+                        {
+                                $group: {
+                                        _id: {
+                                                year: { $year: "$date" },
+                                                month: { $month: "$date" },
+                                                day: { $dayOfMonth: "$date" },
+                                        },
+                                        totalOrders: { $sum: 1 },
+                                },
                         },
-                        totalOrders: { $sum: 1 },
-                    },
-                },
-                {
-                    $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
-                },
-            ];
-    
-            const totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
-    
-            // Retrieve and populate orders with the specified criteria
-            const datewiseOrders = await serviceOrder
-                .find({ orderStatus: "confirmed" })
-                .populate([
-                    { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
-                    { path: "services.serviceId", select: { reviews: 0 } },
-                    { path: "coupon", select: "couponCode discount expirationDate" },
-                    { path: "user" }
-                ])
-                .sort({ date: 1 });
-    
-            // Create a map to organize orders by date
-            const datewiseData = datewiseOrders.reduce((result, order) => {
-                const { date, time } = order;
-                const dateObject = new Date(date);
-                const orderDate = `${dateObject.getDate()}/${dateObject.getMonth() + 1}/${dateObject.getFullYear()}`;
-                const orderTime = time;
-                if (!result[orderDate]) {
-                    result[orderDate] = {
-                        totalOrders: 0,
-                        orders: [],
-                    };
-                }
-                result[orderDate].orders.push({
-                    ...order,
-                    orderTime,
+                        {
+                                $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
+                        },
+                ];
+
+                const totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
+                const datewiseOrders = await serviceOrder
+                        .find({ orderStatus: "confirmed" })
+                        .populate([
+                                { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
+                                { path: "services.serviceId", select: { reviews: 0 } },
+                                { path: "coupon", select: "couponCode discount expirationDate" },
+                                { path: "user" }
+                        ])
+                        .sort({ date: 1 });
+                const datewiseData = datewiseOrders.reduce((result, order) => {
+                        const { date, time } = order;
+                        const dateObject = new Date(date);
+                        const orderDate = `${dateObject.getDate()}/${dateObject.getMonth() + 1}/${dateObject.getFullYear()}`;
+                        const orderTime = time;
+                        if (!result[orderDate]) {
+                                result[orderDate] = {
+                                        totalOrders: 0,
+                                        orders: [],
+                                };
+                        }
+                        result[orderDate].orders.push({
+                                ...order,
+                                orderTime,
+                        });
+                        return result;
+                }, {});
+
+                totalOrderCounts.forEach((order) => {
+                        const { year, month, day } = order._id;
+                        const date = `${day}/${month}/${year}`;
+                        if (datewiseData[date]) {
+                                datewiseData[date].totalOrders = order.totalOrders;
+                                datewiseData[date].day = day;
+                                datewiseData[date].month = month;
+                                datewiseData[date].year = year;
+                        }
                 });
-                return result;
-            }, {});
-    
-            // Update total order counts with aggregated data
-            totalOrderCounts.forEach((order) => {
-                const { year, month, day } = order._id;
-                const date = `${day}/${month}/${year}`;
-                if (datewiseData[date]) {
-                    datewiseData[date].totalOrders = order.totalOrders;
-                    datewiseData[date].day = day;
-                    datewiseData[date].month = month;
-                    datewiseData[date].year = year;
-                }
-            });
-    
-            // Convert datewiseData map to an array and format date
-            const datewiseDataArray = Object.keys(datewiseData).map((date) => ({
-                date,
-                ...datewiseData[date],
-            }));
-    
-            // Simplify the date format in the response
-            const datewiseDataArrayFormatted = datewiseDataArray.map((entry) => {
-                const [day, month, year] = entry.date.split('/');
-                const time = entry.orders[0].orderTime;
-                return {
-                    date: day,
-                    month,
-                    year,
-                    time,
-                    totalOrders: entry.totalOrders,
-                    orders: entry.orders,
+                const datewiseDataArray = Object.keys(datewiseData).map((date) => ({
+                        date,
+                        ...datewiseData[date],
+                }));
+                const datewiseDataArrayFormatted = datewiseDataArray.map((entry) => {
+                        const [day, month, year] = entry.date.split('/');
+                        const time = entry.orders[0].orderTime;
+                        const [hours, minutes] = time.split(':');
+            
+                        return {
+                            date: Number(day),
+                            month: Number(month),
+                            year: Number(year),
+                            hours: Number(hours),
+                            minutes: Number(minutes),
+                            totalOrders: entry.totalOrders,
+                            orders: entry.orders,
+                        };
+                        return {
+                                date: Number(day),
+                                month: Number(month),
+                                year: Number(year),
+                                time,
+                                totalOrders: entry.totalOrders,
+                                orders: entry.orders,
+                        };
+                });
+                const response = {
+                        status: 200,
+                        message: "Orders data found.",
+                        data: datewiseDataArrayFormatted,
                 };
-            });
-            const response = {
-                status: 200,
-                message: "Orders data found.",
-                data: datewiseDataArrayFormatted,
-            };
-    
-            // Use JSON.stringify with a replacer function to remove "__$" keys
-            const jsonResponse = JSON.stringify(response, (key, value) => {
-                if (key.startsWith("$__")) return undefined;
-                if (key.startsWith("$isNew")) return undefined;
-                return value;
-            });
-    
-            // Send the cleaned JSON response
-            return res.status(200).json(JSON.parse(jsonResponse));
-            return res.status(200).json({
-                status: 200,
-                message: "Orders data found.",
-                data: datewiseDataArrayFormatted,
-            });
+
+                const jsonResponse = JSON.stringify(response, (key, value) => {
+                        if (key.startsWith("$__")) return undefined;
+                        if (key.startsWith("$isNew")) return undefined;
+                        return value;
+                });
+                return res.status(200).json(JSON.parse(jsonResponse));
         } catch (err) {
-            return res.status(500).json({ status: 500, message: "Internal server error", error: err.message });
+                return res.status(500).json({ status: 500, message: "Internal server error", error: err.message });
         }
-    };
-    
-    
+};
 // exports.getServiceOrderswithDate = async (req, res) => {
 //         try {
 //                 let aggregationPipeline = [{ $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" } }, totalOrders: { $sum: 1 } } }, { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }];
@@ -2139,8 +2130,6 @@ exports.getServiceOrderswithDate = async (req, res) => {
 //                 return res.status(500).send({ msg: "Internal server error", error: err.message });
 //         }
 // };
-
-
 exports.createIngredients = async (req, res) => {
         try {
                 let findIngredients = await ingredients.findOne({ name: req.body.name, type: req.body.type });
