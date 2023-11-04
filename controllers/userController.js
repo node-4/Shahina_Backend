@@ -826,7 +826,7 @@ const calculateCartResponse = async (cart, userId) => {
                 const data2 = await Address.findOne({ user: userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                 const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                 const data3 = await User.findOne({ _id: userId });
-                const data4 = await contact.findOne().select('name image phone email numOfReviews ratings -_id');
+                const data4 = await contact.findOne().select('name image phone email numOfReviews mapLink map ratings -_id');
                 let offerDiscount = 0, onProductDiscount = 0, membershipDiscount = 0, shipping = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                 const cartResponse = cart.toObject();
                 if (cartResponse.services.length > 0) {
