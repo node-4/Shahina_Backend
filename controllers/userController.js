@@ -941,7 +941,7 @@ const calculateCartResponse = async (cart, userId) => {
                                 shipping = 0.00;
                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                         } else {
-                                shipping = 10.00;
+                                shipping = 0.00;
                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                         }
                 }
@@ -1211,7 +1211,7 @@ exports.addSuggestionToServiceCart = async (req, res) => {
 //                                                 cartResponse.pickUp = data1;
 //                                                 cartResponse.billingAddresss = data5;
 //                                         } else {
-//                                                 shipping = 10.00;
+//                                                 shipping = 0.00;
 //                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
 //                                                 cartResponse.deliveryAddresss = data2;
 //                                                 cartResponse.billingAddresss = data5;
@@ -1451,7 +1451,7 @@ exports.addSuggestionToServiceCart = async (req, res) => {
 //                                                 cartResponse.pickUp = data1;
 //                                                 cartResponse.billingAddresss = data5;
 //                                         } else {
-//                                                 shipping = 10.00;
+//                                                 shipping = 0.00;
 //                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
 //                                                 cartResponse.deliveryAddresss = data2;
 //                                                 cartResponse.billingAddresss = data5;
@@ -1728,7 +1728,7 @@ exports.checkout = async (req, res) => {
                                                 cartResponse.total = cartResponse.subTotal - membershipDiscount
                                                 orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                         } else {
-                                                shipping = 10.00;
+                                                shipping = 0.00;
                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                 cartResponse.deliveryAddresss = data2;
                                                 cartResponse.billingAddresss = data5;
@@ -2006,7 +2006,7 @@ exports.checkout = async (req, res) => {
                                                 cartResponse.total = cartResponse.subTotal - membershipDiscount
                                                 orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                         } else {
-                                                shipping = 10.00;
+                                                shipping = 0.00;
                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                 cartResponse.deliveryAddresss = data2;
                                                 cartResponse.billingAddresss = data5;
@@ -2790,7 +2790,7 @@ const calculateCartResponse1 = async (cart, userId) => {
                                 shipping = 0.00;
                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                         } else {
-                                shipping = 10.00;
+                                shipping = 0.00;
                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                         }
                 }
@@ -2998,7 +2998,7 @@ exports.checkoutApp = async (req, res) => {
                                                 cartResponse.total = cartResponse.subTotal - membershipDiscount
                                                 orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                         } else {
-                                                shipping = 10.00;
+                                                shipping = 0.00;
                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                 cartResponse.deliveryAddresss = data2;
                                                 cartResponse.billingAddresss = data5;
@@ -3276,7 +3276,7 @@ exports.checkoutApp = async (req, res) => {
                                                 cartResponse.total = cartResponse.subTotal - membershipDiscount
                                                 orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                         } else {
-                                                shipping = 10.00;
+                                                shipping = 0.00;
                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                 cartResponse.deliveryAddresss = data2;
                                                 cartResponse.billingAddresss = data5;
