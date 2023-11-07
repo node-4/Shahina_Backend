@@ -870,7 +870,7 @@ exports.createProductReview = async (req, res, next) => {
         }
 };
 exports.getProductReviews = async (req, res, next) => {
-        const findProduct = await product.findById(req.params.id).populate({ path: 'reviews.user', select: 'fullName' });
+        const findProduct = await product.findById(req.params.id).populate({ path: 'reviews.user'});
         if (!findProduct) {
                 return res.status(404).json({ message: "Product not found.", status: 404, data: {} });
         }
