@@ -624,7 +624,7 @@ exports.paginateProductSearch = async (req, res) => {
                         page: Number(page) || 1,
                         limit: Number(limit) || 15,
                         sort: { createdAt: -1 },
-                        populate: ('brandId')
+                        populate: ('brandId nutritionId productTypeId skinConditionId skinTypeId')
                 };
                 let data = await product.paginate(query, options);
                 return res.status(200).json({ status: 200, message: "Product data found.", data: data });
