@@ -149,4 +149,6 @@ module.exports = (app) => {
         app.get("/api/v1/admin/notification/allNotification", authJwt.verifyToken, auth.allNotification);
         app.post("/api/v1/admin/uploadClient", authJwt.verifyToken, upload100.single('file'), auth.uploadClient);
         // app.post('/api/v1/admin/chatapi', auth.chatapi);
+        app.get("/api/v1/getShipmentBy/productOrderId/:productOrderId", auth.getShipmentByproductOrderId);
+
 }

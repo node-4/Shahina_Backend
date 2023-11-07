@@ -870,7 +870,7 @@ exports.createProductReview = async (req, res, next) => {
         }
 };
 exports.getProductReviews = async (req, res, next) => {
-        const findProduct = await product.findById(req.params.id).populate({ path: 'reviews.user'});
+        const findProduct = await product.findById(req.params.id).populate({ path: 'reviews.user' });
         if (!findProduct) {
                 return res.status(404).json({ message: "Product not found.", status: 404, data: {} });
         }
@@ -2061,15 +2061,15 @@ exports.getServiceOrderswithDate = async (req, res) => {
                         const [day, month, year] = entry.date.split('/');
                         const time = entry.orders[0].orderTime;
                         const [hours, minutes] = time.split(':');
-            
+
                         return {
-                            date: Number(day),
-                            month: Number(month),
-                            year: Number(year),
-                            hours: Number(hours),
-                            minutes: Number(minutes),
-                            totalOrders: entry.totalOrders,
-                            orders: entry.orders,
+                                date: Number(day),
+                                month: Number(month),
+                                year: Number(year),
+                                hours: Number(hours),
+                                minutes: Number(minutes),
+                                totalOrders: entry.totalOrders,
+                                orders: entry.orders,
                         };
                         return {
                                 date: Number(day),
@@ -2815,6 +2815,17 @@ exports.getAllShipment = async (req, res) => {
                 const data = await deliverOrde.find({})
                 if (data.length === 0) {
                         return res.status(400).send({ msg: "not found" });
+                }
+                return res.status(200).json({ status: 200, message: "Shipment data found.", data: data });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
+        }
+};
+exports.getShipmentByproductOrderId = async (req, res) => {
+        try {
+                const data = await deliverOrde.findOne({ productOrderId: req.params.productOrderId })
+                if (!data) {
+                        return res.status(400).send({ status: 404, msg: "not found" });
                 }
                 return res.status(200).json({ status: 200, message: "Shipment data found.", data: data });
         } catch (err) {
