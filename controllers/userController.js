@@ -2437,7 +2437,8 @@ exports.getProductOrders = async (req, res, next) => {
         try {
                 const orders = await productOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([
                         { path: "products.productId", select: 'name description size sizePrice price productImages ratings numOfReviews' },
-                        { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: 'name description size sizePrice price productImages ratings numOfReviews' }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' },},
+                        { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (orders.length == 0) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
@@ -2451,7 +2452,7 @@ exports.getProductOrderbyId = async (req, res, next) => {
         try {
                 const orders = await productOrder.findById({ _id: req.params.id }).populate([
                         { path: "products.productId", select: { reviews: 0 } },
-                        { path: "frequentlyBuyProductSchema.frequentlyBuyProductId", select: { reviews: 0 } },
+                        { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' },},
                         { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (!orders) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
