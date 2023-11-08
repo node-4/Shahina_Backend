@@ -46,6 +46,7 @@ module.exports = (app) => {
         app.get("/api/v1/viewserviceOrder/:id", [authJwt.verifyToken], auth.getServiceOrderbyId);
         app.get("/api/v1/Service/getOnSale/Service", auth.getOnSaleService);
         app.post("/api/v1/takeSubscriptionFromWebsite/:id", [authJwt.verifyToken], auth.takeSubscriptionFromWebsite);
+        app.post("/api/v1/takeSubscriptionFromWebsiteforRecurring", [authJwt.verifyToken], auth.takeSubscriptionFromWebsiteforRecurring);
         app.post("/api/v1/cancelMemberShips", [authJwt.verifyToken], auth.cancelMemberShip);
         app.get('/api/v1/getRecentlyProductView', [authJwt.verifyToken], auth.getRecentlyProductView);
         app.get('/api/v1/getRecentlyServicesView', [authJwt.verifyToken], auth.getRecentlyServicesView);
