@@ -664,6 +664,7 @@ exports.getIdProductByToken = async (req, res) => {
                                 membershipDiscount = 0;
                                 membshipPrice = 0;
                         }
+                        membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
                         const serviceWithDynamicFields = {
                                 ...data.toObject(),
                                 membershipDiscountPer,
@@ -1082,6 +1083,7 @@ exports.getIdServiceByToken = async (req, res) => {
                                         membershipDiscount = 0
                                         membshipPrice = 0;
                                 }
+                                membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
                                 const serviceWithDynamicFields = {
                                         ...data.toObject(),
                                         membershipDiscountPer,
@@ -2557,8 +2559,8 @@ exports.removeAcneQuizSuggession = async (req, res) => {
 };
 exports.getAcneQuizSuggessionByAnswer = async (req, res) => {
         const categories = await acneQuizSuggession.findOne({ answer1: req.query.answer1, answer2: req.query.answer2, answer3: req.query.answer3, answer4: req.query.answer4, }).select('productId')
-        .populate([{ path: 'productId' },{ path: 'frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },])
-     
+                .populate([{ path: 'productId' }, { path: 'frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },])
+
         if (categories) {
                 return res.status(201).json({ message: "Acne Quiz Suggession Found", status: 200, data: categories, });
         }
