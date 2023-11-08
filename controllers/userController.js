@@ -3084,66 +3084,6 @@ exports.placeOrderApp = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-// exports.successOrderApp = async (req, res) => {
-//         try {
-//                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId }).populate('applyCoupan');
-//                 if (findUserOrder) {
-//                         const user = await User.findById({ _id: findUserOrder.userId });
-//                         if (!user) {
-//                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
-//                         }
-//                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                         let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
-//                         if (find1) {
-//                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                         }
-//                         let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId", select: { reviews: 0 } });
-//                         if (find2) {
-//                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                                 if (findUserOrder.applyCoupan != (null || undefined)) {
-//                                         if (user.orderVisit >= findUserOrder.applyCoupan.completeVisit) {
-//                                                 await User.findOneAndUpdate({ _id: user._id }, { $set: { orderVisit: user.orderVisit - findUserOrder.applyCoupan.completeVisit } }, { new: true });
-//                                                 let findCoupan = await coupanModel.findOne({ _id: findUserOrder.applyCoupan._id });
-//                                                 if (findCoupan) {
-//                                                         await coupanModel.findOneAndUpdate({ _id: findCoupan._id }, { $set: { used: true } }, { new: true });
-//                                                 }
-//                                         }
-//                                 }
-//                         }
-//                         let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
-//                         if (find3) {
-//                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                                 if (findOrder3) {
-//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-//                                         let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`, };
-//                                         let info = await transporter.sendMail(mailOptions);
-//                                 }
-//                         }
-//                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
-//                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-//                         let mailOption1 = {
-//                                 from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `,
-//                         };
-//                         let info1 = await transporter.sendMail(mailOption1);
-//                         if (info1) {
-//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
-//                                 if (deleteCart) {
-//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
-//                                 }
-//                         } else {
-//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
-//                                 if (deleteCart) {
-//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
-//                                 }
-//                         }
-//                 } else {
-//                         return res.status(404).json({ message: "No data found", data: {} });
-//                 }
-//         } catch (error) {
-//                 console.log(error);
-//                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-//         }
-// };
 exports.successOrderApp = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId }).populate('applyCoupan');
@@ -3154,10 +3094,10 @@ exports.successOrderApp = async (req, res) => {
                         }
                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
-                        let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId user", select: { reviews: 0 } });
                         if (find1) {
                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         }
+                        let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId", select: { reviews: 0 } });
                         if (find2) {
                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                                 if (findUserOrder.applyCoupan != (null || undefined)) {
@@ -3169,66 +3109,20 @@ exports.successOrderApp = async (req, res) => {
                                                 }
                                         }
                                 }
-                                if (find2.services.length > 0) {
-                                        const attachments = [];
-                                        const serviceToPdfPathMap = {
-                                                "JetPeel Facial": "JetPeelPreandPost.pdf",
-                                                "PRP Hair Loss Treatment": "LaserhairremovalPrepCare.pdf",
-                                                "PRP Microneedling": "MicroneedlingPre.pdf",
-                                                "Cosmelan MD Peel": "PreandPostCosmelanDepigmentationInstructions.pdf",
-                                                "IPL Acne Treatment": "PreandPostTreatmentInstructionsforIPL.pdf",
-                                                "PreparingforDMKEnzymeTherapy": "PreparingforDMKEnzymeTherapy.pdf",
-                                                "JeTOP Hair Loss Treatment": "PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf",
-                                                "PRPMicroneedlingPre&PostCare": "PRPMicroneedlingPre&PostCare.pdf",
-                                                "RFSkinTighteningPre": "RFSkinTighteningPre.pdf",
-                                                "RKMicroneedling": "RKMicroneedling.pdf",
-                                                "TCA Peel": "TCAPeelPre.pdf",
-                                                "ThePerfectDermaPeel": "ThePerfectDermaPeel.pdf",
-                                                "Hydrafacial Signature": "HydraFacialPre.pdf",
-                                                "FaceandBodyContouringCelluliteReductionTreatmentCare": "FaceandBodyContouringCelluliteReductionTreatmentCare.pdf",
-                                                "Laser Skin Resurafacing": "ErbiumYag2940nmLaserSkinResurfacingPRE.pdf",
-                                                "Dermamelan Peel": "DermamelanPeelPre.pdf",
-                                                "Aquagold Microneedling": "AQUAGOLD.pdf",
-                                        };
-                                        for (const service of find2.services) {
-                                                const serviceName = service.serviceId.name;
-                                                const pdfFileName = serviceToPdfPathMap[serviceName];
-                                                if (pdfFileName) {
-                                                        const servicePdfPath = path.join(__dirname, './FormPdf', pdfFileName);
-                                                        const data = fs.readFileSync(servicePdfPath);
-                                                        attachments.push({
-                                                                filename: pdfFileName,
-                                                                content: data,
-                                                        });
-                                                }
-                                        }
-                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
-                                        let mailOptions = {
-                                                from: 'info@shahinahoja.com',
-                                                to: find2.user.email,
-                                                subject: 'Service Order Confirmation',
-                                                text: `Your service order with orderId ${findUserOrder.orderId} has been confirmed.`,
-                                                attachments: attachments,
-                                        };
-                                        let info = await transporter.sendMail(mailOptions);
-                                }
                         }
                         let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
                         if (find3) {
                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                                 if (findOrder3) {
-                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
-                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provided by Your friend Coupan Code is ${findOrder3.code}` };
+                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`, };
                                         let info = await transporter.sendMail(mailOptions);
                                 }
                         }
                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
-                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                         let mailOption1 = {
-                                from: '<do_not_reply@gmail.com>',
-                                to: 'info@shahinahoja.com',
-                                subject: 'Order Received',
-                                text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount}`,
+                                from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `,
                         };
                         let info1 = await transporter.sendMail(mailOption1);
                         if (info1) {
@@ -3247,9 +3141,115 @@ exports.successOrderApp = async (req, res) => {
                 }
         } catch (error) {
                 console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {} });
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+// exports.successOrderApp = async (req, res) => {
+//         try {
+//                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId }).populate('applyCoupan');
+//                 if (findUserOrder) {
+//                         const user = await User.findById({ _id: findUserOrder.userId });
+//                         if (!user) {
+//                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
+//                         }
+//                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                         let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
+//                         let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId user", select: { reviews: 0 } });
+//                         if (find1) {
+//                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                         }
+//                         if (find2) {
+//                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                                 if (findUserOrder.applyCoupan != (null || undefined)) {
+//                                         if (user.orderVisit >= findUserOrder.applyCoupan.completeVisit) {
+//                                                 await User.findOneAndUpdate({ _id: user._id }, { $set: { orderVisit: user.orderVisit - findUserOrder.applyCoupan.completeVisit } }, { new: true });
+//                                                 let findCoupan = await coupanModel.findOne({ _id: findUserOrder.applyCoupan._id });
+//                                                 if (findCoupan) {
+//                                                         await coupanModel.findOneAndUpdate({ _id: findCoupan._id }, { $set: { used: true } }, { new: true });
+//                                                 }
+//                                         }
+//                                 }
+//                                 if (find2.services.length > 0) {
+//                                         const attachments = [];
+//                                         const serviceToPdfPathMap = {
+//                                                 "JetPeel Facial": "JetPeelPreandPost.pdf",
+//                                                 "PRP Hair Loss Treatment": "LaserhairremovalPrepCare.pdf",
+//                                                 "PRP Microneedling": "MicroneedlingPre.pdf",
+//                                                 "Cosmelan MD Peel": "PreandPostCosmelanDepigmentationInstructions.pdf",
+//                                                 "IPL Acne Treatment": "PreandPostTreatmentInstructionsforIPL.pdf",
+//                                                 "PreparingforDMKEnzymeTherapy": "PreparingforDMKEnzymeTherapy.pdf",
+//                                                 "JeTOP Hair Loss Treatment": "PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf",
+//                                                 "PRPMicroneedlingPre&PostCare": "PRPMicroneedlingPre&PostCare.pdf",
+//                                                 "RFSkinTighteningPre": "RFSkinTighteningPre.pdf",
+//                                                 "RKMicroneedling": "RKMicroneedling.pdf",
+//                                                 "TCA Peel": "TCAPeelPre.pdf",
+//                                                 "ThePerfectDermaPeel": "ThePerfectDermaPeel.pdf",
+//                                                 "Hydrafacial Signature": "HydraFacialPre.pdf",
+//                                                 "FaceandBodyContouringCelluliteReductionTreatmentCare": "FaceandBodyContouringCelluliteReductionTreatmentCare.pdf",
+//                                                 "Laser Skin Resurafacing": "ErbiumYag2940nmLaserSkinResurfacingPRE.pdf",
+//                                                 "Dermamelan Peel": "DermamelanPeelPre.pdf",
+//                                                 "Aquagold Microneedling": "AQUAGOLD.pdf",
+//                                         };
+//                                         for (const service of find2.services) {
+//                                                 const serviceName = service.serviceId.name;
+//                                                 const pdfFileName = serviceToPdfPathMap[serviceName];
+//                                                 if (pdfFileName) {
+//                                                         const servicePdfPath = path.join(__dirname, './FormPdf', pdfFileName);
+//                                                         const data = fs.readFileSync(servicePdfPath);
+//                                                         attachments.push({
+//                                                                 filename: pdfFileName,
+//                                                                 content: data,
+//                                                         });
+//                                                 }
+//                                         }
+//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+//                                         let mailOptions = {
+//                                                 from: 'info@shahinahoja.com',
+//                                                 to: find2.user.email,
+//                                                 subject: 'Service Order Confirmation',
+//                                                 text: `Your service order with orderId ${findUserOrder.orderId} has been confirmed.`,
+//                                                 attachments: attachments,
+//                                         };
+//                                         let info = await transporter.sendMail(mailOptions);
+//                                 }
+//                         }
+//                         let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
+//                         if (find3) {
+//                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                                 if (findOrder3) {
+//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+//                                         let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provided by Your friend Coupan Code is ${findOrder3.code}` };
+//                                         let info = await transporter.sendMail(mailOptions);
+//                                 }
+//                         }
+//                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
+//                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+//                         let mailOption1 = {
+//                                 from: '<do_not_reply@gmail.com>',
+//                                 to: 'info@shahinahoja.com',
+//                                 subject: 'Order Received',
+//                                 text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount}`,
+//                         };
+//                         let info1 = await transporter.sendMail(mailOption1);
+//                         if (info1) {
+//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+//                                 if (deleteCart) {
+//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+//                                 }
+//                         } else {
+//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+//                                 if (deleteCart) {
+//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+//                                 }
+//                         }
+//                 } else {
+//                         return res.status(404).json({ message: "No data found", data: {} });
+//                 }
+//         } catch (error) {
+//                 console.log(error);
+//                 return res.status(501).send({ status: 501, message: "server error.", data: {} });
+//         }
+// };
 exports.cancelOrderApp = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
