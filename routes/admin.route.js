@@ -4,7 +4,7 @@ var multer = require("multer");
 const path = require("path");
 const express = require("express");
 const router = express()
-const { productUpload, quiz, upload, bannerUpload,upload100, upload23, upload24, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
+const { productUpload, quiz, upload, bannerUpload, upload100, upload23, upload24, blogUpload, newsUpload, gallaryUpload, NutritionUpload, ProductTypeUpload, SkinConditionUpload, SkinTypeUpload,
         aboutusUpload, subCategoryUpload, shopPageUpload, upload20, servicePageUpload, categoryUpload, serviceUpload, BrandUpload, E4UUpload, offerUpload } = require('../middlewares/imageUpload')
 module.exports = (app) => {
         app.post("/api/v1/admin/registration", auth.registration);
@@ -46,7 +46,7 @@ module.exports = (app) => {
         app.delete("/api/v1/Product/deleteProduct/:id", [authJwt.verifyToken], auth.deleteProduct);
         app.post("/api/v1/product/createProductReview", [authJwt.verifyToken], auth.createProductReview);
         app.put("/api/v1/product/deleteProductReview", [authJwt.verifyToken], auth.deleteProductReview);
-        app.get("/api/v1/product/getProductReviews/:id",auth.getProductReviews);
+        app.get("/api/v1/product/getProductReviews/:id", auth.getProductReviews);
         app.post("/api/v1/admin/Service/addService", [authJwt.verifyToken], upload24, auth.createService);
         app.get("/api/v1/Service/all/paginateServiceSearch", auth.paginateServiceSearch);
         app.get("/api/v1/Service/all/getServiceByToken", [authJwt.verifyToken], auth.getServiceByToken);
@@ -148,7 +148,5 @@ module.exports = (app) => {
         app.post("/api/v1/admin/notification/sendNotification", authJwt.verifyToken, auth.sendNotification);
         app.get("/api/v1/admin/notification/allNotification", authJwt.verifyToken, auth.allNotification);
         app.post("/api/v1/admin/uploadClient", authJwt.verifyToken, upload100.single('file'), auth.uploadClient);
-        // app.post('/api/v1/admin/chatapi', auth.chatapi);
         app.get("/api/v1/getShipmentBy/productOrderId/:productOrderId", auth.getShipmentByproductOrderId);
-
 }
