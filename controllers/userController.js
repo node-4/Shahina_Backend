@@ -148,7 +148,6 @@ exports.registrationforApp = async (req, res) => {
                                         req.body.refferalCode = await reffralCode();
                                         req.body.refferUserId = findUser._id;
                                         req.body.password = bcrypt.hashSync(req.body.password, 8);
-                                        req.body.wallet = 300;
                                         const userCreate = await User.create(req.body);
                                         if (userCreate) {
                                                 if (findUser.userType == "ADMIN") {
@@ -168,6 +167,20 @@ exports.registrationforApp = async (req, res) => {
                                                                 return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
                                                         }
                                                 } else {
+                                                        let obj = {
+                                                                user: findUser._id,
+                                                                code: await reffralCode(),
+                                                                title: "Get a discount coupon of worth $300. After you refer your friend.",
+                                                                description: data.desc,
+                                                                discount: 300,
+                                                                per: "Amount",
+                                                                completeVisit: 0,
+                                                        }
+                                                        const userCreatea = await coupanModel.create(obj);
+                                                        if (userCreatea) {
+                                                                let updateWallet = await User.findOneAndUpdate({ _id: findUser._id }, { $push: { joinUser: userCreate._id } }, { new: true });
+                                                                return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
+                                                        }
                                                         return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
                                                 }
                                         }
@@ -3071,6 +3084,66 @@ exports.placeOrderApp = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+// exports.successOrderApp = async (req, res) => {
+//         try {
+//                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId }).populate('applyCoupan');
+//                 if (findUserOrder) {
+//                         const user = await User.findById({ _id: findUserOrder.userId });
+//                         if (!user) {
+//                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
+//                         }
+//                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                         let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
+//                         if (find1) {
+//                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                         }
+//                         let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId", select: { reviews: 0 } });
+//                         if (find2) {
+//                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                                 if (findUserOrder.applyCoupan != (null || undefined)) {
+//                                         if (user.orderVisit >= findUserOrder.applyCoupan.completeVisit) {
+//                                                 await User.findOneAndUpdate({ _id: user._id }, { $set: { orderVisit: user.orderVisit - findUserOrder.applyCoupan.completeVisit } }, { new: true });
+//                                                 let findCoupan = await coupanModel.findOne({ _id: findUserOrder.applyCoupan._id });
+//                                                 if (findCoupan) {
+//                                                         await coupanModel.findOneAndUpdate({ _id: findCoupan._id }, { $set: { used: true } }, { new: true });
+//                                                 }
+//                                         }
+//                                 }
+//                         }
+//                         let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
+//                         if (find3) {
+//                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
+//                                 if (findOrder3) {
+//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+//                                         let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`, };
+//                                         let info = await transporter.sendMail(mailOptions);
+//                                 }
+//                         }
+//                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
+//                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+//                         let mailOption1 = {
+//                                 from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `,
+//                         };
+//                         let info1 = await transporter.sendMail(mailOption1);
+//                         if (info1) {
+//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+//                                 if (deleteCart) {
+//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+//                                 }
+//                         } else {
+//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
+//                                 if (deleteCart) {
+//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+//                                 }
+//                         }
+//                 } else {
+//                         return res.status(404).json({ message: "No data found", data: {} });
+//                 }
+//         } catch (error) {
+//                 console.log(error);
+//                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+//         }
+// };
 exports.successOrderApp = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId }).populate('applyCoupan');
@@ -3081,10 +3154,10 @@ exports.successOrderApp = async (req, res) => {
                         }
                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
+                        let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId user", select: { reviews: 0 } });
                         if (find1) {
                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         }
-                        let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId", select: { reviews: 0 } });
                         if (find2) {
                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                                 if (findUserOrder.applyCoupan != (null || undefined)) {
@@ -3096,20 +3169,66 @@ exports.successOrderApp = async (req, res) => {
                                                 }
                                         }
                                 }
+                                if (find2.services.length > 0) {
+                                        const attachments = [];
+                                        const serviceToPdfPathMap = {
+                                                "JetPeel Facial": "JetPeelPreandPost.pdf",
+                                                "PRP Hair Loss Treatment": "LaserhairremovalPrepCare.pdf",
+                                                "PRP Microneedling": "MicroneedlingPre.pdf",
+                                                "Cosmelan MD Peel": "PreandPostCosmelanDepigmentationInstructions.pdf",
+                                                "IPL Acne Treatment": "PreandPostTreatmentInstructionsforIPL.pdf",
+                                                "PreparingforDMKEnzymeTherapy": "PreparingforDMKEnzymeTherapy.pdf",
+                                                "JeTOP Hair Loss Treatment": "PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf",
+                                                "PRPMicroneedlingPre&PostCare": "PRPMicroneedlingPre&PostCare.pdf",
+                                                "RFSkinTighteningPre": "RFSkinTighteningPre.pdf",
+                                                "RKMicroneedling": "RKMicroneedling.pdf",
+                                                "TCA Peel": "TCAPeelPre.pdf",
+                                                "ThePerfectDermaPeel": "ThePerfectDermaPeel.pdf",
+                                                "Hydrafacial Signature": "HydraFacialPre.pdf",
+                                                "FaceandBodyContouringCelluliteReductionTreatmentCare": "FaceandBodyContouringCelluliteReductionTreatmentCare.pdf",
+                                                "Laser Skin Resurafacing": "ErbiumYag2940nmLaserSkinResurfacingPRE.pdf",
+                                                "Dermamelan Peel": "DermamelanPeelPre.pdf",
+                                                "Aquagold Microneedling": "AQUAGOLD.pdf",
+                                        };
+                                        for (const service of find2.services) {
+                                                const serviceName = service.serviceId.name;
+                                                const pdfFileName = serviceToPdfPathMap[serviceName];
+                                                if (pdfFileName) {
+                                                        const servicePdfPath = path.join(__dirname, './FormPdf', pdfFileName);
+                                                        const data = fs.readFileSync(servicePdfPath);
+                                                        attachments.push({
+                                                                filename: pdfFileName,
+                                                                content: data,
+                                                        });
+                                                }
+                                        }
+                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+                                        let mailOptions = {
+                                                from: 'info@shahinahoja.com',
+                                                to: find2.user.email,
+                                                subject: 'Service Order Confirmation',
+                                                text: `Your service order with orderId ${findUserOrder.orderId} has been confirmed.`,
+                                                attachments: attachments,
+                                        };
+                                        let info = await transporter.sendMail(mailOptions);
+                                }
                         }
                         let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
                         if (find3) {
                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                                 if (findOrder3) {
-                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`, };
+                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
+                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provided by Your friend Coupan Code is ${findOrder3.code}` };
                                         let info = await transporter.sendMail(mailOptions);
                                 }
                         }
                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
-                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
                         let mailOption1 = {
-                                from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `,
+                                from: '<do_not_reply@gmail.com>',
+                                to: 'info@shahinahoja.com',
+                                subject: 'Order Received',
+                                text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount}`,
                         };
                         let info1 = await transporter.sendMail(mailOption1);
                         if (info1) {
@@ -3128,428 +3247,9 @@ exports.successOrderApp = async (req, res) => {
                 }
         } catch (error) {
                 console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+                return res.status(501).send({ status: 501, message: "server error.", data: {} });
         }
 };
-// exports.successOrderApp = async (req, res) => {
-//         try {
-//                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId }).populate('applyCoupan');
-//                 if (findUserOrder) {
-//                         const user = await User.findById({ _id: findUserOrder.userId });
-//                         if (!user) {
-//                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
-//                         }
-//                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                         let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
-//                         let find2 = await serviceOrder.findOne({ orderId: findUserOrder.orderId }).populate({ path: "services.serviceId user", select: { reviews: 0 } });
-//                         if (find1) {
-//                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                         }
-//                         if (find2) {
-//                                 let update1 = await serviceOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                                 if (findUserOrder.applyCoupan != (null || undefined)) {
-//                                         if (user.orderVisit >= findUserOrder.applyCoupan.completeVisit) {
-//                                                 await User.findOneAndUpdate({ _id: user._id }, { $set: { orderVisit: user.orderVisit - findUserOrder.applyCoupan.completeVisit } }, { new: true });
-//                                                 let findCoupan = await coupanModel.findOne({ _id: findUserOrder.applyCoupan._id });
-
-//                                                 if (findCoupan) {
-//                                                         await coupanModel.findOneAndUpdate({ _id: findCoupan._id }, { $set: { used: true } }, { new: true });
-//                                                 }
-//                                         }
-//                                 }
-//                                 if (find2.services.length > 0) {
-//                                         // let attachments = [];
-//                                         // for (let i = 0; i < find2.services.length; i++) {
-//                                         //         let servicePdfPath;
-//                                         //         if ((find2.services[i].serviceId.name == "JetPeel Facial") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/JetPeelPreandPost.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `JetPeelPreandPost.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "PRP Hair Loss Treatment") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/LaserhairremovalPrepCare.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `LaserhairremovalPrepCare.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "PRP Microneedling") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/MicroneedlingPre.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `MicroneedlingPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "Cosmelan MD Peel") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PreandPostCosmelanDepigmentationInstructions.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `PreandPostCosmelanDepigmentationInstructions.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "IPL Acne Treatment") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PreandPostTreatmentInstructionsforIPL.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `PreandPostTreatmentInstructionsforIPL.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "PreparingforDMKEnzymeTherapy") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PreparingforDMKEnzymeTherapy.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `TCAPeelPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "JeTOP Hair Loss Treatment") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "PRPMicroneedlingPre&PostCare") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/PRPMicroneedlingPre&PostCare.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `PRPMicroneedlingPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "RFSkinTighteningPre") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/RFSkinTighteningPre.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `JetPeelPreandPost.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "RKMicroneedling") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/RKMicroneedling.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `TCAPeelPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "TCA Peel") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/TCAPeelPre.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `TCAPeelPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "ThePerfectDermaPeel") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/ThePerfectDermaPeel.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `TCAPeelPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "Hydrafacial Signature") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/HydraFacialPre.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `HydraFacialPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "FaceandBodyContouringCelluliteReductionTreatmentCare") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/FaceandBodyContouringCelluliteReductionTreatmentCare.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `JetPeelPreandPost.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "Laser Skin Resurafacing") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/ErbiumYag2940nmLaserSkinResurfacingPRE.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `ErbiumYag2940nmLaserSkinResurfacingPRE.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "Dermamelan Peel") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/DermamelanPeelPre.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `TCAPeelPre.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         //         if ((find2.services[i].serviceId.name == "Aquagold Microneedling") == true) {
-//                                         //                 servicePdfPath = path.join(__dirname, './FormPdf/AQUAGOLD.pdf');
-//                                         //                 const readAttachment = new Promise((resolve, reject) => {
-//                                         //                         fs.readFile(servicePdfPath, (err, data) => {
-//                                         //                                 if (err) {
-//                                         //                                         console.error('Error reading PDF file:', err);
-//                                         //                                         reject(err);
-//                                         //                                 } else {
-//                                         //                                         attachments.push({
-//                                         //                                                 filename: `AQUAGOLD.pdf`,
-//                                         //                                                 content: data,
-//                                         //                                         });
-//                                         //                                         resolve();
-//                                         //                                 }
-//                                         //                         });
-//                                         //                 });
-//                                         //                 await readAttachment;
-//                                         //         };
-//                                         // }
-//                                         const attachments = [];
-//                                         const serviceToPdfPathMap = {
-//                                             "JetPeel Facial": "JetPeelPreandPost.pdf",
-//                                             "PRP Hair Loss Treatment": "LaserhairremovalPrepCare.pdf",
-//                                             "PRP Microneedling": "MicroneedlingPre.pdf",
-//                                             "Cosmelan MD Peel": "PreandPostCosmelanDepigmentationInstructions.pdf",
-//                                             "IPL Acne Treatment": "PreandPostTreatmentInstructionsforIPL.pdf",
-//                                             "PreparingforDMKEnzymeTherapy": "PreparingforDMKEnzymeTherapy.pdf",
-//                                             "JeTOP Hair Loss Treatment": "PRPHAIRLOSSTREATMENTPREPOSTCAREGUIDE.pdf",
-//                                             "PRPMicroneedlingPre&PostCare": "PRPMicroneedlingPre&PostCare.pdf",
-//                                             "RFSkinTighteningPre": "RFSkinTighteningPre.pdf",
-//                                             "RKMicroneedling": "RKMicroneedling.pdf",
-//                                             "TCA Peel": "TCAPeelPre.pdf",
-//                                             "ThePerfectDermaPeel": "ThePerfectDermaPeel.pdf",
-//                                             "Hydrafacial Signature": "HydraFacialPre.pdf",
-//                                             "FaceandBodyContouringCelluliteReductionTreatmentCare": "FaceandBodyContouringCelluliteReductionTreatmentCare.pdf",
-//                                             "Laser Skin Resurafacing": "ErbiumYag2940nmLaserSkinResurfacingPRE.pdf",
-//                                             "Dermamelan Peel": "DermamelanPeelPre.pdf",
-//                                             "Aquagold Microneedling": "AQUAGOLD.pdf",
-//                                         };   
-//                                         for (const service of find2.services) {
-//                                             const serviceName = service.serviceId.name;
-//                                             const pdfFileName = serviceToPdfPathMap[serviceName];
-//                                             if (pdfFileName) {
-//                                                 const servicePdfPath = path.join(__dirname, './FormPdf', pdfFileName);
-//                                                 const data = fs.readFileSync(servicePdfPath);
-//                                                 attachments.push({
-//                                                     filename: pdfFileName,
-//                                                     content: data,
-//                                                 });
-//                                             }
-//                                         }  
-//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
-//                                         let mailOptions = {
-//                                                 from: 'info@shahinahoja.com',
-//                                                 to: find2.user.email,
-//                                                 subject: 'Service Order Confirmation',
-//                                                 text: `Your service order with orderId ${findUserOrder.orderId} has been confirmed.`,
-//                                                 attachments: attachments,
-//                                         };
-//                                         let info = await transporter.sendMail(mailOptions);
-//                                 }
-//                         }
-//                         let find3 = await coupanModel.findOne({ orderId: findUserOrder.orderId });
-//                         if (find3) {
-//                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-//                                 if (findOrder3) {
-//                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
-//                                         let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provided by Your friend Coupan Code is ${findOrder3.code}` };
-//                                         let info = await transporter.sendMail(mailOptions);
-//                                 }
-//                         }
-
-//                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
-//                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: "info@shahinahoja.com", pass: "gganlypsemwqhwlh" } });
-//                         let mailOption1 = {
-//                                 from: '<do_not_reply@gmail.com>',
-//                                 to: 'info@shahinahoja.com',
-//                                 subject: 'Order Received',
-//                                 text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount}`,
-//                         };
-//                         let info1 = await transporter.sendMail(mailOption1);
-
-//                         if (info1) {
-//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
-//                                 if (deleteCart) {
-//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
-//                                 }
-//                         } else {
-//                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
-//                                 if (deleteCart) {
-//                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
-//                                 }
-//                         }
-//                 } else {
-//                         return res.status(404).json({ message: "No data found", data: {} });
-//                 }
-//         } catch (error) {
-//                 console.log(error);
-//                 return res.status(501).send({ status: 501, message: "server error.", data: {} });
-//         }
-// };
 exports.cancelOrderApp = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
@@ -3763,762 +3463,3 @@ exports.takeSubscriptionFromWebsite = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
-// exports.takeSubscriptionFromWebsite = async (req, res) => {
-//         try {
-//                 const user = await User.findOne({ _id: req.user._id });
-//                 if (!user) {
-//                         return res.status(404).send({ status: 404, message: "User not found" });
-//                 }
-//                 const subscriptionId = req.params.id;
-//                 const findSubscription = await Subscription.findById(subscriptionId);
-//                 if (!findSubscription) {
-//                         return res.status(404).send({ status: 404, message: "Subscription not found" });
-//                 }
-//                 const customer = await stripe.customers.create({
-//                         email: req.user.email,
-//                 });
-//                 const testCardToken = 'tok_visa';
-//                 const paymentMethod = await stripe.paymentMethods.create({
-//                         type: 'card',
-//                         card: {
-//                                 token: testCardToken,
-//                         },
-//                 });
-//                 await stripe.paymentMethods.attach(paymentMethod.id, { customer: customer.id });
-//                 await stripe.customers.update(customer.id, {
-//                         invoice_settings: {
-//                                 default_payment_method: paymentMethod.id,
-//                         },
-//                 });
-//                 const product = await stripe.products.create({
-//                         name: findSubscription.plan,
-//                 });
-//                 const price = await stripe.prices.create({
-//                         product: product.id,
-//                         unit_amount: findSubscription.price,
-//                         currency: 'usd',
-//                         recurring: {
-//                                 interval: 'month',
-//                         },
-//                 });
-//                 const subscription = await stripe.subscriptions.create({
-//                         customer: customer.id,
-//                         items: [{ price: price.id }],
-//                 });
-//                 return res.status(200).json({ status: "success", subscription: subscription });
-//         } catch (error) {
-//                 console.error(error);
-//                 return res.status(500).send({ status: 500, message: "Server error: " + error.message });
-//         }
-// };
-// exports.takeSubscriptionFromWebsite = async (req, res) => {
-//         try {
-//                 const user = await User.findOne({ _id: req.user._id });
-//                 if (!user) {
-//                         return res.status(404).send({ status: 404, message: "User not found" });
-//                 }
-//                 const subscriptionId = req.params.id;
-//                 const findSubscription = await Subscription.findById(subscriptionId);
-//                 if (!findSubscription) {
-//                         return res.status(404).send({ status: 404, message: "Subscription not found" });
-//                 }
-//                 let customer = await stripe.customers.list({ email: req.user.email, limit: 1, });
-//                 if (customer.data.length === 0) {
-//                         customer = await stripe.customers.create({ email: req.user.email });
-//                 } else {
-//                         customer = customer.data[0];
-//                 }
-//                 const testCardToken = 'tok_visa';
-//                 const paymentMethod = await stripe.paymentMethods.create({
-//                         type: 'card',
-//                         card: {
-//                                 token: testCardToken,
-//                         },
-//                 });
-//                 await stripe.paymentMethods.attach(paymentMethod.id, { customer: customer.id });
-//                 await stripe.customers.update(customer.id, {
-//                         invoice_settings: {
-//                                 default_payment_method: paymentMethod.id,
-//                         },
-//                 });
-//                 const product = await stripe.products.create({
-//                         name: findSubscription.plan,
-//                 });
-//                 const price = await stripe.prices.create({
-//                         product: product.id,
-//                         unit_amount: findSubscription.price,
-//                         currency: 'usd',
-//                         recurring: {
-//                                 interval: 'month',
-//                         },
-//                 });
-//                 const subscription = await stripe.subscriptions.create({
-//                         customer: customer.id,
-//                         items: [{ price: price.id }],
-//                 });
-
-//                 return res.status(200).json({ status: "success", subscription: subscription });
-//         } catch (error) {
-//                 console.error(error);
-//                 return res.status(500).send({ status: 500, message: "Server error: " + error.message });
-//         }
-// };
-// exports.takeSubscriptionFromWebsite = async (req, res) => {
-//         try {
-//                 const user = await User.findOne({ _id: req.user._id });
-//                 if (!user) {
-//                         return res.status(404).send({ status: 404, message: "User not found" });
-//                 }
-//                 const subscriptionId = req.params.id;
-//                 const findSubscription = await Subscription.findById(subscriptionId);
-//                 if (!findSubscription) {
-//                         return res.status(404).send({ status: 404, message: "Subscription not found" });
-//                 }
-//                 const customer = await stripe.customers.create({
-//                         email: req.user.email,
-//                 });
-//                 const product = await stripe.products.create({
-//                         name: findSubscription.plan,
-//                         type: 'service',
-//                 });
-//                 const price = await stripe.prices.create({
-//                         unit_amount: findSubscription.price,
-//                         currency: 'usd',
-//                         recurring: {
-//                                 interval: 'month',
-//                         },
-//                         product: product.id,
-//                 });
-//                 const subscription = await stripe.subscriptions.create({
-//                         customer: customer.id,
-//                         items: [{ price: price.id }],
-//                         payment_settings: {
-//                                 payment_method_types: ['card'],
-//                         },
-//                 });
-//                 return res.status(200).json({ status: "success", subscription: subscription });
-//         } catch (error) {
-//                 console.error(error);
-//                 return res.status(500).send({ status: 500, message: "Server error: " + error.message });
-//         }
-// };
-
-///////////////////////////////////////////////////////////////////////////////////////
-// exports.checkout = async (req, res) => {
-//         try {
-//                 let findOrder = await productOrder.find({ user: req.user._id, orderStatus: "unconfirmed" });
-//                 let findOrder1 = await serviceOrder.find({ user: req.user._id, orderStatus: "unconfirmed" });
-//                 let findOrder2 = await userOrders.find({ user: req.user._id, orderStatus: "unconfirmed" });
-//                 let findOrder3 = await coupanModel.find({ senderUser: req.user._id, orderStatus: "unconfirmed" });
-//                 if (findOrder.length > 0 || findOrder1.length > 0 || findOrder2.length > 0 || findOrder3.length > 0) {
-//                         if (findOrder.length > 0) {
-//                                 for (let i = 0; i < findOrder.length; i++) {
-//                                         await productOrder.findByIdAndDelete({ _id: findOrder[i]._id });
-//                                 }
-//                         }
-//                         if (findOrder1.length > 0) {
-//                                 for (let i = 0; i < findOrder1.length; i++) {
-//                                         await serviceOrder.findByIdAndDelete({ _id: findOrder1[i]._id });
-//                                 }
-//                         }
-//                         if (findOrder2.length > 0) {
-//                                 for (let i = 0; i < findOrder2.length; i++) {
-//                                         await userOrders.findByIdAndDelete({ _id: findOrder2[i]._id });
-//                                 }
-//                         }
-//                         if (findOrder3.length > 0) {
-//                                 for (let i = 0; i < findOrder3.length; i++) {
-//                                         await coupanModel.findByIdAndDelete({ _id: findOrder3[i]._id });
-//                                 }
-//                         }
-//                         let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftPriceId", select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
-//                         if (findCart) {
-//                                 const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
-//                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
-//                                 const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select('address appartment city state zipCode -_id');
-//                                 const data3 = await User.findOne({ _id: req.user._id });
-//                                 let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId;
-//                                 const cartResponse = findCart.toObject();
-//                                 let orderId = await reffralCode();
-//                                 cartResponse.orderId = orderId;
-//                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-//                                         let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-//                                         for (const cartProduct of cartResponse.products) {
-//                                                 if (cartProduct.productId.multipleSize == true) {
-//                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-//                                                                 if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
-//                                                                         if (data3.isSubscription === true) {
-//                                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
-//                                                                                 if (findSubscription) {
-//                                                                                         membershipDiscountPercentage = findSubscription.discount;
-//                                                                                 }
-//                                                                                 membershipDiscount = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-//                                                                                 cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
-//                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-//                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - membershipDiscount);
-//                                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                                 subTotal += cartProduct.subTotal;
-//                                                                                 total += (cartProduct.total - membershipDiscount);
-//                                                                                 const newCartItem = {
-//                                                                                         productId: cartProduct.productId._id,
-//                                                                                         price: cartProduct.productId.sizePrice[i].price,
-//                                                                                         size: cartProduct.size,
-//                                                                                         quantity: cartProduct.quantity,
-//                                                                                 };
-//                                                                                 productArray.push(newCartItem);
-//                                                                         } else {
-//                                                                                 membershipDiscount = 0;
-//                                                                                 cartProduct.membershipDiscount = membershipDiscount
-//                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-//                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-//                                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                                 subTotal += cartProduct.subTotal;
-//                                                                                 total += (cartProduct.total);
-//                                                                                 const newCartItem = {
-//                                                                                         productId: cartProduct.productId._id,
-//                                                                                         price: cartProduct.productId.sizePrice[i].price,
-//                                                                                         size: cartProduct.size,
-//                                                                                         quantity: cartProduct.quantity,
-//                                                                                 };
-//                                                                                 productArray.push(newCartItem);
-//                                                                         }
-//                                                                 }
-//                                                         }
-//                                                 } else {
-//                                                         if (data3.isSubscription === true) {
-//                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
-//                                                                 if (findSubscription) {
-//                                                                         membershipDiscountPercentage = findSubscription.discount;
-//                                                                 }
-//                                                                 membershipDiscount = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-//                                                                 cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
-//                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
-//                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                 subTotal += cartProduct.subTotal;
-//                                                                 total += (cartProduct.total - membershipDiscount);
-//                                                                 const newCartItem = {
-//                                                                         productId: cartProduct.productId._id,
-//                                                                         price: cartProduct.productId.price,
-//                                                                         quantity: cartProduct.quantity,
-//                                                                 };
-//                                                                 productArray.push(newCartItem)
-//                                                         } else {
-//                                                                 membershipDiscount = 0;
-//                                                                 cartProduct.membershipDiscount = membershipDiscount
-//                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                 subTotal += cartProduct.subTotal;
-//                                                                 total += cartProduct.total;
-//                                                                 const newCartItem = {
-//                                                                         productId: cartProduct.productId._id,
-//                                                                         price: cartProduct.productId.price,
-//                                                                         quantity: cartProduct.quantity,
-//                                                                 };
-//                                                                 productArray.push(newCartItem)
-//                                                         }
-//                                                 }
-//                                         }
-//                                         cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
-//                                                 cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-//                                                 cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-//                                                 subTotal += cartFBP.subTotal;
-//                                                 total += cartFBP.total;
-//                                                 const newCartItem = {
-//                                                         frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
-//                                                         price: cartFBP.frequentlyBuyProductId.price,
-//                                                         quantity: cartFBP.quantity,
-//                                                 };
-//                                                 frequentlyBuyProductArray.push(newCartItem);
-//                                         });
-//                                         cartResponse.subTotal = subTotal;
-//                                         cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-//                                         cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-//                                         cartResponse.offerDiscount = Number(offerDiscount);
-//                                         cartResponse.total = cartResponse.total - parseFloat(membershipDiscount).toFixed(2);
-//                                         if (cartResponse.pickupFromStore == true) {
-//                                                 shipping = 0.00;
-//                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
-//                                                 cartResponse.pickUp = data1;
-//                                                 cartResponse.billingAddresss = data5;
-//                                         } else {
-//                                                 shipping = 0.00;
-//                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
-//                                                 cartResponse.deliveryAddresss = data2;
-//                                                 cartResponse.billingAddresss = data5;
-//                                                 cartResponse.shipping = shipping;
-//                                                 cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
-//                                         }
-//                                         cartResponse.products = productArray;
-//                                         cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
-//                                         orderObjPaidAmount = orderObjPaidAmount + cartResponse.total;
-//                                         cartResponse._id = new mongoose.Types.ObjectId();
-//                                         let saveOrder = await productOrder.create(cartResponse);
-//                                         productOrderId = saveOrder._id;
-//                                 }
-//                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
-//                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-//                                         if (cartResponse.services.length > 0) {
-//                                                 for (const cartProduct of cartResponse.services) {
-//                                                         if (cartProduct.serviceId.type === "offer") {
-//                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
-//                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                 subTotal += cartProduct.subTotal;
-//                                                                 total += cartProduct.total;
-//                                                         }
-//                                                         if (cartProduct.serviceId.type === "Service") {
-//                                                                 if (data3.isSubscription === true) {
-//                                                                         console.log(data3.isSubscription);
-//                                                                         const findSubscription = await Subscription.findById(data3.subscriptionId);
-//                                                                         if (findSubscription) {
-//                                                                                 membershipDiscountPercentage = findSubscription.discount;
-//                                                                         }
-//                                                                         membershipDiscount = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-//                                                                         cartProduct.membershipDiscount = parseFloat(membershipDiscount).toFixed(2)
-//                                                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                         cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
-//                                                                         cartProduct.offerDiscount = 0.00;
-//                                                                         offerDiscount += cartProduct.offerDiscount;
-//                                                                         total += cartProduct.total;
-//                                                                         subTotal += cartProduct.subTotal;
-//                                                                 } else {
-//                                                                         membershipDiscount = 0;
-//                                                                         cartProduct.membershipDiscount = parseFloat(membershipDiscount).toFixed(2)
-//                                                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                         cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                         cartProduct.offerDiscount = 0.00;
-//                                                                         offerDiscount += cartProduct.offerDiscount;
-//                                                                         subTotal += cartProduct.subTotal;
-//                                                                         total += cartProduct.total;
-//                                                                 }
-//                                                         }
-//                                                 }
-//                                         }
-//                                         if (cartResponse.AddOnservicesSchema.length > 0) {
-//                                                 cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-//                                                         cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-//                                                         cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-//                                                         subTotal += cartGift.subTotal;
-//                                                         total += cartGift.total;
-//                                                 });
-//                                         }
-//                                         cartResponse.date = findCart.date;
-//                                         cartResponse.time = findCart.time;
-//                                         cartResponse.suggesstion = findCart.suggesstion;
-//                                         cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-//                                         cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-//                                         cartResponse.offerDiscount = Number(offerDiscount);
-//                                         cartResponse.subTotal = subTotal;
-//                                         cartResponse.total = total - parseFloat(membershipDiscount).toFixed(2);
-//                                         cartResponse.serviceAddresss = data1;
-//                                         orderObjPaidAmount = orderObjPaidAmount + total;
-//                                         cartResponse._id = new mongoose.Types.ObjectId();
-//                                         let saveOrder = await serviceOrder.create(cartResponse);
-//                                         serviceOrderId = saveOrder._id;
-//                                 }
-//                                 if (cartResponse.gifts.length > 0) {
-//                                         let total = 0, subTotal = 0;
-//                                         cartResponse.gifts.forEach(async (cartGift) => {
-//                                                 cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-//                                                 cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-//                                                 subTotal += cartGift.subTotal;
-//                                                 total += cartGift.total;
-//                                                 let obj = {
-//                                                         senderUser: req.user._id,
-//                                                         code: cartResponse.orderId,
-//                                                         title: 'Buy a gift Card',
-//                                                         email: cartGift.email,
-//                                                         description: "Your friend Gift a gift card",
-//                                                         price: cartGift.giftPriceId.price,
-//                                                         discount: cartGift.giftPriceId.giftCardrewards,
-//                                                         per: "Amount",
-//                                                 }
-//                                                 orderObjPaidAmount = orderObjPaidAmount + total;
-//                                                 let saveOrder = await coupanModel.create(obj);
-//                                                 if (saveOrder) {
-//                                                         giftOrderId = saveOrder._id;
-//                                                         let orderObj = {
-//                                                                 userId: req.user._id,
-//                                                                 orderId: orderId,
-//                                                                 giftOrder: giftOrderId,
-//                                                                 productOrder: productOrderId,
-//                                                                 serviceOrder: serviceOrderId,
-//                                                                 orderObjPaidAmount: orderObjPaidAmount,
-//                                                         }
-//                                                         let saveOrder1 = await userOrders.create(orderObj);
-//                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-//                                                 }
-//                                         });
-//                                 } else {
-//                                         let orderObj = {
-//                                                 userId: req.user._id,
-//                                                 orderId: orderId,
-//                                                 productOrder: productOrderId,
-//                                                 serviceOrder: serviceOrderId,
-//                                                 orderObjPaidAmount: orderObjPaidAmount,
-//                                         }
-//                                         let saveOrder1 = await userOrders.create(orderObj);
-//                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-//                                 }
-//                         } else {
-//                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
-//                         }
-//                 } else {
-//                         let findCart = await Cart.findOne({ user: req.user._id }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftPriceId", select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
-//                         if (findCart) {
-//                                 const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
-//                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
-//                                 const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select('address appartment city state zipCode -_id');
-//                                 const data3 = await User.findOne({ _id: req.user._id });
-//                                 let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId;
-//                                 const cartResponse = findCart.toObject();
-//                                 let orderId = await reffralCode();
-//                                 cartResponse.orderId = orderId;
-//                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-//                                         let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-//                                         for (const cartProduct of cartResponse.products) {
-//                                                 if (cartProduct.productId.multipleSize == true) {
-//                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-//                                                                 if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
-//                                                                         if (data3.isSubscription === true) {
-//                                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
-//                                                                                 if (findSubscription) {
-//                                                                                         membershipDiscountPercentage = findSubscription.discount;
-//                                                                                 }
-//                                                                                 membershipDiscount = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-//                                                                                 cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
-//                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-//                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - membershipDiscount);
-//                                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                                 subTotal += cartProduct.subTotal;
-//                                                                                 total += (cartProduct.total - membershipDiscount);
-//                                                                                 const newCartItem = {
-//                                                                                         productId: cartProduct.productId._id,
-//                                                                                         price: cartProduct.productId.sizePrice[i].price,
-//                                                                                         size: cartProduct.size,
-//                                                                                         quantity: cartProduct.quantity,
-//                                                                                 };
-//                                                                                 productArray.push(newCartItem);
-//                                                                         } else {
-//                                                                                 membershipDiscount = 0;
-//                                                                                 cartProduct.membershipDiscount = membershipDiscount
-//                                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-//                                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-//                                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                                 subTotal += cartProduct.subTotal;
-//                                                                                 total += (cartProduct.total);
-//                                                                                 const newCartItem = {
-//                                                                                         productId: cartProduct.productId._id,
-//                                                                                         price: cartProduct.productId.sizePrice[i].price,
-//                                                                                         size: cartProduct.size,
-//                                                                                         quantity: cartProduct.quantity,
-//                                                                                 };
-//                                                                                 productArray.push(newCartItem);
-//                                                                         }
-//                                                                 }
-//                                                         }
-//                                                 } else {
-//                                                         if (data3.isSubscription === true) {
-//                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
-//                                                                 if (findSubscription) {
-//                                                                         membershipDiscountPercentage = findSubscription.discount;
-//                                                                 }
-//                                                                 membershipDiscount = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-//                                                                 cartProduct.membershipDiscount = parseFloat(membershipDiscount.toFixed(2))
-//                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
-//                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                 subTotal += cartProduct.subTotal;
-//                                                                 total += (cartProduct.total - membershipDiscount);
-//                                                                 const newCartItem = {
-//                                                                         productId: cartProduct.productId._id,
-//                                                                         price: cartProduct.productId.price,
-//                                                                         quantity: cartProduct.quantity,
-//                                                                 };
-//                                                                 productArray.push(newCartItem)
-//                                                         } else {
-//                                                                 membershipDiscount = 0;
-//                                                                 cartProduct.membershipDiscount = membershipDiscount
-//                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.offerDiscount = 0.00;
-//                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                 subTotal += cartProduct.subTotal;
-//                                                                 total += cartProduct.total;
-//                                                                 const newCartItem = {
-//                                                                         productId: cartProduct.productId._id,
-//                                                                         price: cartProduct.productId.price,
-//                                                                         quantity: cartProduct.quantity,
-//                                                                 };
-//                                                                 productArray.push(newCartItem)
-//                                                         }
-//                                                 }
-//                                         }
-//                                         cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
-//                                                 cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-//                                                 cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-//                                                 subTotal += cartFBP.subTotal;
-//                                                 total += cartFBP.total;
-//                                                 const newCartItem = {
-//                                                         frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
-//                                                         price: cartFBP.frequentlyBuyProductId.price,
-//                                                         quantity: cartFBP.quantity,
-//                                                 };
-//                                                 frequentlyBuyProductArray.push(newCartItem);
-//                                         });
-//                                         cartResponse.subTotal = subTotal;
-//                                         cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-//                                         cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-//                                         cartResponse.offerDiscount = Number(offerDiscount);
-//                                         cartResponse.total = cartResponse.total - parseFloat(membershipDiscount).toFixed(2);
-//                                         if (cartResponse.pickupFromStore == true) {
-//                                                 shipping = 0.00;
-//                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
-//                                                 cartResponse.pickUp = data1;
-//                                                 cartResponse.billingAddresss = data5;
-//                                         } else {
-//                                                 shipping = 0.00;
-//                                                 cartResponse.shipping = parseFloat(shipping.toFixed(2));
-//                                                 cartResponse.deliveryAddresss = data2;
-//                                                 cartResponse.billingAddresss = data5;
-//                                                 cartResponse.shipping = shipping;
-//                                                 cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
-//                                         }
-//                                         cartResponse.products = productArray;
-//                                         cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
-//                                         orderObjPaidAmount = orderObjPaidAmount + cartResponse.total;
-//                                         cartResponse._id = new mongoose.Types.ObjectId();
-//                                         let saveOrder = await productOrder.create(cartResponse);
-//                                         productOrderId = saveOrder._id;
-//                                 }
-//                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
-//                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-//                                         if (cartResponse.services.length > 0) {
-//                                                 for (const cartProduct of cartResponse.services) {
-//                                                         if (cartProduct.serviceId.type === "offer") {
-//                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-//                                                                 cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
-//                                                                 offerDiscount += cartProduct.offerDiscount;
-//                                                                 subTotal += cartProduct.subTotal;
-//                                                                 total += cartProduct.total;
-//                                                         }
-//                                                         if (cartProduct.serviceId.type === "Service") {
-//                                                                 if (data3.isSubscription === true) {
-//                                                                         console.log(data3.isSubscription);
-//                                                                         const findSubscription = await Subscription.findById(data3.subscriptionId);
-//                                                                         if (findSubscription) {
-//                                                                                 membershipDiscountPercentage = findSubscription.discount;
-//                                                                         }
-//                                                                         membershipDiscount = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-//                                                                         cartProduct.membershipDiscount = parseFloat(membershipDiscount).toFixed(2)
-//                                                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                         cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - membershipDiscount);
-//                                                                         cartProduct.offerDiscount = 0.00;
-//                                                                         offerDiscount += cartProduct.offerDiscount;
-//                                                                         total += cartProduct.total;
-//                                                                         subTotal += cartProduct.subTotal;
-//                                                                 } else {
-//                                                                         membershipDiscount = 0;
-//                                                                         cartProduct.membershipDiscount = parseFloat(membershipDiscount).toFixed(2)
-//                                                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                         cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-//                                                                         cartProduct.offerDiscount = 0.00;
-//                                                                         offerDiscount += cartProduct.offerDiscount;
-//                                                                         subTotal += cartProduct.subTotal;
-//                                                                         total += cartProduct.total;
-//                                                                 }
-//                                                         }
-//                                                 }
-//                                         }
-//                                         if (cartResponse.AddOnservicesSchema.length > 0) {
-//                                                 cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-//                                                         cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-//                                                         cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-//                                                         subTotal += cartGift.subTotal;
-//                                                         total += cartGift.total;
-//                                                 });
-//                                         }
-//                                         cartResponse.date = findCart.date;
-//                                         cartResponse.time = findCart.time;
-//                                         cartResponse.suggesstion = findCart.suggesstion;
-//                                         cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-//                                         cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-//                                         cartResponse.offerDiscount = Number(offerDiscount);
-//                                         cartResponse.subTotal = subTotal;
-//                                         cartResponse.total = total - parseFloat(membershipDiscount).toFixed(2);
-//                                         cartResponse.serviceAddresss = data1;
-//                                         orderObjPaidAmount = orderObjPaidAmount + total;
-//                                         cartResponse._id = new mongoose.Types.ObjectId();
-//                                         let saveOrder = await serviceOrder.create(cartResponse);
-//                                         serviceOrderId = saveOrder._id;
-//                                 }
-//                                 if (cartResponse.gifts.length > 0) {
-//                                         let total = 0, subTotal = 0;
-//                                         cartResponse.gifts.forEach(async (cartGift) => {
-//                                                 cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-//                                                 cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-//                                                 subTotal += cartGift.subTotal;
-//                                                 total += cartGift.total;
-//                                                 let obj = {
-//                                                         senderUser: req.user._id,
-//                                                         code: cartResponse.orderId,
-//                                                         title: 'Buy a gift Card',
-//                                                         email: cartGift.email,
-//                                                         description: "Your friend Gift a gift card",
-//                                                         price: cartGift.giftPriceId.price,
-//                                                         discount: cartGift.giftPriceId.giftCardrewards,
-//                                                         per: "Amount",
-//                                                 }
-//                                                 orderObjPaidAmount = orderObjPaidAmount + total;
-//                                                 let saveOrder = await coupanModel.create(obj);
-//                                                 if (saveOrder) {
-//                                                         giftOrderId = saveOrder._id;
-//                                                         let orderObj = {
-//                                                                 userId: req.user._id,
-//                                                                 orderId: orderId,
-//                                                                 giftOrder: giftOrderId,
-//                                                                 productOrder: productOrderId,
-//                                                                 serviceOrder: serviceOrderId,
-//                                                                 orderObjPaidAmount: orderObjPaidAmount,
-//                                                         }
-//                                                         let saveOrder1 = await userOrders.create(orderObj);
-//                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-//                                                 }
-//                                         });
-//                                 } else {
-//                                         let orderObj = {
-//                                                 userId: req.user._id,
-//                                                 orderId: orderId,
-//                                                 productOrder: productOrderId,
-//                                                 serviceOrder: serviceOrderId,
-//                                                 orderObjPaidAmount: orderObjPaidAmount,
-//                                         }
-//                                         let saveOrder1 = await userOrders.create(orderObj);
-//                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-//                                 }
-//                         } else {
-//                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
-//                         }
-//                 }
-//         } catch (error) {
-//                 console.log(error);
-//                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-//         }
-// };
-
-// exports.takeSubscriptionFromWebsite = async (req, res) => {
-//         try {
-//                 const user = await User.findOne({ _id: req.user._id });
-//                 if (!user) {
-//                         return res.status(404).send({ status: 404, message: "User not found" });
-//                 }
-//                 const subscriptionId = req.params.id;
-//                 const findSubscription = await Subscription.findById(subscriptionId);
-//                 if (!findSubscription) {
-//                         return res.status(404).send({ status: 404, message: "Subscription not found" });
-//                 }
-//                 const customer = await stripe.customers.create({
-//                         email: req.user.email,
-//                 });
-//                 const priceId = 'price_1O7C7mSIdiNJWVEcBUJDf9dr';
-//                 const existingSubscription = await stripe.subscriptions.list({ customer: customer.id, });
-//                 if (existingSubscription.data.length > 0) {
-//                         return res.status(400).json({ status: "error", message: "User is already subscribed to this plan" });
-//                 }
-//                 const subscription = await stripe.subscriptions.create({
-//                         customer: customer.id,
-//                         items: [{ price: priceId }],
-//                         payment_settings: {
-//                                 payment_method_types: ['card'],
-//                         },
-//                 });
-//                 return res.status(200).json({ status: "success", subscription: subscription });
-//         } catch (error) {
-//                 console.error(error);
-//                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
-//         }
-// };
-// exports.takeSubscriptionFromWebsite = async (req, res) => {
-//         try {
-//                 const user = await User.findOne({ _id: req.user._id });
-//                 if (!user) {
-//                         return res.status(404).send({ status: 404, message: "User not found" });
-//                 }
-//                 const subscriptionId = req.params.id;
-//                 const findSubscription = await Subscription.findById(subscriptionId);
-//                 if (!findSubscription) {
-//                         return res.status(404).send({ status: 404, message: "Subscription not found" });
-//                 }
-//                 const priceId = 'price_1O7C7mSIdiNJWVEcBUJDf9dr';
-//                 if (!user.stripePaymentMethod) {
-//                         return res.status(400).json({ status: "error", message: "Customer has no default payment method" });
-//                 }
-//                 const existingSubscription = await stripe.subscriptions.list({
-//                         customer: user.stripeCustomerId,
-//                 });
-//                 if (existingSubscription.data.length > 0) {
-//                         return res.status(400).json({ status: "error", message: "User is already subscribed to this plan" });
-//                 }
-//                 const subscription = await stripe.subscriptions.create({
-//                         customer: user.stripeCustomerId,
-//                         items: [{ price: priceId }],
-//                 });
-
-//                 return res.status(200).json({ status: "success", subscription: subscription });
-//         } catch (error) {
-//                 console.error(error);
-//                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
-//         }
-// };
-
-
-
-// exports.takeSubscriptionFromWebsite = async (req, res) => {
-//         try {
-//                 const user = await User.findOne({ _id: req.user._id });
-//                 if (!user) {
-//                         return res.status(404).send({ status: 404, message: "User not found" });
-//                 }
-//                 const subscriptionId = req.params.id;
-//                 const findSubscription = await Subscription.findById(subscriptionId);
-//                 if (!findSubscription) {
-//                         return res.status(404).send({ status: 404, message: "Subscription not found" });
-//                 }
-//                 const customer = await stripe.customers.create({
-//                         email: req.user.email,
-//                 });
-//                 const price = await stripe.prices.create({
-//                         product: findSubscription.plan,
-//                         unit_amount: findSubscription.price,
-//                         currency: 'usd',
-//                         recurring: {
-//                                 interval: 'month',
-//                         },
-//                 });
-
-//                 console.log(price);
-//                 const subscription = await stripe.subscriptions.create({
-//                         customer: customer.id,
-//                         items: [{ price: price.id }],
-//                         payment_settings: {
-//                                 payment_method_types: ['card'],
-//                         },
-//                 });
-
-//                 return res.status(200).json({ status: "success", subscription: subscription });
-//         } catch (error) {
-//                 console.error(error);
-//                 return res.status(500).send({ status: 500, message: "Server error: " + error.message });
-//         }
-// };

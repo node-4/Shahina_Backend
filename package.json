@@ -32,6 +32,7 @@
     "path": "^0.12.7",
     "sendle-node": "^3.0.0",
     "serverless-http": "^3.2.0",
+    "serverless-offline": "^13.2.1",
     "socket.io": "^4.5.3",
     "stripe": "^13.5.0",
     "xlsx": "^0.18.5"
