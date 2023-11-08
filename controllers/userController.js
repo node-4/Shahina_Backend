@@ -57,6 +57,7 @@ exports.registration = async (req, res) => {
                                 req.body.refferalCode = await reffralCode();
                                 req.body.password = bcrypt.hashSync(req.body.password, 8);
                                 req.body.userType = "USER";
+                                req.body.wallet = 300;
                                 const userCreate = await User.create(req.body);
                                 if (userCreate) {
                                         let obj = {
@@ -147,6 +148,7 @@ exports.registrationforApp = async (req, res) => {
                                         req.body.refferalCode = await reffralCode();
                                         req.body.refferUserId = findUser._id;
                                         req.body.password = bcrypt.hashSync(req.body.password, 8);
+                                        req.body.wallet = 300;
                                         const userCreate = await User.create(req.body);
                                         if (userCreate) {
                                                 if (findUser.userType == "ADMIN") {
