@@ -50,30 +50,6 @@ exports.getAboutUs = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-// exports.updateAboutUs = async (req, res) => {
-//         try {
-//                 const data = await staticContent.findById(req.params.id);
-//                 if (!data || data.length === 0) {
-//                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
-//                 } else {
-//                         let image;
-//                         if (req.file) {
-//                                 image = req.file.path
-//                         } else {
-//                                 image = data.image;
-//                         }
-//                         let title = req.body.title || data.title;
-//                         let description = req.body.description || data.description;
-//                         let designation = req.body.designation || data.designation;
-//                         let link = req.body.link || data.link;
-//                         const result = await staticContent.findByIdAndUpdate({ _id: req.params.id }, { $set: { image: image, link: link, designation: designation, title: title, description: description, type: data.type, } }, { new: true });
-//                         return res.status(200).json({ status: 200, message: "update successfully.", data: result });
-//                 }
-//         } catch (error) {
-//                 console.log(error);
-//                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-//         }
-// };
 exports.getAboutUsById = async (req, res) => {
         try {
                 const data = await staticContent.findById(req.params.id);
@@ -114,21 +90,6 @@ exports.createTerms = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-// exports.updateTerms = async (req, res) => {
-//         try {
-//                 const data = await staticContent.findById(req.params.id);
-//                 if (!data || data.length === 0) {
-//                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
-//                 } else {
-//                         let terms = req.body.terms || data.terms;
-//                         const data1 = await staticContent.findOneAndUpdate({ id: req.params.id }, { terms: terms, type: "TERMS" }, { new: true, });
-//                         return res.status(200).json({ status: 200, message: "update successfully.", data: data1 });
-//                 }
-//         } catch (error) {
-//                 console.log(error);
-//                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-//         }
-// };
 exports.getTerms = async (req, res) => {
         try {
                 const data = await staticContent.find({ type: "TERMS" });
@@ -184,21 +145,6 @@ exports.createPrivacy = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-// exports.updatePrivacy = async (req, res) => {
-//         try {
-//                 const data = await staticContent.findById(req.params.id);
-//                 if (!data || data.length === 0) {
-//                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
-//                 } else {
-//                         let privacy = req.body.privacy || data.privacy;
-//                         const data1 = await staticContent.findByIdAndUpdate({ _id: req.params.id }, { privacy: privacy, type: data.type }, { new: true, });
-//                         return res.status(200).json({ status: 200, message: "update successfully.", data: data1 });
-//                 }
-//         } catch (error) {
-//                 console.log(error);
-//                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-//         }
-// };
 exports.getPrivacy = async (req, res) => {
         try {
                 const data = await staticContent.find({ type: "PRIVACY" });

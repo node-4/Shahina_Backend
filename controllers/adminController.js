@@ -947,42 +947,6 @@ exports.createService = async (req, res) => {
                 return res.status(500).send({ message: "Internal server error while creating Service", });
         }
 };
-// exports.createService = async (req, res) => {
-//         try {
-//                 const data = await Category.findById(req.body.categoryId);
-//                 if (!data || data.length === 0) {
-//                         return res.status(400).send({ status: 404, msg: "not found" });
-//                 }
-//                 let images = [], beforeAfterImage;
-//                 if (req.files['image'] != (null || undefined)) {
-//                         let docs = req.files['image'];
-//                         for (let i = 0; i < docs.length; i++) {
-//                                 let obj = {
-//                                         img: docs[i].path
-//                                 }
-//                                 images.push(obj)
-//                         }
-//                 }
-//                 if (req.files['beforeAfterImage'] != (null || undefined)) {
-//                         let docs = req.files['beforeAfterImage'];
-//                         beforeAfterImage = docs[0].path
-//                 }
-//                 if (req.body.discountActive == 'true') {
-//                         req.body.discountPrice = (req.body.price - ((req.body.price * req.body.discount) / 100)).toFixed(2)
-//                 } else {
-//                         req.body.discountPrice = 0
-//                 }
-//                 req.body.images = images;
-//                 req.body.beforeAfterImage = beforeAfterImage;
-//                 const ProductCreated = await services.create(req.body);
-//                 if (ProductCreated) {
-//                         return res.status(201).send({ status: 200, message: "Service add successfully", data: ProductCreated, });
-//                 }
-//         } catch (err) {
-//                 console.log(err);
-//                 return res.status(500).send({ message: "Internal server error while creating Service", });
-//         }
-// };
 exports.paginateServiceSearch = async (req, res) => {
         try {
                 const { search, fromDate, toDate, categoryId, status, page, limit } = req.query;

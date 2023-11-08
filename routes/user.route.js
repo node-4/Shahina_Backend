@@ -57,28 +57,4 @@ module.exports = (app) => {
         app.get("/api/v1/cancelOrderApp/:orderId", [authJwt.verifyToken], auth.cancelOrderApp);
         app.get("/api/v1/overAllSearch", auth.overAllSearch);
         app.put("/api/v1/cancelBooking/:id", [authJwt.verifyToken], auth.cancelBooking);
-        // Product cart start
-        // app.post('/api/v1/cart/:id', [authJwt.verifyToken], auth.addToCart)
-        // app.post('/api/v1/cart/FBP/:id', [authJwt.verifyToken], auth.addFBPToCart)
-        // app.post('/api/v1/cart/gift/:id', [authJwt.verifyToken], auth.addGiftCardToCart)
-        // app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
-        // app.put('/api/v1/deleteProductfromcart/:id', [authJwt.verifyToken], auth.deleteProductfromcart)
-        // app.put('/api/v1/deletefrequentlyBuyProductfromcart/:id', [authJwt.verifyToken], auth.deletefrequentlyBuyProductfromcart)
-        // app.put('/api/v1/deleteGiftCardfromcart/:id', [authJwt.verifyToken], auth.deleteGiftCardfromcart)
-        // app.post('/api/v1/checkoutForProduct', [authJwt.verifyToken], auth.checkoutForProduct);
-        // app.post("/api/v1/placeOrderForProduct/:orderId", [authJwt.verifyToken], auth.placeOrderForProduct);
-        // app.get("/api/v1/successOrderForProduct/:orderId", [authJwt.verifyToken], auth.successOrderForProduct);
-        // app.get("/api/v1/cancelOrderForProduct/:orderId", [authJwt.verifyToken], auth.cancelOrderForProduct);
-        // // service cart start 
-        // app.post('/api/v1/cart/service/:id', [authJwt.verifyToken], auth.addServiceToCart)
-        // app.post('/api/v1/cart/addOnservice/:id', [authJwt.verifyToken], auth.addOnServiceToCart)
-        // app.get('/api/v1/serviceCart', [authJwt.verifyToken], auth.getServiceCart);
-        // app.put('/api/v1/deleteServicefromcart/:id', [authJwt.verifyToken], auth.deleteServicefromcart)
-        // app.post('/api/v1/checkoutForService', [authJwt.verifyToken], auth.checkoutForService);
-        // app.post("/api/v1/placeOrderForService/:orderId", [authJwt.verifyToken], auth.placeOrderForService);
-        // app.get("/api/v1/successOrderForService/:orderId", [authJwt.verifyToken], auth.successOrderForService);
-        // app.get("/api/v1/cancelOrderForService/:orderId", [authJwt.verifyToken], auth.cancelOrderForService);
-        // app.get('/api/v1/cartData', [authJwt.verifyToken], auth.cartData);
-        // service cart end 
-
 }

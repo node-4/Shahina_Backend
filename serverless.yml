@@ -1,4 +1,4 @@
-service: "ShahinaBackend"
+service: "shahinabackend"
 
 provider:
     name: aws
@@ -11,7 +11,7 @@ provider:
 functions:
     app:
         handler: server.handler
-        name: ShahinaBackend
+        name: shahinabackend
         events:
             - http:
                   path: /
