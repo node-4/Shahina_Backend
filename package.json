@@ -7,36 +7,32 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/node-4/Shahina_Backend.git"
-  },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/node-4/Shahina_Backend/issues"
-  },
-  "homepage": "https://github.com/node-4/Shahina_Backend#readme",
   "dependencies": {
+    "api": "^6.1.1",
+    "axios": "^1.5.0",
     "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "fcm-node": "^1.6.1",
-    "jsonwebtoken": "^9.0.2",
+    "jsonwebtoken": "^9.0.1",
     "moment": "^2.29.4",
-    "mongoose": "^8.0.0",
+    "mongoose": "^7.4.5",
     "mongoose-aggregate-paginate": "^2.0.2",
     "mongoose-paginate": "^5.0.3",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^6.9.6",
     "otp-generators": "^1.0.3",
+    "path": "^0.12.7",
     "sendle-node": "^3.0.0",
     "serverless-http": "^3.2.0",
-    "serverless-offline": "^13.2.1",
-    "stripe": "^14.3.0",
+    "socket.io": "^4.5.3",
+    "stripe": "^13.5.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

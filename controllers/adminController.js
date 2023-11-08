@@ -908,6 +908,7 @@ exports.deleteProductReview = async (req, res, next) => {
                 return res.status(500).send({ status: 500, message: "Server error.", data: {} });
         }
 };
+
 exports.createService = async (req, res) => {
         try {
                 const data = await Category.findById(req.body.categoryId);
@@ -945,6 +946,42 @@ exports.createService = async (req, res) => {
                 return res.status(500).send({ message: "Internal server error while creating Service", });
         }
 };
+// exports.createService = async (req, res) => {
+//         try {
+//                 const data = await Category.findById(req.body.categoryId);
+//                 if (!data || data.length === 0) {
+//                         return res.status(400).send({ status: 404, msg: "not found" });
+//                 }
+//                 let images = [], beforeAfterImage;
+//                 if (req.files['image'] != (null || undefined)) {
+//                         let docs = req.files['image'];
+//                         for (let i = 0; i < docs.length; i++) {
+//                                 let obj = {
+//                                         img: docs[i].path
+//                                 }
+//                                 images.push(obj)
+//                         }
+//                 }
+//                 if (req.files['beforeAfterImage'] != (null || undefined)) {
+//                         let docs = req.files['beforeAfterImage'];
+//                         beforeAfterImage = docs[0].path
+//                 }
+//                 if (req.body.discountActive == 'true') {
+//                         req.body.discountPrice = (req.body.price - ((req.body.price * req.body.discount) / 100)).toFixed(2)
+//                 } else {
+//                         req.body.discountPrice = 0
+//                 }
+//                 req.body.images = images;
+//                 req.body.beforeAfterImage = beforeAfterImage;
+//                 const ProductCreated = await services.create(req.body);
+//                 if (ProductCreated) {
+//                         return res.status(201).send({ status: 200, message: "Service add successfully", data: ProductCreated, });
+//                 }
+//         } catch (err) {
+//                 console.log(err);
+//                 return res.status(500).send({ message: "Internal server error while creating Service", });
+//         }
+// };
 exports.paginateServiceSearch = async (req, res) => {
         try {
                 const { search, fromDate, toDate, categoryId, status, page, limit } = req.query;
@@ -1045,7 +1082,6 @@ exports.getIdServiceByToken = async (req, res) => {
                                         membershipDiscount = 0
                                         membshipPrice = 0;
                                 }
-                                membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
                                 const serviceWithDynamicFields = {
                                         ...data.toObject(),
                                         membershipDiscountPer,
@@ -1895,72 +1931,6 @@ exports.getServiceOrders = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
-// exports.getServiceOrderswithDate = async (req, res) => {
-//         try {
-//                 let aggregationPipeline = [
-//                         {
-//                                 $group: {
-//                                         _id: {
-//                                                 year: { $year: "$createdAt" },
-//                                                 month: { $month: "$createdAt" },
-//                                                 day: { $dayOfMonth: "$createdAt" },
-//                                         },
-//                                         totalOrders: { $sum: 1 },
-//                                 },
-//                         },
-//                         {
-//                                 $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
-//                         },
-//                 ];
-
-//                 let totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
-
-//                 let datewiseOrders = await serviceOrder.find({ orderStatus: "confirmed" }).populate([
-//                         { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
-//                         { path: "services.serviceId", select: { reviews: 0 } },
-//                         { path: "coupon", select: "couponCode discount expirationDate" },
-//                         { path: 'user' }
-//                 ]).sort({ createdAt: 1 });
-
-//                 const datewiseData = datewiseOrders.reduce((result, order) => {
-//                         const { createdAt } = order;
-//                         const orderDate = `${createdAt.getDate()}/${createdAt.getMonth() + 1}/${createdAt.getFullYear()}`;
-//                         if (!result[orderDate]) {
-//                                 result[orderDate] = {
-//                                         totalOrders: 0,
-//                                         orders: [],
-//                                 };
-//                         }
-//                         result[orderDate].orders.push(order);
-//                         return result;
-//                 }, {});
-
-//                 totalOrderCounts.forEach((order) => {
-//                         const { year, month, day } = order._id;
-//                         const date = `${day}/${month}/${year}`;
-//                         if (datewiseData[date]) {
-//                                 datewiseData[date].totalOrders = order.totalOrders;
-//                                 datewiseData[date].day = day;
-//                                 datewiseData[date].month = month;
-//                                 datewiseData[date].year = year;
-//                         }
-//                 });
-
-//                 // Convert datewiseData object to an array
-//                 const datewiseDataArray = Object.keys(datewiseData).map((date) => ({
-//                         date,
-//                         ...datewiseData[date],
-//                 }));
-
-//                 return res.status(200).json({
-//                         status: 200,
-//                         message: "Orders data found.",
-//                         data: datewiseDataArray,
-//                 });
-//         } catch (err) {
-//                 return res.status(500).send({ msg: "Internal server error", error: err.message });
-//         }
-// };
 exports.getServiceOrderswithDate = async (req, res) => {
         try {
                 let aggregationPipeline = [
@@ -2060,40 +2030,6 @@ exports.getServiceOrderswithDate = async (req, res) => {
                 return res.status(500).json({ status: 500, message: "Internal server error", error: err.message });
         }
 };
-// exports.getServiceOrderswithDate = async (req, res) => {
-//         try {
-//                 let aggregationPipeline = [{ $group: { _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" }, day: { $dayOfMonth: "$createdAt" } }, totalOrders: { $sum: 1 } } }, { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }];
-//                 let totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
-//                 let datewiseOrders = await serviceOrder.find({ orderStatus: "confirmed", }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" }, { path: 'user' }]).sort({ createdAt: 1 });
-//                 const datewiseData = datewiseOrders.reduce((result, order) => {
-//                         const { createdAt } = order;
-//                         const orderDate = `${createdAt.getDate()}/${createdAt.getMonth() + 1}/${createdAt.getFullYear()}`;
-//                         if (!result[orderDate]) {
-//                                 result[orderDate] = {
-//                                         totalOrders: 0,
-//                                         orders: [],
-//                                 };
-//                         }
-//                         result[orderDate].orders.push(order);
-//                         return result;
-//                 }, {});
-//                 totalOrderCounts.forEach((order) => {
-//                         const { year, month, day } = order._id;
-//                         const date = `${day}/${month}/${year}`;
-//                         if (datewiseData[date]) {
-//                                 datewiseData[date].totalOrders = order.totalOrders;
-//                         }
-//                 });
-
-//                 return res.status(200).json({
-//                         status: 200,
-//                         message: "Orders data found.",
-//                         data: datewiseData,
-//                 });
-//         } catch (err) {
-//                 return res.status(500).send({ msg: "Internal server error", error: err.message });
-//         }
-// };
 exports.createIngredients = async (req, res) => {
         try {
                 let findIngredients = await ingredients.findOne({ name: req.body.name, type: req.body.type });
@@ -2521,8 +2457,8 @@ exports.removeAcneQuizSuggession = async (req, res) => {
 };
 exports.getAcneQuizSuggessionByAnswer = async (req, res) => {
         const categories = await acneQuizSuggession.findOne({ answer1: req.query.answer1, answer2: req.query.answer2, answer3: req.query.answer3, answer4: req.query.answer4, }).select('productId')
-                .populate([{ path: 'productId' }, { path: 'frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },])
-
+        .populate([{ path: 'productId' },{ path: 'frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },])
+     
         if (categories) {
                 return res.status(201).json({ message: "Acne Quiz Suggession Found", status: 200, data: categories, });
         }
