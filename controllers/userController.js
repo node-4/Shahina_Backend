@@ -391,7 +391,7 @@ exports.checkIn = async (req, res) => {
                                         return res.status(200).json({ status: 200, message: "CheckIn successfully.", data: update });
                                 }
                         } else {
-                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { totalVisit: data.totalVisit + 1, firstVisit: data.firstVisit + 1 } }, { new: true });
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { totalVisit: data.totalVisit + 1, firstVisit: 1 } }, { new: true });
                                 if (update) {
                                         return res.status(200).json({ status: 200, message: "CheckIn successfully.", data: update });
                                 }
