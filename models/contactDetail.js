@@ -41,8 +41,7 @@ const DocumentSchema = schema({
                 type: String
         },
         sundayClose: {
-                type: Boolean,
-                default: false
+                type: String
         },
         numOfReviews: {
                 type: Number,
