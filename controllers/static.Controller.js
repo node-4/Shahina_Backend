@@ -39,8 +39,8 @@ exports.createAboutUs = async (req, res) => {
 };
 exports.getAboutUs = async (req, res) => {
         try {
-                const result = await staticContent.find({ type: "ABOUTUS" });
-                if (!result || result.length === 0) {
+                const result = await staticContent.findOne({ type: "ABOUTUS" });
+                if (!result) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: result });
@@ -92,8 +92,8 @@ exports.createTerms = async (req, res) => {
 };
 exports.getTerms = async (req, res) => {
         try {
-                const data = await staticContent.find({ type: "TERMS" });
-                if (!data || data.length === 0) {
+                const data = await staticContent.findOne({ type: "TERMS" });
+                if (!data) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
@@ -147,8 +147,8 @@ exports.createPrivacy = async (req, res) => {
 };
 exports.getPrivacy = async (req, res) => {
         try {
-                const data = await staticContent.find({ type: "PRIVACY" });
-                if (!data || data.length === 0) {
+                const data = await staticContent.findOne({ type: "PRIVACY" });
+                if (!data) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
