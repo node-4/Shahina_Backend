@@ -286,8 +286,8 @@ exports.createShippingPrivacy = async (req, res) => {
 };
 exports.getShippingPrivacy = async (req, res) => {
         try {
-                const data = await staticContent.findOne({ type: "SHIPPINGPOLICY" });
-                if (!data) {
+                const data = await staticContent.find({ type: "SHIPPINGPOLICY" });
+                if (!data || data.length === 0) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
@@ -317,8 +317,8 @@ exports.createReturnPrivacy = async (req, res) => {
 };
 exports.getReturnPrivacy = async (req, res) => {
         try {
-                const data = await staticContent.findOne({ type: "RETURNPOLICY" });
-                if (!data) {
+                const data = await staticContent.find({ type: "RETURNPOLICY" });
+                if (!data || data.length === 0) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
