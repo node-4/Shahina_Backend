@@ -4,7 +4,7 @@ const staticContent = mongoose.Schema({
         type: String,
     },
     privacy: {
-        type: String,
+        type: Array,
     },
     title: {
         type: String
