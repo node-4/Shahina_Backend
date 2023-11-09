@@ -34,6 +34,16 @@ const DocumentSchema = schema({
         email: {
                 type: String
         },
+        monToFriday: {
+                type: String
+        },
+        saturday: {
+                type: String
+        },
+        sundayClose: {
+                type: Boolean,
+                default: false
+        },
         numOfReviews: {
                 type: Number,
                 default: 0,

@@ -1666,6 +1666,9 @@ exports.addContactDetails = async (req, res) => {
                                         address: req.body.address || findContact.address,
                                         phone: req.body.phone || findContact.phone,
                                         email: req.body.email || findContact.email,
+                                        monToFriday: req.body.monToFriday || findContact.monToFriday,
+                                        saturday: req.body.saturday || findContact.saturday,
+                                        sundayClose: req.body.sundayClose || findContact.sundayClose,
                                 }
                                 let updateContact = await contact.findByIdAndUpdate({ _id: findContact._id }, { $set: obj }, { new: true });
                                 if (updateContact) {
