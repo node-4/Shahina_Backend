@@ -90,7 +90,7 @@ exports.updateTerms = async (req, res) => {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 } else {
                         let terms = req.body.terms || data.terms;
-                        const data1 = await staticContent.findOneAndUpdate({ id: data._id }, { terms: terms, type: "TERMS" }, { new: true, });
+                        const data1 = await staticContent.findOneAndUpdate({ _id: data._id }, { terms: terms, type: "TERMS" }, { new: true, });
                         return res.status(200).json({ status: 200, message: "update successfully.", data: data1 });
                 }
         } catch (error) {
