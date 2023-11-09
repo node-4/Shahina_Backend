@@ -2456,8 +2456,8 @@ exports.removeAcneQuizSuggession = async (req, res) => {
 };
 exports.getAcneQuizSuggessionByAnswer = async (req, res) => {
         const categories = await acneQuizSuggession.findOne({ answer1: req.query.answer1, answer2: req.query.answer2, answer3: req.query.answer3, answer4: req.query.answer4, }).select('productId')
-        .populate([{ path: 'productId' },{ path: 'frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },])
-     
+                .populate([{ path: 'productId' }, { path: 'frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } },])
+
         if (categories) {
                 return res.status(201).json({ message: "Acne Quiz Suggession Found", status: 200, data: categories, });
         }
@@ -2657,45 +2657,6 @@ const client = new SendleClient({
 });
 exports.createShipment = async (req, res) => {
         try {
-                // let shipmentData = {
-                //         first_mile_option: 'pickup',
-                //         description: 'Test',
-                //         weight: {
-                //                 value: '1',
-                //                 units: 'kg',
-                //         },
-                //         customer_reference: '1337',
-                //         metadata: {
-                //                 userId: 100,
-                //         },
-                //         sender: {
-                //                 contact: {
-                //                         name: 'Lex Luthor',
-                //                 },
-                //                 address: {
-                //                         address_line1: '123 Main Street', // U.S. address
-                //                         suburb: 'Los Angeles', // U.S. suburb
-                //                         state_name: 'CA', // U.S. state
-                //                         postcode: '90001', // U.S. postal code
-                //                         country: 'US', // Country set to the United States
-                //                 },
-                //         },
-                //         receiver: {
-                //                 instructions: 'Signature on Delivery',
-                //                 contact: {
-                //                         name: 'Clark Kent',
-                //                         email: 'clarkissuper@dailyplanet.xyz',
-                //                         company: 'Daily Planet',
-                //                 },
-                //                 address: {
-                //                         address_line1: '456 Elm Street', // U.S. address
-                //                         suburb: 'New York', // U.S. suburb
-                //                         state_name: 'NY', // U.S. state
-                //                         postcode: '10001', // U.S. postal code
-                //                         country: 'US', // Country set to the United States
-                //                 },
-                //         },
-                // }
                 const orders = await productOrder.findById({ _id: req.body.productOrderId });
                 if (!orders) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
@@ -2704,7 +2665,11 @@ exports.createShipment = async (req, res) => {
                 if (order) {
                         req.body = order
                         const category = await deliverOrde.create(req.body);
-                        return res.json(category);
+                        if (category) {
+                                category.productOrderId = orders._id;
+                                let update = await category.save();
+                                return res.json(update);
+                        }
                 }
         } catch (error) {
                 console.error('Internal Server Error:', error);
