@@ -11,10 +11,12 @@ module.exports = (app) => {
         app.get('/api/v1/static/getAboutUs', staticContent.getAboutUs);
         app.get('/api/v1/static/aboutUs/:id', staticContent.getAboutUsById);
         app.post('/api/v1/static/createPrivacy', [authJwt.verifyToken], staticContent.createPrivacy);
+        app.put('/api/v1/static/privacy/:id', [authJwt.verifyToken], staticContent.updatePrivacy);
         app.delete('/api/v1/static/privacy/:id', [authJwt.verifyToken], staticContent.deletePrivacy);
         app.get('/api/v1/static/getPrivacy', staticContent.getPrivacy);
         app.get('/api/v1/static/privacy/:id', staticContent.getPrivacybyId);
         app.post('/api/v1/static/createTerms', [authJwt.verifyToken], staticContent.createTerms);
+        app.put('/api/v1/static/terms/:id', [authJwt.verifyToken], staticContent.updateTerms);
         app.delete('/api/v1/static/terms/:id', [authJwt.verifyToken], staticContent.deleteTerms);
         app.get('/api/v1/static/getTerms', staticContent.getTerms);
         app.get('/api/v1/static/terms/:id', staticContent.getTermsbyId);

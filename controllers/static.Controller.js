@@ -39,8 +39,8 @@ exports.createAboutUs = async (req, res) => {
 };
 exports.getAboutUs = async (req, res) => {
         try {
-                const result = await staticContent.findOne({ type: "ABOUTUS" });
-                if (!result) {
+                const result = await staticContent.find({ type: "ABOUTUS" });
+                if (result.length == 0) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: result });
@@ -73,17 +73,25 @@ exports.deleteAboutUs = async (req, res) => {
 };
 exports.createTerms = async (req, res) => {
         try {
-                const data = await staticContent.findOne({ type: "TERMS" });
-                if (data) {
+                if (!req.body.terms) {
+                        return res.status(400).send("please specify terms");
+                }
+                const result = await staticContent.create({ terms: req.body.terms, type: "TERMS" });
+                return res.status(200).json({ status: 200, message: "Data create successfully.", data: result });
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.updateTerms = async (req, res) => {
+        try {
+                const data = await staticContent.findById(req.params.id);
+                if (!data) {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                } else {
                         let terms = req.body.terms || data.terms;
                         const data1 = await staticContent.findOneAndUpdate({ id: data._id }, { terms: terms, type: "TERMS" }, { new: true, });
                         return res.status(200).json({ status: 200, message: "update successfully.", data: data1 });
-                } else {
-                        if (!req.body.terms) {
-                                return res.status(400).send("please specify terms");
-                        }
-                        const result = await staticContent.create({ terms: req.body.terms, type: "TERMS" });
-                        return res.status(200).json({ status: 200, message: "Data create successfully.", data: result });
                 }
         } catch (error) {
                 console.log(error);
@@ -92,8 +100,8 @@ exports.createTerms = async (req, res) => {
 };
 exports.getTerms = async (req, res) => {
         try {
-                const data = await staticContent.findOne({ type: "TERMS" });
-                if (!data) {
+                const data = await staticContent.find({ type: "TERMS" });
+                if (data.length == 0) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
@@ -128,13 +136,21 @@ exports.deleteTerms = async (req, res) => {
 };
 exports.createPrivacy = async (req, res) => {
         try {
-                const data = await staticContent.findOne({ type: "PRIVACY" });
+                if (!req.body.privacy) {
+                        return res.status(400).send("please specify privacy");
+                }
+                const result = await staticContent.create({ privacy: req.body.privacy, type: "PRIVACY" });
+                return res.status(200).json({ status: 200, message: "Data create successfully.", data: result });
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.updatePrivacy = async (req, res) => {
+        try {
+                const data = await staticContent.findById(req.params.id);
                 if (!data) {
-                        if (!req.body.privacy) {
-                                return res.status(400).send("please specify privacy");
-                        }
-                        const result = await staticContent.create({ privacy: req.body.privacy, type: "PRIVACY" });
-                        return res.status(200).json({ status: 200, message: "Data create successfully.", data: result });
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 } else {
                         let privacy = req.body.privacy || data.privacy;
                         const data1 = await staticContent.findByIdAndUpdate({ _id: data._id }, { privacy: privacy, type: data.type }, { new: true, });
@@ -147,8 +163,8 @@ exports.createPrivacy = async (req, res) => {
 };
 exports.getPrivacy = async (req, res) => {
         try {
-                const data = await staticContent.findOne({ type: "PRIVACY" });
-                if (!data) {
+                const data = await staticContent.find({ type: "PRIVACY" });
+                if (data.length == 0) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
                 return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
