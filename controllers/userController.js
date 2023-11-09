@@ -386,7 +386,7 @@ exports.checkIn = async (req, res) => {
                 const data = await User.findOne({ _id: req.user._id, });
                 if (data) {
                         if (data.checkIn > 0) {
-                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { totalVisit: data.totalVisit + 1, checkIn: data.checkIn - 1, orderVisit: data.orderVisit + 1, firstVisit: data.firstVisit + 1 } }, { new: true });
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { totalVisit: data.totalVisit + 1, checkIn: data.checkIn - 1, orderVisit: data.orderVisit + 1, firstVisit: 1 } }, { new: true });
                                 if (update) {
                                         return res.status(200).json({ status: 200, message: "CheckIn successfully.", data: update });
                                 }
@@ -1938,7 +1938,7 @@ exports.getProductOrders = async (req, res, next) => {
         try {
                 const orders = await productOrder.find({ user: req.user._id, orderStatus: "confirmed" }).populate([
                         { path: "products.productId", select: 'name description size sizePrice price productImages ratings numOfReviews' },
-                        { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' },},
+                        { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, },
                         { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (orders.length == 0) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
@@ -1953,7 +1953,7 @@ exports.getProductOrderbyId = async (req, res, next) => {
         try {
                 const orders = await productOrder.findById({ _id: req.params.id }).populate([
                         { path: "products.productId", select: { reviews: 0 } },
-                        { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' },},
+                        { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, },
                         { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (!orders) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
