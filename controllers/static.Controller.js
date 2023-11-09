@@ -85,7 +85,7 @@ exports.createTerms = async (req, res) => {
 };
 exports.updateTerms = async (req, res) => {
         try {
-                const data = await staticContent.findById(req.params.id);
+                const data = await staticContent.findOne({ _id: req.params.id, type: "TERMS" });
                 if (!data) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 } else {
@@ -148,7 +148,7 @@ exports.createPrivacy = async (req, res) => {
 };
 exports.updatePrivacy = async (req, res) => {
         try {
-                const data = await staticContent.findById(req.params.id);
+                const data = await staticContent.findOne({ _id: req.params.id, type: "PRIVACY" });
                 if (!data) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 } else {
