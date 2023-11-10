@@ -901,7 +901,7 @@ const calculateCartResponse = async (cart, userId) => {
                                                                         membershipDiscountPercentage = findSubscription.discount;
                                                                 }
                                                                 let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(x)
+                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                 membershipDiscount += x;
                                                                 cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
                                                                 cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
