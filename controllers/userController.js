@@ -46,7 +46,7 @@ const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96b
 exports.registration = async (req, res) => {
         try {
                 if (req.body.refferalCode == null || req.body.refferalCode == undefined) {
-                        let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
+                        let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone, countryCode: req.body.countryCode }] }] });
                         if (findUser) {
                                 return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
                         } else {
@@ -56,6 +56,7 @@ exports.registration = async (req, res) => {
                                 req.body.refferalCode = await reffralCode();
                                 req.body.password = bcrypt.hashSync(req.body.password, 8);
                                 req.body.userType = "USER";
+                                req.body.countryCode = req.body.countryCode;
                                 const userCreate = await User.create(req.body);
                                 if (userCreate) {
                                         let obj = {
@@ -76,7 +77,7 @@ exports.registration = async (req, res) => {
                 } else {
                         const findUser = await User.findOne({ refferalCode: req.body.refferalCode });
                         if (findUser) {
-                                let findUser1 = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
+                                let findUser1 = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone, countryCode: req.body.countryCode }] }] });
                                 if (findUser1) {
                                         return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
                                 } else {
@@ -87,6 +88,7 @@ exports.registration = async (req, res) => {
                                         req.body.refferalCode = await reffralCode();
                                         req.body.refferUserId = findUser._id;
                                         req.body.password = bcrypt.hashSync(req.body.password, 8);
+                                        req.body.countryCode = req.body.countryCode;
                                         const userCreate = await User.create(req.body);
                                         if (userCreate) {
                                                 let obj = {
@@ -117,7 +119,7 @@ exports.registration = async (req, res) => {
 exports.registrationforApp = async (req, res) => {
         try {
                 if (req.body.refferalCode == null || req.body.refferalCode == undefined) {
-                        let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
+                        let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone, countryCode: req.body.countryCode }] }] });
                         if (findUser) {
                                 return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
                         } else {
@@ -127,6 +129,7 @@ exports.registrationforApp = async (req, res) => {
                                 req.body.refferalCode = await reffralCode();
                                 req.body.password = bcrypt.hashSync(req.body.password, 8);
                                 req.body.userType = "USER";
+                                req.body.countryCode = req.body.countryCode;
                                 const userCreate = await User.create(req.body);
                                 if (userCreate) {
                                         return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
@@ -135,7 +138,7 @@ exports.registrationforApp = async (req, res) => {
                 } else {
                         const findUser = await User.findOne({ refferalCode: req.body.refferalCode });
                         if (findUser) {
-                                let findUser1 = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
+                                let findUser1 = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone, countryCode: req.body.countryCode }] }] });
                                 if (findUser1) {
                                         return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
                                 } else {
@@ -146,6 +149,7 @@ exports.registrationforApp = async (req, res) => {
                                         req.body.refferalCode = await reffralCode();
                                         req.body.refferUserId = findUser._id;
                                         req.body.password = bcrypt.hashSync(req.body.password, 8);
+                                        req.body.countryCode = req.body.countryCode;
                                         const userCreate = await User.create(req.body);
                                         if (userCreate) {
                                                 if (findUser.userType == "ADMIN") {
@@ -194,8 +198,8 @@ exports.registrationforApp = async (req, res) => {
 };
 exports.signin = async (req, res) => {
         try {
-                const { phone, password, deviceToken } = req.body;
-                const user = await User.findOne({ phone: phone, userType: "USER" });
+                const { phone, countryCode, password, deviceToken } = req.body;
+                const user = await User.findOne({ phone: phone, countryCode: countryCode, userType: "USER" });
                 if (!user) {
                         return res.status(404).send({ message: "user not found ! not registered" });
                 }
