@@ -1186,7 +1186,7 @@ exports.editService = async (req, res) => {
                         } else {
                                 beforeAfterImage = data.beforeAfterImage
                         }
-                        let price = 0, discount = 0, discountPrice = 0;
+                        let price = 0,mPrice=0, discount = 0, discountPrice = 0;
                         if (req.body.type != (null || undefined) && (req.body.type == 'offer')) {
                                 if ((req.body.price != (null || undefined)) && (req.body.discountPrice != (null || undefined))) {
                                         const price1 = req.body.price;
@@ -1200,14 +1200,27 @@ exports.editService = async (req, res) => {
                                         discount = data.discount;
                                 }
                         } else if (req.body.type != (null || undefined) && (req.body.type == 'Service')) {
-                                if (req.body.price != (null || undefined)) {
-                                        price = req.body.price;
-                                        discountPrice = 0;
-                                        discount = 0;
+                                if (req.body.multipleSize == 'true') {
+                                        for (let i = 0; i < req.body.sizes.length; i++) {
+                                                let obj = {
+                                                        size: req.body.sizes[i],
+                                                        price: req.body.multiplePrice[i],
+                                                        mPrice: req.body.memberPrice[i],
+                                                }
+                                                sizePrice.push(obj)
+                                        }
                                 } else {
-                                        price = data.price;
-                                        discountPrice = data.discountPrice;
-                                        discount = data.discount;
+                                        if (req.body.price != (null || undefined)) {
+                                                price = req.body.price;
+                                                mPrice = req.body.mPrice,
+                                                discountPrice = 0;
+                                                discount = 0;
+                                        } else {
+                                                price = data.price;
+                                                mPrice= data.mPrice;
+                                                discountPrice = data.discountPrice;
+                                                discount = data.discount;
+                                        }
                                 }
                         } else {
                                 price = data.price;
@@ -1221,6 +1234,7 @@ exports.editService = async (req, res) => {
                                 images: images,
                                 beforeAfterImage: beforeAfterImage,
                                 price: price,
+                                mPrice: mPrice,
                                 description: req.body.description || data.description,
                                 discountPrice: discountPrice,
                                 discount: discount,
