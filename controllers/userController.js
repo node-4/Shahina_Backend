@@ -824,12 +824,22 @@ exports.deleteCartItem = async (req, res, next) => {
                 if (!cartField) {
                         return res.status(400).json({ success: false, msg: "Invalid item type" });
                 }
-                const itemIndex = cart[cartField].findIndex((cartItem) => cartItem[itemType + 'Id'].toString() === itemId);
-                if (itemIndex === -1) {
-                        return res.status(404).json({ success: false, msg: `${itemType} not found in cart`, cart: {} });
+                if (req.body.priceId != (null || undefined)) {
+                        const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId === req.body.priceId);
+                        if (itemIndex === -1) {
+                                return res.status(404).json({ success: false, msg: `${itemType} not found in cart`, cart: {} });
+                        }
+                        cart[cartField].splice(itemIndex, 1);
+                        await cart.save();
+                } else {
+                        const itemIndex = cart[cartField].findIndex((cartItem) => cartItem[itemType + 'Id'].toString() === itemId);
+                        if (itemIndex === -1) {
+                                return res.status(404).json({ success: false, msg: `${itemType} not found in cart`, cart: {} });
+                        }
+                        cart[cartField].splice(itemIndex, 1);
+                        await cart.save();
                 }
-                cart[cartField].splice(itemIndex, 1);
-                await cart.save();
+
                 let cartResponse;
                 if (cart.services.length > 0) {
                         cartResponse = await calculateCartResponse(cart, req.user._id, true);
@@ -4838,13 +4848,13 @@ exports.checkoutApp = async (req, res) => {
                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                                 const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                                 const data3 = await User.findOne({ _id: req.user._id });
-                                let orderObjPaidAmount = 0,productOrderId, serviceOrderId, giftOrderId, couponDiscount = 0, orderObjTotalAmount = 0;
+                                let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId, couponDiscount = 0, orderObjTotalAmount = 0;
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0,productFBPTotal=0,  membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                         for (const cartProduct of cartResponse.products) {
                                                 if (cartProduct.productId.multipleSize == true) {
                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
@@ -5193,13 +5203,13 @@ exports.checkoutApp = async (req, res) => {
                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                                 const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                                 const data3 = await User.findOne({ _id: req.user._id });
-                                let orderObjPaidAmount = 0,productOrderId, serviceOrderId, giftOrderId, couponDiscount = 0, orderObjTotalAmount = 0;
+                                let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId, couponDiscount = 0, orderObjTotalAmount = 0;
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0,productFBPTotal=0,  membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                         for (const cartProduct of cartResponse.products) {
                                                 if (cartProduct.productId.multipleSize == true) {
                                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
