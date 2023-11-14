@@ -1579,33 +1579,113 @@ exports.placeOrder = async (req, res) => {
                         if (findUserOrder.serviceOrder != (null || undefined)) {
                                 let findOrder1 = await serviceOrder.findById({ _id: findUserOrder.serviceOrder }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                                 let discount = 0, total = 0, subTotal = 0;
+                                const data3 = await User.findOne({ _id: req.user._id });
                                 findOrder1.services.forEach((cartProduct) => {
+                                        console.log(cartProduct);
                                         let price;
-                                        if (cartProduct.serviceId.discountActive == true) {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                        if (cartProduct.serviceId.type = 'Service') {
+                                                if (cartProduct.serviceId.multipleSize == true) {
+                                                        if (data3.isSubscription === true) {
+                                                                cartProduct.total = cartProduct.memberprice * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.sizePrice * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.sizePrice - cartProduct.memberprice) * cartProduct.quantity;
+                                                                price = cartProduct.memberprice * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)
+                                                                }
+                                                        } else {
+                                                                cartProduct.total = cartProduct.sizePrice * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.sizePrice * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.sizePrice - cartProduct.sizePrice) * cartProduct.quantity;
+                                                                price = cartProduct.sizePrice * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)
+                                                                }
+                                                        }
+                                                } else {
+                                                        if (data3.isSubscription === true) {
+                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.mPrice * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.mPrice) * cartProduct.quantity;
+                                                                price = cartProduct.serviceId.mPrice * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)
+                                                                }
+                                                        } else {
+                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.price) * cartProduct.quantity;
+                                                                price = cartProduct.serviceId.price * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                        if (cartProduct.serviceId.type = 'offer') {
+                                                cartProduct.total = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
                                                 cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
                                                 price = cartProduct.serviceId.discountPrice * cartProduct.quantity
-                                        } else {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.discount = 0;
-                                                price = cartProduct.serviceId.price * cartProduct.quantity
+                                                if (!isNaN(price)) {
+                                                        let obj2 = {
+                                                                price_data: {
+                                                                        currency: "usd",
+                                                                        product_data: {
+                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                        },
+                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                },
+                                                                quantity: 1,
+                                                        }
+                                                        line_items.push(obj2)
+                                                }
                                         }
                                         subTotal += cartProduct.subTotal;
                                         discount += cartProduct.discount;
                                         total += cartProduct.total;
-                                        let obj2 = {
-                                                price_data: {
-                                                        currency: "usd",
-                                                        product_data: {
-                                                                name: `${cartProduct.serviceId.name}`,
-                                                        },
-                                                        unit_amount: `${Math.round(price * 100)}`,
-                                                },
-                                                quantity: 1,
-                                        }
-                                        line_items.push(obj2)
+                                        console.log(cartProduct.serviceId.name,"----------------------------------------",price);
+                                       
                                 });
                                 findOrder1.AddOnservicesSchema.forEach((cartGift) => {
                                         let price;
@@ -3630,146 +3710,52 @@ exports.addToCart1 = async (req, res, next) => {
                 if (!cart) {
                         cart = await Cart.create({ user: req.user._id });
                 }
-                const cartField = getCartFieldByItemType(itemType);
-
-                if (req.body.priceId != (null || undefined)) {
-                        const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId === req.body.priceId);
-                        if (itemIndex < 0) {
-                                if (itemType == 'giftPrice') {
-                                        let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
-                                        cart[cartField].push(obj);
-                                } else if (itemType == 'product') {
-                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
-                                        cart[cartField].push(obj);
-                                } else if (itemType == 'service') {
-                                        let obj = {
-                                                [itemType + 'Id']: itemId,
-                                                quantity: req.body.quantity,
-                                                priceId: req.body.priceId,
-                                                size: req.body.size,
-                                                sizePrice: req.body.sizePrice,
-                                                memberprice: req.body.memberprice,
-                                        };
-                                        cart[cartField].push(obj);
-                                } else {
-                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
-                                        cart[cartField].push(obj);
-                                }
+                const cartField = getCartFieldByItemType(itemType)
+                const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId == (null || undefined) ? ((cartItem[itemType + 'Id'].toString() === itemId)) : ((cartItem[itemType + 'Id'].toString() === itemId) && (cartItem.priceId === req.body.priceId)));
+                if (itemIndex < 0) {
+                        if (itemType == 'giftPrice') {
+                                let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
+                                cart[cartField].push(obj);
+                        } else if (itemType == 'product') {
+                                let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
+                                cart[cartField].push(obj);
+                        } else if (itemType == 'service') {
+                                let obj = {
+                                        [itemType + 'Id']: itemId,
+                                        quantity: req.body.quantity,
+                                        priceId: req.body.priceId,
+                                        size: req.body.size,
+                                        sizePrice: req.body.sizePrice,
+                                        memberprice: req.body.memberprice,
+                                };
+                                cart[cartField].push(obj);
                         } else {
-                                if (itemType == 'giftPrice') {
-                                        cart[cartField][itemIndex].quantity = req.body.quantity;
-                                        cart[cartField][itemIndex].email = req.body.email;
-                                } else if (itemType == 'product') {
-                                        cart[cartField][itemIndex].quantity = req.body.quantity;
-                                        cart[cartField][itemIndex].size = req.body.size;
-                                        cart[cartField][itemIndex].priceId = req.body.priceId;
-                                        cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
-                                } else if (itemType == 'service') {
-                                        let obj = {
-                                                [itemType + 'Id']: itemId,
-                                                quantity: req.body.quantity,
-                                                priceId: req.body.priceId,
-                                                size: req.body.size,
-                                                sizePrice: req.body.sizePrice,
-                                                memberprice: req.body.memberprice,
-                                        };
-                                        cart[cartField].push(obj);
-                                } else {
-                                        cart[cartField][itemIndex].quantity = req.body.quantity;
-                                }
+                                let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
+                                cart[cartField].push(obj);
                         }
                 } else {
-                        const itemIndex = cart[cartField].findIndex((cartItem) => cartItem[itemType + 'Id'].toString() === itemId);
-                        if (itemIndex < 0) {
-                                if (itemType == 'giftPrice') {
-                                        let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
-                                        cart[cartField].push(obj);
-                                } else if (itemType == 'product') {
-                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
-                                        cart[cartField].push(obj);
-                                } else if (itemType == 'service') {
-                                        let obj = {
-                                                [itemType + 'Id']: itemId,
-                                                quantity: req.body.quantity,
-                                                priceId: req.body.priceId,
-                                                size: req.body.size,
-                                                sizePrice: req.body.sizePrice,
-                                                memberprice: req.body.memberprice,
-                                        };
-                                        cart[cartField].push(obj);
-                                } else {
-                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
-                                        cart[cartField].push(obj);
-                                }
+                        if (itemType == 'giftPrice') {
+                                cart[cartField][itemIndex].quantity = req.body.quantity;
+                                cart[cartField][itemIndex].email = req.body.email;
+                        } else if (itemType == 'product') {
+                                cart[cartField][itemIndex].quantity = req.body.quantity;
+                                cart[cartField][itemIndex].size = req.body.size;
+                                cart[cartField][itemIndex].priceId = req.body.priceId;
+                                cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
+                        } else if (itemType == 'service') {
+                                let obj = {
+                                        [itemType + 'Id']: itemId,
+                                        quantity: req.body.quantity,
+                                        priceId: req.body.priceId,
+                                        size: req.body.size,
+                                        sizePrice: req.body.sizePrice,
+                                        memberprice: req.body.memberprice,
+                                };
+                                cart[cartField].push(obj);
                         } else {
-                                if (itemType == 'giftPrice') {
-                                        cart[cartField][itemIndex].quantity = req.body.quantity;
-                                        cart[cartField][itemIndex].email = req.body.email;
-                                } else if (itemType == 'product') {
-                                        cart[cartField][itemIndex].quantity = req.body.quantity;
-                                        cart[cartField][itemIndex].size = req.body.size;
-                                        cart[cartField][itemIndex].priceId = req.body.priceId;
-                                        cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
-                                } else if (itemType == 'service') {
-                                        let obj = {
-                                                [itemType + 'Id']: itemId,
-                                                quantity: req.body.quantity,
-                                                priceId: req.body.priceId,
-                                                size: req.body.size,
-                                                sizePrice: req.body.sizePrice,
-                                                memberprice: req.body.memberprice,
-                                        };
-                                        cart[cartField].push(obj);
-                                } else {
-                                        cart[cartField][itemIndex].quantity = req.body.quantity;
-                                }
+                                cart[cartField][itemIndex].quantity = req.body.quantity;
                         }
                 }
-                // const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId == (null || undefined) ? ((cartItem[itemType + 'Id'].toString() === itemId)) : ((cartItem[itemType + 'Id'].toString() === itemId) && (cartItem.priceId === req.body.priceId)));
-                // if (itemIndex < 0) {
-                //         if (itemType == 'giftPrice') {
-                //                 let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
-                //                 cart[cartField].push(obj);
-                //         } else if (itemType == 'product') {
-                //                 let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
-                //                 cart[cartField].push(obj);
-                //         } else if (itemType == 'service') {
-                //                 let obj = {
-                //                         [itemType + 'Id']: itemId,
-                //                         quantity: req.body.quantity,
-                //                         priceId: req.body.priceId,
-                //                         size: req.body.size,
-                //                         sizePrice: req.body.sizePrice,
-                //                         memberprice: req.body.memberprice,
-                //                 };
-                //                 cart[cartField].push(obj);
-                //         } else {
-                //                 let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
-                //                 cart[cartField].push(obj);
-                //         }
-                // } else {
-                //         if (itemType == 'giftPrice') {
-                //                 cart[cartField][itemIndex].quantity = req.body.quantity;
-                //                 cart[cartField][itemIndex].email = req.body.email;
-                //         } else if (itemType == 'product') {
-                //                 cart[cartField][itemIndex].quantity = req.body.quantity;
-                //                 cart[cartField][itemIndex].size = req.body.size;
-                //                 cart[cartField][itemIndex].priceId = req.body.priceId;
-                //                 cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
-                //         } else if (itemType == 'service') {
-                //                 let obj = {
-                //                         [itemType + 'Id']: itemId,
-                //                         quantity: req.body.quantity,
-                //                         priceId: req.body.priceId,
-                //                         size: req.body.size,
-                //                         sizePrice: req.body.sizePrice,
-                //                         memberprice: req.body.memberprice,
-                //                 };
-                //                 cart[cartField].push(obj);
-                //         } else {
-                //                 cart[cartField][itemIndex].quantity = req.body.quantity;
-                //         }
-                // }
                 await cart.save();
                 return res.status(200).json({ msg: `${itemType} added to cart`, data: cart });
         } catch (error) {
