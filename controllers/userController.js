@@ -3631,51 +3631,145 @@ exports.addToCart1 = async (req, res, next) => {
                         cart = await Cart.create({ user: req.user._id });
                 }
                 const cartField = getCartFieldByItemType(itemType);
-                const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId == (null || undefined) ? ((cartItem[itemType + 'Id'].toString() === itemId)) : ((cartItem[itemType + 'Id'].toString() === itemId) && (cartItem.priceId === req.body.priceId)));
-                if (itemIndex < 0) {
-                        if (itemType == 'giftPrice') {
-                                let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
-                                cart[cartField].push(obj);
-                        } else if (itemType == 'product') {
-                                let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
-                                cart[cartField].push(obj);
-                        } else if (itemType == 'service') {
-                                let obj = {
-                                        [itemType + 'Id']: itemId,
-                                        quantity: req.body.quantity,
-                                        priceId: req.body.priceId,
-                                        size: req.body.size,
-                                        sizePrice: req.body.sizePrice,
-                                        memberprice: req.body.memberprice,
-                                };
-                                cart[cartField].push(obj);
+
+                if (req.body.priceId != (null || undefined)) {
+                        const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId === req.body.priceId);
+                        if (itemIndex < 0) {
+                                if (itemType == 'giftPrice') {
+                                        let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
+                                        cart[cartField].push(obj);
+                                } else if (itemType == 'product') {
+                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
+                                        cart[cartField].push(obj);
+                                } else if (itemType == 'service') {
+                                        let obj = {
+                                                [itemType + 'Id']: itemId,
+                                                quantity: req.body.quantity,
+                                                priceId: req.body.priceId,
+                                                size: req.body.size,
+                                                sizePrice: req.body.sizePrice,
+                                                memberprice: req.body.memberprice,
+                                        };
+                                        cart[cartField].push(obj);
+                                } else {
+                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
+                                        cart[cartField].push(obj);
+                                }
                         } else {
-                                let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
-                                cart[cartField].push(obj);
+                                if (itemType == 'giftPrice') {
+                                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                                        cart[cartField][itemIndex].email = req.body.email;
+                                } else if (itemType == 'product') {
+                                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                                        cart[cartField][itemIndex].size = req.body.size;
+                                        cart[cartField][itemIndex].priceId = req.body.priceId;
+                                        cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
+                                } else if (itemType == 'service') {
+                                        let obj = {
+                                                [itemType + 'Id']: itemId,
+                                                quantity: req.body.quantity,
+                                                priceId: req.body.priceId,
+                                                size: req.body.size,
+                                                sizePrice: req.body.sizePrice,
+                                                memberprice: req.body.memberprice,
+                                        };
+                                        cart[cartField].push(obj);
+                                } else {
+                                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                                }
                         }
                 } else {
-                        if (itemType == 'giftPrice') {
-                                cart[cartField][itemIndex].quantity = req.body.quantity;
-                                cart[cartField][itemIndex].email = req.body.email;
-                        } else if (itemType == 'product') {
-                                cart[cartField][itemIndex].quantity = req.body.quantity;
-                                cart[cartField][itemIndex].size = req.body.size;
-                                cart[cartField][itemIndex].priceId = req.body.priceId;
-                                cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
-                        } else if (itemType == 'service') {
-                                let obj = {
-                                        [itemType + 'Id']: itemId,
-                                        quantity: req.body.quantity,
-                                        priceId: req.body.priceId,
-                                        size: req.body.size,
-                                        sizePrice: req.body.sizePrice,
-                                        memberprice: req.body.memberprice,
-                                };
-                                cart[cartField].push(obj);
+                        const itemIndex = cart[cartField].findIndex((cartItem) => cartItem[itemType + 'Id'].toString() === itemId);
+                        if (itemIndex < 0) {
+                                if (itemType == 'giftPrice') {
+                                        let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
+                                        cart[cartField].push(obj);
+                                } else if (itemType == 'product') {
+                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
+                                        cart[cartField].push(obj);
+                                } else if (itemType == 'service') {
+                                        let obj = {
+                                                [itemType + 'Id']: itemId,
+                                                quantity: req.body.quantity,
+                                                priceId: req.body.priceId,
+                                                size: req.body.size,
+                                                sizePrice: req.body.sizePrice,
+                                                memberprice: req.body.memberprice,
+                                        };
+                                        cart[cartField].push(obj);
+                                } else {
+                                        let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
+                                        cart[cartField].push(obj);
+                                }
                         } else {
-                                cart[cartField][itemIndex].quantity = req.body.quantity;
+                                if (itemType == 'giftPrice') {
+                                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                                        cart[cartField][itemIndex].email = req.body.email;
+                                } else if (itemType == 'product') {
+                                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                                        cart[cartField][itemIndex].size = req.body.size;
+                                        cart[cartField][itemIndex].priceId = req.body.priceId;
+                                        cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
+                                } else if (itemType == 'service') {
+                                        let obj = {
+                                                [itemType + 'Id']: itemId,
+                                                quantity: req.body.quantity,
+                                                priceId: req.body.priceId,
+                                                size: req.body.size,
+                                                sizePrice: req.body.sizePrice,
+                                                memberprice: req.body.memberprice,
+                                        };
+                                        cart[cartField].push(obj);
+                                } else {
+                                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                                }
                         }
                 }
+                // const itemIndex = cart[cartField].findIndex((cartItem) => cartItem.priceId == (null || undefined) ? ((cartItem[itemType + 'Id'].toString() === itemId)) : ((cartItem[itemType + 'Id'].toString() === itemId) && (cartItem.priceId === req.body.priceId)));
+                // if (itemIndex < 0) {
+                //         if (itemType == 'giftPrice') {
+                //                 let obj = { [itemType + 'Id']: itemId, email: req.body.email, quantity: req.body.quantity };
+                //                 cart[cartField].push(obj);
+                //         } else if (itemType == 'product') {
+                //                 let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
+                //                 cart[cartField].push(obj);
+                //         } else if (itemType == 'service') {
+                //                 let obj = {
+                //                         [itemType + 'Id']: itemId,
+                //                         quantity: req.body.quantity,
+                //                         priceId: req.body.priceId,
+                //                         size: req.body.size,
+                //                         sizePrice: req.body.sizePrice,
+                //                         memberprice: req.body.memberprice,
+                //                 };
+                //                 cart[cartField].push(obj);
+                //         } else {
+                //                 let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity };
+                //                 cart[cartField].push(obj);
+                //         }
+                // } else {
+                //         if (itemType == 'giftPrice') {
+                //                 cart[cartField][itemIndex].quantity = req.body.quantity;
+                //                 cart[cartField][itemIndex].email = req.body.email;
+                //         } else if (itemType == 'product') {
+                //                 cart[cartField][itemIndex].quantity = req.body.quantity;
+                //                 cart[cartField][itemIndex].size = req.body.size;
+                //                 cart[cartField][itemIndex].priceId = req.body.priceId;
+                //                 cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
+                //         } else if (itemType == 'service') {
+                //                 let obj = {
+                //                         [itemType + 'Id']: itemId,
+                //                         quantity: req.body.quantity,
+                //                         priceId: req.body.priceId,
+                //                         size: req.body.size,
+                //                         sizePrice: req.body.sizePrice,
+                //                         memberprice: req.body.memberprice,
+                //                 };
+                //                 cart[cartField].push(obj);
+                //         } else {
+                //                 cart[cartField][itemIndex].quantity = req.body.quantity;
+                //         }
+                // }
                 await cart.save();
                 return res.status(200).json({ msg: `${itemType} added to cart`, data: cart });
         } catch (error) {
