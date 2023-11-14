@@ -711,7 +711,6 @@ exports.getOnSaleService = async (req, res, next) => {
 };
 exports.getServiceByTokenFormembership = async (req, res, next) => {
         try {
-                s
                 const servicesList = await services.find({ categoryId: req.query.categoryId, type: "Service" }).populate('categoryId');
                 const servicesWithDynamicFields = [];
                 const userData = await User.findOne({ _id: req.user._id, }).select('-password').populate('subscriptionId');
