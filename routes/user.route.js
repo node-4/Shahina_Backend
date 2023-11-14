@@ -32,7 +32,7 @@ module.exports = (app) => {
         app.get('/api/v1/cart', [authJwt.verifyToken], auth.getCart);
         app.put('/api/v1/applyCoupan', [authJwt.verifyToken], auth.applyCoupan);
         app.post('/api/v1/add-to-cart/:type/:id', [authJwt.verifyToken], auth.addToCart1);
-        app.delete('/api/cart/delete/:type/:id', [authJwt.verifyToken], auth.deleteCartItem);
+        app.put('/api/cart/delete/:type/:id', [authJwt.verifyToken], auth.deleteCartItem);
         app.put("/api/v1/cart/addDateAndtimetoServiceCart", [authJwt.verifyToken], auth.addDateAndtimetoServiceCart);
         app.put("/api/v1/cart/addSuggestionToServiceCart", [authJwt.verifyToken], auth.addSuggestionToServiceCart);
         app.put('/api/v1/updatePickupFromStore', [authJwt.verifyToken], auth.updatePickupFromStore);
