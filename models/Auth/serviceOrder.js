@@ -17,6 +17,18 @@ const cartServiceSchema = new schema({
                 type: schema.Types.ObjectId,
                 ref: "services"
         },
+        priceId: {
+                type: String,
+        },
+        size: {
+                type: String,
+        },
+        sizePrice: {
+                type: Number,
+        },
+        memberprice: {
+                type: Number,
+        },
         quantity: {
                 type: Number,
                 default: 1
@@ -83,7 +95,7 @@ const DocumentSchema = schema({
         },
         orderStatus: {
                 type: String,
-                enum: ["unconfirmed", "confirmed","cancel"],
+                enum: ["unconfirmed", "confirmed", "cancel"],
                 default: "unconfirmed",
         },
         serviceStatus: {
