@@ -18,11 +18,38 @@ var storeSchema = new schema({
         price: {
                 type: Number
         },
+        benfit: {
+                type: Array,
+        },
+        area: {
+                type: Array,
+        },
+        session: {
+                type: Array,
+        },
+        sizePrice: [{
+                size: {
+                        type: String,
+                },
+                price: {
+                        type: Number,
+                },
+                mPrice: {
+                        type: Number
+                },
+        }],
+        multipleSize: {
+                type: Boolean,
+                default: false
+        },
         description: {
                 type: String
         },
         beforeAfterImage: {
                 type: String
+        },
+        mPrice: {
+                type: Number
         },
         discountPrice: {
                 type: Number

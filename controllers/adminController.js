@@ -914,7 +914,7 @@ exports.createService = async (req, res) => {
                 if (!data || data.length === 0) {
                         return res.status(400).send({ status: 404, msg: "not found" });
                 }
-                let images = [], beforeAfterImage;
+                let images = [], beforeAfterImage, sizePrice = [];
                 if (req.files['image'] != (null || undefined)) {
                         let docs = req.files['image'];
                         for (let i = 0; i < docs.length; i++) {
@@ -933,7 +933,21 @@ exports.createService = async (req, res) => {
                         const discountPrice = req.body.discountPrice;
                         const discountDifference = price - discountPrice;
                         req.body.discount = Number((discountDifference / price) * 100).toFixed();
+                } else {
+                        if (req.body.multipleSize == 'true') {
+                                for (let i = 0; i < req.body.sizes.length; i++) {
+                                        let obj = {
+                                                size: req.body.sizes[i],
+                                                price: req.body.multiplePrice[i],
+                                                mPrice: req.body.memberPrice[i],
+                                        }
+                                        sizePrice.push(obj)
+                                }
+                        } else {
+                                req.body.size = req.body.size;
+                        }
                 }
+                req.body.sizePrice = sizePrice;
                 req.body.images = images;
                 req.body.beforeAfterImage = beforeAfterImage;
                 const ProductCreated = await services.create(req.body);
@@ -1024,27 +1038,51 @@ exports.paginateServiceSearch = async (req, res) => {
 };
 exports.getServiceByToken = async (req, res, next) => {
         try {
-                const servicesList = await services.find({ categoryId: req.query.categoryId });
-                const servicesWithDynamicFields = [];
-                const userCart = await Cart.findOne({ user: req.user._id });
-                for (const service of servicesList) {
-                        let isInCart = false;
-                        let quantityInCart = 0;
-                        if (userCart) {
-                                const cartItem = userCart.services.find((cartItem) => cartItem.serviceId?.equals(service._id));
-                                if (cartItem) {
-                                        isInCart = true;
-                                        quantityInCart = cartItem.quantity;
+                if (req.query.categoryId != (null || undefined)) {
+                        const servicesList = await services.find({ categoryId: req.query.categoryId });
+                        const servicesWithDynamicFields = [];
+                        const userCart = await Cart.findOne({ user: req.user._id });
+                        for (const service of servicesList) {
+                                let isInCart = false;
+                                let quantityInCart = 0;
+                                if (userCart) {
+                                        const cartItem = userCart.services.find((cartItem) => cartItem.serviceId?.equals(service._id));
+                                        if (cartItem) {
+                                                isInCart = true;
+                                                quantityInCart = cartItem.quantity;
+                                        }
                                 }
+                                const serviceWithDynamicFields = {
+                                        ...service.toObject(),
+                                        isInCart,
+                                        quantityInCart,
+                                };
+                                servicesWithDynamicFields.push(serviceWithDynamicFields);
                         }
-                        const serviceWithDynamicFields = {
-                                ...service.toObject(),
-                                isInCart,
-                                quantityInCart,
-                        };
-                        servicesWithDynamicFields.push(serviceWithDynamicFields);
+                        return res.status(200).json({ status: 200, message: "Services data found.", data: servicesWithDynamicFields, });
+                } else {
+                        const servicesList = await services.find({});
+                        const servicesWithDynamicFields = [];
+                        const userCart = await Cart.findOne({ user: req.user._id });
+                        for (const service of servicesList) {
+                                let isInCart = false;
+                                let quantityInCart = 0;
+                                if (userCart) {
+                                        const cartItem = userCart.services.find((cartItem) => cartItem.serviceId?.equals(service._id));
+                                        if (cartItem) {
+                                                isInCart = true;
+                                                quantityInCart = cartItem.quantity;
+                                        }
+                                }
+                                const serviceWithDynamicFields = {
+                                        ...service.toObject(),
+                                        isInCart,
+                                        quantityInCart,
+                                };
+                                servicesWithDynamicFields.push(serviceWithDynamicFields);
+                        }
+                        return res.status(200).json({ status: 200, message: "Services data found.", data: servicesWithDynamicFields, });
                 }
-                return res.status(200).json({ status: 200, message: "Services data found.", data: servicesWithDynamicFields, });
         } catch (err) {
                 console.log(err);
                 return res.status(500).send({ message: "Internal server error while fetching services" });

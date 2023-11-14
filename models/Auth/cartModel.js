@@ -57,6 +57,18 @@ const cartServiceSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "services"
     },
+    priceId: {
+        type: String,
+    },
+    size: {
+        type: String,
+    },
+    sizePrice: {
+        type: Number,
+    },
+    memberprice: {
+        type: Number,
+    },
     quantity: {
         type: Number,
         default: 1
