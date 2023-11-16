@@ -5,7 +5,7 @@ const cloudinary = require("cloudinary").v2;
 cloudinary.config({ cloud_name: authConfig.cloud_name, api_key: authConfig.api_key, api_secret: authConfig.api_secret, });
 const storage100 = multer.diskStorage({
         destination: function (req, file, cb) {
-                cb(null, "fwdformsforservices/");
+                cb(null, "FormPdf/");
         },
         filename: function (req, file, cb) {
                 cb(null, file.originalname);

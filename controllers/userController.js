@@ -918,6 +918,7 @@ exports.placeOrder = async (req, res) => {
         try {
                 let findUserOrder = await userOrders.findOne({ orderId: req.params.orderId });
                 if (findUserOrder) {
+                        console.log("jsjxmhvdddssssssssssssssssssssssssssssssssssssssssssssssssss");
                         let memberShipPer = 0, offerDiscount = 0;
                         let line_items = [];
                         if (findUserOrder.productOrder != (null || undefined)) {
@@ -1016,15 +1017,14 @@ exports.placeOrder = async (req, res) => {
                                 let discount = 0, total = 0, subTotal = 0;
                                 const data3 = await User.findOne({ _id: req.user._id });
                                 findOrder1.services.forEach((cartProduct) => {
-                                        console.log(cartProduct);
                                         let price;
-                                        if (cartProduct.serviceId.type = 'Service') {
+                                        if (cartProduct.serviceId.type === 'Service') {
                                                 if (cartProduct.serviceId.multipleSize == true) {
                                                         if (data3.isSubscription === true) {
                                                                 cartProduct.total = cartProduct.memberprice * cartProduct.quantity;
                                                                 cartProduct.subTotal = cartProduct.sizePrice * cartProduct.quantity;
                                                                 cartProduct.discount = (cartProduct.sizePrice - cartProduct.memberprice) * cartProduct.quantity;
-                                                                price = cartProduct.memberprice * cartProduct.quantity
+                                                                price = cartProduct.sizePrice * cartProduct.quantity
                                                                 if (!isNaN(price)) {
                                                                         let obj2 = {
                                                                                 price_data: {
@@ -1059,10 +1059,10 @@ exports.placeOrder = async (req, res) => {
                                                         }
                                                 } else {
                                                         if (data3.isSubscription === true) {
-                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                                cartProduct.subTotal = cartProduct.serviceId.mPrice * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.total = cartProduct.serviceId.mPrice * cartProduct.quantity;
                                                                 cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.mPrice) * cartProduct.quantity;
-                                                                price = cartProduct.serviceId.mPrice * cartProduct.quantity
+                                                                price = cartProduct.serviceId.price * cartProduct.quantity
                                                                 if (!isNaN(price)) {
                                                                         let obj2 = {
                                                                                 price_data: {
@@ -1097,11 +1097,11 @@ exports.placeOrder = async (req, res) => {
                                                         }
                                                 }
                                         }
-                                        if (cartProduct.serviceId.type = 'offer') {
+                                        if (cartProduct.serviceId.type === 'offer') {
                                                 cartProduct.total = cartProduct.serviceId.discountPrice * cartProduct.quantity;
                                                 cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
                                                 cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                                                price = cartProduct.serviceId.discountPrice * cartProduct.quantity
+                                                price = cartProduct.serviceId.price * cartProduct.quantity
                                                 if (!isNaN(price)) {
                                                         let obj2 = {
                                                                 price_data: {
@@ -1119,7 +1119,6 @@ exports.placeOrder = async (req, res) => {
                                         subTotal += cartProduct.subTotal;
                                         discount += cartProduct.discount;
                                         total += cartProduct.total;
-                                        console.log(cartProduct.serviceId.name, "----------------------------------------", price);
 
                                 });
                                 findOrder1.AddOnservicesSchema.forEach((cartGift) => {
@@ -1146,6 +1145,7 @@ exports.placeOrder = async (req, res) => {
                                 memberShipPer += findOrder1.memberShip;
                                 offerDiscount = findOrder1.offerDiscount;
                         }
+                        console.log(line_items);
                         if (memberShipPer > 0) {
                                 let amount_off = 0, name;
                                 if (offerDiscount > 0) {
@@ -1659,7 +1659,7 @@ exports.placeOrderApp = async (req, res) => {
                                                 quantity: 1,
                                         }
                                         subTotals = subTotals + price
-                                        console.log("1381", obj2);
+                                        console.log("1662", subTotals);
                                         line_items.push(obj2)
                                 });
                                 findOrder.frequentlyBuyProductSchema.forEach((cartProduct) => {
@@ -1682,7 +1682,7 @@ exports.placeOrderApp = async (req, res) => {
                                                 quantity: 1,
                                         }
                                         subTotals = subTotals + price
-                                        console.log("1433", obj2);
+                                        console.log("1685", subTotals);
                                         line_items.push(obj2)
                                 });
                                 let delivery = Number(findOrder.shipping);
@@ -1697,6 +1697,7 @@ exports.placeOrderApp = async (req, res) => {
                                         quantity: 1,
                                 }
                                 subTotals = subTotals + delivery
+                                console.log("1700", subTotals);
                                 line_items.push(obj3)
                                 memberShipPer += findOrder.memberShip;
                         }
@@ -1720,40 +1721,127 @@ exports.placeOrderApp = async (req, res) => {
                                         quantity: 1,
                                 }
                                 subTotals = subTotals + price
-                                console.log("1469", obj2);
+                                console.log("1700", subTotals);
                                 line_items.push(obj2)
                         }
                         if (findUserOrder.serviceOrder != (null || undefined)) {
                                 let findOrder1 = await serviceOrder.findById({ _id: findUserOrder.serviceOrder }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                                 let discount = 0, total = 0, subTotal = 0;
+                                const data3 = await User.findOne({ _id: req.user._id });
                                 findOrder1.services.forEach((cartProduct) => {
                                         let price;
-                                        if (cartProduct.serviceId.discountActive == true) {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
-                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
-                                                price = cartProduct.serviceId.discountPrice * cartProduct.quantity
-                                        } else {
-                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                        if (cartProduct.serviceId.type === 'Service') {
+                                                if (cartProduct.serviceId.multipleSize == true) {
+                                                        if (data3.isSubscription === true) {
+                                                                cartProduct.total = cartProduct.memberprice * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.sizePrice * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.sizePrice - cartProduct.memberprice) * cartProduct.quantity;
+                                                                price = cartProduct.sizePrice * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)
+                                                                        subTotals = subTotals + price
+                                                                        console.log("1753", subTotals);
+                                                                }
+                                                        } else {
+                                                                cartProduct.total = cartProduct.sizePrice * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.sizePrice * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.sizePrice - cartProduct.sizePrice) * cartProduct.quantity;
+                                                                price = cartProduct.sizePrice * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)                                                                        
+                                                                        subTotals = subTotals + price
+                                                                        console.log("1773", subTotals);
+                                                                }
+                                                        }
+                                                } else {
+                                                        if (data3.isSubscription === true) {
+                                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.total = cartProduct.serviceId.mPrice * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.mPrice) * cartProduct.quantity;
+                                                                price = cartProduct.serviceId.price * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)                                                            
+                                                                        subTotals = subTotals + price
+                                                                        console.log("1795", subTotals);
+                                                                }
+                                                        } else {
+                                                                cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.price) * cartProduct.quantity;
+                                                                price = cartProduct.serviceId.price * cartProduct.quantity
+                                                                if (!isNaN(price)) {
+                                                                        let obj2 = {
+                                                                                price_data: {
+                                                                                        currency: "usd",
+                                                                                        product_data: {
+                                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                                        },
+                                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                                },
+                                                                                quantity: 1,
+                                                                        }
+                                                                        line_items.push(obj2)                                                            
+                                                                        subTotals = subTotals + price
+                                                                        console.log("1815", subTotals);
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                        if (cartProduct.serviceId.type === 'offer') {
+                                                cartProduct.total = cartProduct.serviceId.discountPrice * cartProduct.quantity;
                                                 cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
-                                                cartProduct.discount = 0;
+                                                cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
                                                 price = cartProduct.serviceId.price * cartProduct.quantity
+                                                if (!isNaN(price)) {
+                                                        let obj2 = {
+                                                                price_data: {
+                                                                        currency: "usd",
+                                                                        product_data: {
+                                                                                name: `${cartProduct.serviceId.name}`,
+                                                                        },
+                                                                        unit_amount: `${Math.round(price * 100)}`,
+                                                                },
+                                                                quantity: 1,
+                                                        }
+                                                        line_items.push(obj2)                                                            
+                                                        subTotals = subTotals + price
+                                                        console.log("1838", subTotals);
+                                                }
                                         }
                                         subTotal += cartProduct.subTotal;
                                         discount += cartProduct.discount;
                                         total += cartProduct.total;
-                                        let obj2 = {
-                                                price_data: {
-                                                        currency: "usd",
-                                                        product_data: {
-                                                                name: `${cartProduct.serviceId.name}`,
-                                                        },
-                                                        unit_amount: `${Math.round(price * 100)}`,
-                                                },
-                                                quantity: 1,
-                                        }
-                                        subTotals = subTotals + price
-                                        line_items.push(obj2)
+
                                 });
                                 findOrder1.AddOnservicesSchema.forEach((cartGift) => {
                                         let price;
@@ -1774,12 +1862,73 @@ exports.placeOrderApp = async (req, res) => {
                                                 },
                                                 quantity: 1,
                                         }
-                                        subTotals = subTotals + price
                                         line_items.push(obj2)
+                                        subTotals = subTotals + price
                                 });
                                 memberShipPer += findOrder1.memberShip;
                                 offerDiscount = findOrder1.offerDiscount;
                         }
+
+
+
+
+                        // if (findUserOrder.serviceOrder != (null || undefined)) {
+                        //         let findOrder1 = await serviceOrder.findById({ _id: findUserOrder.serviceOrder }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        //         let discount = 0, total = 0, subTotal = 0;
+                        //         findOrder1.services.forEach((cartProduct) => {
+                        //                 let price;
+                        //                 if (cartProduct.serviceId.discountActive == true) {
+                        //                         cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                        //                         cartProduct.subTotal = cartProduct.serviceId.discountPrice * cartProduct.quantity;
+                        //                         cartProduct.discount = (cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity;
+                        //                         price = cartProduct.serviceId.discountPrice * cartProduct.quantity
+                        //                 } else {
+                        //                         cartProduct.total = cartProduct.serviceId.price * cartProduct.quantity;
+                        //                         cartProduct.subTotal = cartProduct.serviceId.price * cartProduct.quantity;
+                        //                         cartProduct.discount = 0;
+                        //                         price = cartProduct.serviceId.price * cartProduct.quantity
+                        //                 }
+                        //                 subTotal += cartProduct.subTotal;
+                        //                 discount += cartProduct.discount;
+                        //                 total += cartProduct.total;
+                        //                 let obj2 = {
+                        //                         price_data: {
+                        //                                 currency: "usd",
+                        //                                 product_data: {
+                        //                                         name: `${cartProduct.serviceId.name}`,
+                        //                                 },
+                        //                                 unit_amount: `${Math.round(price * 100)}`,
+                        //                         },
+                        //                         quantity: 1,
+                        //                 }
+                        //                 subTotals = subTotals + price
+                        //                 line_items.push(obj2)
+                        //         });
+                        //         findOrder1.AddOnservicesSchema.forEach((cartGift) => {
+                        //                 let price;
+                        //                 cartGift.total = cartGift.addOnservicesId.price * cartGift.quantity;
+                        //                 cartGift.subTotal = cartGift.addOnservicesId.price * cartGift.quantity;
+                        //                 cartGift.discount = 0;
+                        //                 subTotal += cartGift.subTotal;
+                        //                 discount += cartGift.discount;
+                        //                 total += cartGift.total;
+                        //                 price = cartGift.addOnservicesId.price * cartGift.quantity
+                        //                 let obj2 = {
+                        //                         price_data: {
+                        //                                 currency: "usd",
+                        //                                 product_data: {
+                        //                                         name: `${cartGift.addOnservicesId.name}`,
+                        //                                 },
+                        //                                 unit_amount: `${Math.round(price * 100)}`,
+                        //                         },
+                        //                         quantity: 1,
+                        //                 }
+                        //                 subTotals = subTotals + price
+                        //                 line_items.push(obj2)
+                        //         });
+                        //         memberShipPer += findOrder1.memberShip;
+                        //         offerDiscount = findOrder1.offerDiscount;
+                        // }
                         let metadataString = line_items.slice(0, 3).map(item => item.price_data.product_data.name).join(', ');
                         console.log(line_items);
                         const metadata = {
@@ -2545,7 +2694,6 @@ exports.takeSubscriptionFromWebsite = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
-
 exports.addToCart1 = async (req, res, next) => {
         try {
                 const itemType = req.params.type;
