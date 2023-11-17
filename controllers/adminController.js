@@ -962,7 +962,7 @@ exports.createService = async (req, res) => {
 exports.paginateServiceSearch = async (req, res) => {
         try {
                 const { search, fromDate, toDate, categoryId, status, page, limit } = req.query;
-                let query = {};
+                let query = { type: "Service" };
                 if (search) {
                         query.$or = [
                                 { "name": { $regex: req.query.search, $options: "i" }, },
