@@ -644,50 +644,398 @@ exports.getIdProduct = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
+// exports.getIdProductByToken = async (req, res) => {
+//         try {
+//                 const data = await product.findById(req.params.id).populate('brandId');
+//                 if (!data) {
+//                         return res.status(400).send({ msg: "Product not found" });
+//                 } else {
+//                         const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
+//                         if (userData.isSubscription == true) {
+//                                 if (data.multipleSize == true) {
+//                                         let sizePrice = []
+//                                         for (let i = 0; i < data.sizePrice.length; i++) {
+//                                                 let membershipDiscount = parseFloat(data.sizePrice[i].price) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
+//                                                 let membshipPrice = parseFloat(data.sizePrice[i].price) - parseFloat(membershipDiscount).toFixed(2)
+//                                                 let obj = {
+//                                                         size: data.sizePrice[i].size,
+//                                                         price: data.sizePrice[i].price,
+//                                                         stock: data.sizePrice[i].stock,
+//                                                         status: data.sizePrice[i].status,
+//                                                         membershipDiscount: membershipDiscount,
+//                                                         membshipPrice: membshipPrice,
+//                                                         membershipDiscountPer: userData.subscriptionId.discount,
+//                                                 }
+//                                                 sizePrice.push(obj)
+//                                         }
+//                                         let obj = {
+//                                                 brandId: data.brandId,
+//                                                 nutritionId: data.nutritionId,
+//                                                 productTypeId: data.productTypeId,
+//                                                 skinConditionId: data.skinConditionId,
+//                                                 skinTypeId: data.skinTypeId,
+//                                                 name: data.name,
+//                                                 description: data.description,
+//                                                 size: data.size,
+//                                                 sizePrice: sizePrice,
+//                                                 multipleSize: data.multipleSize,
+//                                                 contents: data.contents,
+//                                                 result: data.result,
+//                                                 benfit: data.benfit,
+//                                                 additionalInfo: data.additionalInfo,
+//                                                 howTouse: data.howTouse,
+//                                                 methodToUse: data.methodToUse,
+//                                                 returnPolicy: data.returnPolicy,
+//                                                 keyIngredients: data.keyIngredients,
+//                                                 ingredients: data.ingredients,
+//                                                 price: data.price,
+//                                                 ratings: data.ratings,
+//                                                 productImages: data.productImages,
+//                                                 stock: data.stock,
+//                                                 numOfReviews: data.numOfReviews,
+//                                                 reviews: data.reviews,
+//                                                 status: data.howTouse,
+//                                                 beforeAfterImage: data.beforeAfterImage,
+//                                                 acneType: data.acneType,
+//                                                 considerAcne: data.considerAcne,
+//                                         }
+//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
+//                                         if (findData) {
+//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         } else {
+//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         }
+//                                 } else {
+//                                         console.log("658--------------------------");
+//                                         let sizePrice = [];
+//                                         let membershipDiscount = parseFloat(data.price) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
+//                                         let membshipPrice = parseFloat(data.price) - parseFloat(membershipDiscount).toFixed(2);
+//                                         let obj = {
+//                                                 brandId: data.brandId,
+//                                                 nutritionId: data.nutritionId,
+//                                                 productTypeId: data.productTypeId,
+//                                                 skinConditionId: data.skinConditionId,
+//                                                 skinTypeId: data.skinTypeId,
+//                                                 name: data.name,
+//                                                 description: data.description,
+//                                                 size: data.size,
+//                                                 sizePrice: sizePrice,
+//                                                 multipleSize: data.multipleSize,
+//                                                 contents: data.contents,
+//                                                 result: data.result,
+//                                                 benfit: data.benfit,
+//                                                 additionalInfo: data.additionalInfo,
+//                                                 howTouse: data.howTouse,
+//                                                 methodToUse: data.methodToUse,
+//                                                 returnPolicy: data.returnPolicy,
+//                                                 keyIngredients: data.keyIngredients,
+//                                                 ingredients: data.ingredients,
+//                                                 price: data.price,
+//                                                 ratings: data.ratings,
+//                                                 productImages: data.productImages,
+//                                                 stock: data.stock,
+//                                                 numOfReviews: data.numOfReviews,
+//                                                 reviews: data.reviews,
+//                                                 status: data.howTouse,
+//                                                 beforeAfterImage: data.beforeAfterImage,
+//                                                 acneType: data.acneType,
+//                                                 considerAcne: data.considerAcne,
+//                                                 membershipDiscount: membershipDiscount,
+//                                                 membshipPrice: membshipPrice,
+//                                                 membershipDiscountPer: userData.subscriptionId.discount,
+//                                         }
+//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
+//                                         if (findData) {
+//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         } else {
+//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         }
+//                                 }
+//                         } else {
+//                                 if (data.multipleSize == true) {
+//                                         let sizePrice = []
+//                                         for (let i = 0; i < data.sizePrice.length; i++) {
+//                                                 let obj = {
+//                                                         size: data.sizePrice[i].size,
+//                                                         price: data.sizePrice[i].price,
+//                                                         stock: data.sizePrice[i].stock,
+//                                                         status: data.sizePrice[i].status,
+//                                                         membershipDiscount: 0,
+//                                                         membshipPrice: 0,
+//                                                         membershipDiscountPer: 0,
+//                                                 }
+//                                                 sizePrice.push(obj)
+//                                         }
+//                                         let obj = {
+//                                                 brandId: data.brandId,
+//                                                 nutritionId: data.nutritionId,
+//                                                 productTypeId: data.productTypeId,
+//                                                 skinConditionId: data.skinConditionId,
+//                                                 skinTypeId: data.skinTypeId,
+//                                                 name: data.name,
+//                                                 description: data.description,
+//                                                 size: data.size,
+//                                                 sizePrice: sizePrice,
+//                                                 multipleSize: data.multipleSize,
+//                                                 contents: data.contents,
+//                                                 result: data.result,
+//                                                 benfit: data.benfit,
+//                                                 additionalInfo: data.additionalInfo,
+//                                                 howTouse: data.howTouse,
+//                                                 methodToUse: data.methodToUse,
+//                                                 returnPolicy: data.returnPolicy,
+//                                                 keyIngredients: data.keyIngredients,
+//                                                 ingredients: data.ingredients,
+//                                                 price: data.price,
+//                                                 ratings: data.ratings,
+//                                                 productImages: data.productImages,
+//                                                 stock: data.stock,
+//                                                 numOfReviews: data.numOfReviews,
+//                                                 reviews: data.reviews,
+//                                                 status: data.howTouse,
+//                                                 beforeAfterImage: data.beforeAfterImage,
+//                                                 acneType: data.acneType,
+//                                                 considerAcne: data.considerAcne,
+//                                         }
+//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
+//                                         if (findData) {
+//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         } else {
+//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         }
+//                                         console.log("662--------------------------");
+//                                 } else {
+//                                         console.log("664--------------------------");
+//                                         let sizePrice = [];
+//                                        let obj = {
+//                                                 brandId: data.brandId,
+//                                                 nutritionId: data.nutritionId,
+//                                                 productTypeId: data.productTypeId,
+//                                                 skinConditionId: data.skinConditionId,
+//                                                 skinTypeId: data.skinTypeId,
+//                                                 name: data.name,
+//                                                 description: data.description,
+//                                                 size: data.size,
+//                                                 sizePrice: sizePrice,
+//                                                 multipleSize: data.multipleSize,
+//                                                 contents: data.contents,
+//                                                 result: data.result,
+//                                                 benfit: data.benfit,
+//                                                 additionalInfo: data.additionalInfo,
+//                                                 howTouse: data.howTouse,
+//                                                 methodToUse: data.methodToUse,
+//                                                 returnPolicy: data.returnPolicy,
+//                                                 keyIngredients: data.keyIngredients,
+//                                                 ingredients: data.ingredients,
+//                                                 price: data.price,
+//                                                 ratings: data.ratings,
+//                                                 productImages: data.productImages,
+//                                                 stock: data.stock,
+//                                                 numOfReviews: data.numOfReviews,
+//                                                 reviews: data.reviews,
+//                                                 status: data.howTouse,
+//                                                 beforeAfterImage: data.beforeAfterImage,
+//                                                 acneType: data.acneType,
+//                                                 considerAcne: data.considerAcne,
+//                                                 membershipDiscount: 0,
+//                                                 membshipPrice: 0,
+//                                                 membershipDiscountPer: 0,
+//                                         }
+//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
+//                                         if (findData) {
+//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         } else {
+//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
+//                                                 if (saved) {
+//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
+//                                                 }
+//                                         }
+//                                 }
+//                         }
+
+
+//                         return;
+//                         let membshipPrice = 0;
+//                         let membershipDiscount = 0;
+//                         let membershipDiscountPer = 0;
+//                         if (userData.isSubscription == true) {
+//                                 membershipDiscountPer = userData.subscriptionId.discount;
+//                                 const finalPrice = data.ultipleSize ? data.sizePrice.find((size) => size.status === 'STOCK').price : data.price;
+//                                 membershipDiscount = parseFloat(finalPrice) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
+//                                 membshipPrice = parseFloat(finalPrice) - parseFloat(membershipDiscount).toFixed(2);
+//                         } else {
+//                                 membershipDiscountPer = 0;
+//                                 membershipDiscount = 0;
+//                                 membshipPrice = 0;
+//                         }
+//                         membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
+//                         const serviceWithDynamicFields = {
+//                                 ...data.toObject(),
+//                                 membershipDiscountPer,
+//                                 membershipDiscount,
+//                                 membshipPrice,
+//                         };
+//                         // const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
+//                         // if (findData) {
+//                         //         const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
+//                         //         if (saved) {
+//                         //                 return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
+//                         //         }
+//                         // } else {
+//                         //         const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
+//                         //         if (saved) {
+//                         //                 return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
+//                         //         }
+//                         // }
+//                 }
+//         } catch (err) {
+//                 return res.status(500).send({ msg: "Internal server error", error: err.message });
+//         }
+// };
 exports.getIdProductByToken = async (req, res) => {
         try {
-                const data = await product.findById(req.params.id).populate('brandId');
-                if (!data) {
-                        return res.status(400).send({ msg: "Product not found" });
-                } else {
-                        const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
-                        let membshipPrice = 0;
-                        let membershipDiscount = 0;
-                        let membershipDiscountPer = 0;
-                        if (userData.isSubscription == true) {
-                                membershipDiscountPer = userData.subscriptionId.discount;
-                                const finalPrice = data.multipleSize ? data.sizePrice.find((size) => size.status === 'STOCK').price : data.price;
-                                membershipDiscount = parseFloat(finalPrice) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
-                                membshipPrice = parseFloat(finalPrice) - parseFloat(membershipDiscount).toFixed(2);
-                        } else {
-                                membershipDiscountPer = 0;
-                                membershipDiscount = 0;
-                                membshipPrice = 0;
-                        }
-                        membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
-                        const serviceWithDynamicFields = {
-                                ...data.toObject(),
-                                membershipDiscountPer,
-                                membershipDiscount,
-                                membshipPrice,
-                        };
-                        const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
-                        if (findData) {
-                                const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
-                                if (saved) {
-                                        return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
-                                }
-                        } else {
-                                const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
-                                if (saved) {
-                                        return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
-                                }
-                        }
+                const productId = req.params.id;
+                const productData = await product.findById(productId).populate('brandId');
+
+                if (!productData) {
+                        return res.status(400).json({ msg: "Product not found" });
                 }
+
+                const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
+                const isSubscription = userData.isSubscription || false;
+
+                let sizePrice = [];
+
+                if (productData.multipleSize) {
+                        sizePrice = productData.sizePrice.map(size => {
+                                const membershipDiscount = isSubscription ? size.price * (userData.subscriptionId.discount / 100) : 0;
+                                const membshipPrice = isSubscription ? size.price - membershipDiscount : 0;
+                                return {
+                                        size: size.size,
+                                        price: size.price,
+                                        stock: size.stock,
+                                        status: size.status,
+                                        membershipDiscount,
+                                        membshipPrice,
+                                        membershipDiscountPer: isSubscription ? userData.subscriptionId.discount : 0,
+                                };
+                        });
+                }
+                const productDetails = {
+                        brandId: productData.brandId,
+                        nutritionId: productData.nutritionId,
+                        productTypeId: productData.productTypeId,
+                        skinConditionId: productData.skinConditionId,
+                        skinTypeId: productData.skinTypeId,
+                        name: productData.name,
+                        description: productData.description,
+                        size: productData.size,
+                        multipleSize: productData.multipleSize,
+                        contents: productData.contents,
+                        result: productData.result,
+                        benfit: productData.benfit,
+                        additionalInfo: productData.additionalInfo,
+                        howTouse: productData.howTouse,
+                        methodToUse: productData.methodToUse,
+                        returnPolicy: productData.returnPolicy,
+                        keyIngredients: productData.keyIngredients,
+                        ingredients: productData.ingredients,
+                        price: productData.price,
+                        sizePrice,
+                        ratings: productData.ratings,
+                        productImages: productData.productImages,
+                        stock: productData.stock,
+                        numOfReviews: productData.numOfReviews,
+                        reviews: productData.reviews,
+                        status: productData.howTouse,
+                        beforeAfterImage: productData.beforeAfterImage,
+                        acneType: productData.acneType,
+                        considerAcne: productData.considerAcne,
+                };
+
+                if (!productData.multipleSize) {
+                        productDetails.membershipDiscount = isSubscription ? productData.price * (userData.subscriptionId.discount / 100) : 0;
+                        productDetails.membshipPrice = isSubscription ? productData.price - productDetails.membershipDiscount : 0;
+                        productDetails.membershipDiscountPer = isSubscription ? userData.subscriptionId.discount : 0;
+                }
+
+                const findData = await recentlyView.findOne({ user: req.user._id, products: productData._id });
+                if (findData) {
+                        await recentlyView.findByIdAndUpdate(findData._id, { $set: { products: productData._id } });
+                } else {
+                        await recentlyView.create({ user: req.user._id, products: productData._id, type: "P" });
+                }
+
+                return res.status(200).json({ status: 200, message: "Product data found.", data: productDetails });
         } catch (err) {
-                return res.status(500).send({ msg: "Internal server error", error: err.message });
+                return res.status(500).json({ msg: "Internal server error", error: err.message });
         }
 };
+// exports.getIdProductByToken = async (req, res) => {
+//         try {
+//                 const data = await product.findById(req.params.id).populate('brandId');
+//                 if (!data) {
+//                         return res.status(400).send({ msg: "Product not found" });
+//                 } else {
+//                         const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
+//                         let membshipPrice = 0;
+//                         let membershipDiscount = 0;
+//                         let membershipDiscountPer = 0;
+//                         if (userData.isSubscription == true) {
+//                                 membershipDiscountPer = userData.subscriptionId.discount;
+//                                 const finalPrice = data.multipleSize ? data.sizePrice.find((size) => size.status === 'STOCK').price : data.price;
+//                                 membershipDiscount = parseFloat(finalPrice) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
+//                                 membshipPrice = parseFloat(finalPrice) - parseFloat(membershipDiscount).toFixed(2);
+//                         } else {
+//                                 membershipDiscountPer = 0;
+//                                 membershipDiscount = 0;
+//                                 membshipPrice = 0;
+//                         }
+//                         membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
+//                         const serviceWithDynamicFields = {
+//                                 ...data.toObject(),
+//                                 membershipDiscountPer,
+//                                 membershipDiscount,
+//                                 membshipPrice,
+//                         };
+//                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
+//                         if (findData) {
+//                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
+//                                 if (saved) {
+//                                         return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
+//                                 }
+//                         } else {
+//                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
+//                                 if (saved) {
+//                                         return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
+//                                 }
+//                         }
+//                 }
+//         } catch (err) {
+//                 return res.status(500).send({ msg: "Internal server error", error: err.message });
+//         }
+// };
 exports.editProduct = async (req, res) => {
         try {
                 const data = await product.findById(req.params.id);
