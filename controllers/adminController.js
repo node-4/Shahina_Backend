@@ -1137,7 +1137,7 @@ exports.editService = async (req, res) => {
                                 let docs = req.files['image'];
                                 for (let i = 0; i < docs.length; i++) {
                                         let obj = {
-                                                img: req.files[i].path
+                                                img: docs[i].path
                                         }
                                         images.push(obj)
                                 }
@@ -1150,7 +1150,7 @@ exports.editService = async (req, res) => {
                         } else {
                                 beforeAfterImage = data.beforeAfterImage
                         }
-                        let price = 0,mPrice=0, discount = 0, discountPrice = 0;
+                        let price = 0, mPrice = 0, discount = 0, discountPrice = 0;
                         if (req.body.type != (null || undefined) && (req.body.type == 'offer')) {
                                 if ((req.body.price != (null || undefined)) && (req.body.discountPrice != (null || undefined))) {
                                         const price1 = req.body.price;
@@ -1177,11 +1177,11 @@ exports.editService = async (req, res) => {
                                         if (req.body.price != (null || undefined)) {
                                                 price = req.body.price;
                                                 mPrice = req.body.mPrice,
-                                                discountPrice = 0;
+                                                        discountPrice = 0;
                                                 discount = 0;
                                         } else {
                                                 price = data.price;
-                                                mPrice= data.mPrice;
+                                                mPrice = data.mPrice;
                                                 discountPrice = data.discountPrice;
                                                 discount = data.discount;
                                         }
@@ -1207,6 +1207,7 @@ exports.editService = async (req, res) => {
                         return res.status(200).json({ status: 200, message: "Service update successfully.", data: data1 });
                 }
         } catch (err) {
+                console.log(err);
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
