@@ -279,7 +279,7 @@ module.exports = {
       fcm.send(message, function (err, response) {
         if (err) {
           console.log(">>>>>>>>>>", err)
-          return reject(err)
+          return resolve(err);
         } else {
           console.log(">>>>>>>>>response", response)
           return resolve(response);
