@@ -1003,7 +1003,7 @@ exports.paginateServiceSearch = async (req, res) => {
 exports.getServiceByToken = async (req, res, next) => {
         try {
                 if (req.query.categoryId != (null || undefined)) {
-                        const servicesList = await services.find({ categoryId: req.query.categoryId });
+                        const servicesList = await services.find({ categoryId: req.query.categoryId, type: "Service" });
                         const servicesWithDynamicFields = [];
                         const userCart = await Cart.findOne({ user: req.user._id });
                         for (const service of servicesList) {
@@ -1025,7 +1025,7 @@ exports.getServiceByToken = async (req, res, next) => {
                         }
                         return res.status(200).json({ status: 200, message: "Services data found.", data: servicesWithDynamicFields, });
                 } else {
-                        const servicesList = await services.find({});
+                        const servicesList = await services.find({ type: "Service" });
                         const servicesWithDynamicFields = [];
                         const userCart = await Cart.findOne({ user: req.user._id });
                         for (const service of servicesList) {
