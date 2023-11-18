@@ -481,101 +481,150 @@ exports.removeSkinType = async (req, res) => {
 };
 exports.createProduct = async (req, res) => {
         try {
-                if (req.body.brandId != (null || undefined)) {
-                        const data0 = await Brand.findById(req.body.brandId);
-                        if (!data0 || data0.length === 0) {
-                                return res.status(400).send({ status: 404, msg: "Brand not found" });
-                        }
+                const nutritionIds = req.body.nutritionId;
+                const productTypeIds = req.body.productTypeId;
+                const skinConditionIds = req.body.skinConditionId;
+                const skinTypeIds = req.body.skinTypeId;
+                const brandIds = req.body.brandId;
+                if (!nutritionIds || !productTypeIds || !skinConditionIds || !skinTypeIds || !brandIds ||
+                        !nutritionIds.length || !productTypeIds.length || !skinConditionIds.length || !skinTypeIds.length || !brandIds.length) {
+                        return res.status(400).send({ status: 400, msg: "Arrays (nutritionId, productTypeId, skinConditionId, skinTypeId, brandId) are required" });
                 }
-                if (req.body.nutritionId != (null || undefined)) {
-                        const data1 = await Nutrition.findById(req.body.nutritionId);
-                        if (!data1 || data1.length === 0) {
-                                return res.status(400).send({ status: 404, msg: "Nutrition not found" });
+                const productPromises = [];
+                for (const brandId of brandIds) {
+                        const data5 = await Brand.findById(brandId);
+                        if (!data5 || data5.length === 0) {
+                                return res.status(400).send({ status: 404, msg: `Brand with ID ${brandId} not found` });
                         }
+                        req.body.brandId = brandId;
+                        req.body.nutritionId = null;
+                        req.body.skinTypeId = null;
+                        req.body.productTypeId = null;
+                        req.body.skinConditionId = null;
+                        const constructedProductData = constructProductData(req);
+                        const productCreated = await product.create(constructedProductData);
+                        productPromises.push(productCreated);
                 }
-                if (req.body.productTypeId != (null || undefined)) {
-                        const data2 = await ProductType.findById(req.body.productTypeId);
-                        if (!data2 || data2.length === 0) {
-                                return res.status(400).send({ status: 404, msg: "ProductType not found" });
-                        }
-                }
-                if (req.body.skinConditionId != (null || undefined)) {
-                        const data3 = await SkinCondition.findById(req.body.skinConditionId);
-                        if (!data3 || data3.length === 0) {
-                                return res.status(400).send({ status: 404, msg: "SkinCondition not found" });
-                        }
-                }
-                if (req.body.skinTypeId != (null || undefined)) {
-                        const data4 = await SkinType.findById(req.body.skinTypeId);
+                for (const skinTypeId of skinTypeIds) {
+                        const data4 = await SkinType.findById(skinTypeId);
                         if (!data4 || data4.length === 0) {
-                                return res.status(400).send({ status: 404, msg: "SkinType not found" });
+                                return res.status(400).send({ status: 404, msg: `SkinType with ID ${skinTypeId} not found` });
                         }
+                        req.body.skinTypeId = skinTypeId;
+                        req.body.nutritionId = null;
+                        req.body.brandId = null;
+                        req.body.productTypeId = null;
+                        req.body.skinConditionId = null;
+                        const constructedProductData = constructProductData(req);
+                        const productCreated = await product.create(constructedProductData);
+                        productPromises.push(productCreated);
                 }
-                let productImages = [], result = [], howTouse = [], additionalInfo = [], sizePrice = [];
-                if (req.files['image'] != (null || undefined)) {
-                        let docs = req.files['image'];
-                        for (let i = 0; i < docs.length; i++) {
-                                let obj = {
-                                        image: docs[i].path
-                                }
-                                productImages.push(obj)
+                for (const skinConditionId of skinConditionIds) {
+                        const data3 = await SkinCondition.findById(skinConditionId);
+                        if (!data3 || data3.length === 0) {
+                                return res.status(400).send({ status: 404, msg: `SkinCondition with ID ${skinConditionId} not found` });
                         }
+                        req.body.skinConditionId = skinConditionId;
+                        req.body.nutritionId = null;
+                        req.body.skinTypeId = null;
+                        req.body.productTypeId = null;
+                        req.body.brandId = null;
+                        const constructedProductData = constructProductData(req);
+                        const productCreated = await product.create(constructedProductData);
+                        productPromises.push(productCreated);
                 }
-                if (req.files['result'] != (null || undefined)) {
-                        let docs = req.files['result'];
-                        for (let i = 0; i < docs.length; i++) {
-                                result.push(docs[i].path)
+                for (const productTypeId of productTypeIds) {
+                        const data2 = await ProductType.findById(productTypeId);
+                        if (!data2 || data2.length === 0) {
+                                return res.status(400).send({ status: 404, msg: `ProductType with ID ${productTypeId} not found` });
                         }
+                        req.body.productTypeId = productTypeId;
+                        req.body.nutritionId = null;
+                        req.body.skinTypeId = null;
+                        req.body.brandId = null;
+                        req.body.skinConditionId = null;
+                        const constructedProductData = constructProductData(req);
+                        const productCreated = await product.create(constructedProductData);
+                        productPromises.push(productCreated);
                 }
-                if (req.body.step != undefined) {
-                        for (let i = 0; i < req.body.step.length; i++) {
-                                let obj = {
-                                        step: req.body.step[i],
-                                        description: req.body.stepDescription[i]
-                                }
-                                howTouse.push(obj)
+                for (const nutritionId of nutritionIds) {
+                        const data0 = await Nutrition.findById(nutritionId);
+                        if (!data0 || data0.length === 0) {
+                                return res.status(400).send({ status: 404, msg: `Nutrition with ID ${nutritionId} not found` });
                         }
+                        req.body.nutritionId = nutritionId;
+                        req.body.brandId = null;
+                        req.body.skinTypeId = null;
+                        req.body.productTypeId = null;
+                        req.body.skinConditionId = null;
+                        const constructedProductData = constructProductData(req);
+                        const productCreated = await product.create(constructedProductData);
+                        productPromises.push(productCreated);
                 }
-                if (req.body.title != undefined) {
-                        for (let i = 0; i < req.body.title.length; i++) {
-                                let obj = {
-                                        title: req.body.title[i],
-                                        description: req.body.addDescription[i]
-                                }
-                                additionalInfo.push(obj)
-                        }
-                }
-                if (req.body.stock > 0) { req.body.status = "STOCK" }
-                if (req.body.stock <= 0) { req.body.status = "OUTOFSTOCK" }
-                if (req.body.multipleSize == 'true') {
-                        for (let i = 0; i < req.body.sizes.length; i++) {
-                                let status;
-                                if (req.body.multipleStock[i] > 0) { status = "STOCK" }
-                                if (req.body.multipleStock[i] <= 0) { status = "OUTOFSTOCK" }
-                                let obj = {
-                                        size: req.body.sizes[i],
-                                        price: req.body.multiplePrice[i],
-                                        stock: req.body.multipleStock[i],
-                                        status: status
-                                }
-                                sizePrice.push(obj)
-                        }
-                } else {
-                        req.body.size = req.body.size;
-                }
-                req.body.howTouse = howTouse;
-                req.body.additionalInfo = additionalInfo;
-                req.body.productImages = productImages;
-                req.body.sizePrice = sizePrice;
-                req.body.result = result;
-                const ProductCreated = await product.create(req.body);
-                if (ProductCreated) {
-                        return res.status(201).send({ status: 200, message: "Product add successfully", data: ProductCreated, });
-                }
+                const products = await Promise.all(productPromises);
+                return res.status(201).send({ status: 200, message: "Products added successfully", data: products });
         } catch (err) {
                 console.log(err);
-                return res.status(500).send({ message: "Internal server error while creating Product", });
+                return res.status(500).send({ message: "Internal server error while creating Products" });
         }
+};
+const constructProductData = (body) => {
+        let productImages = [], result = [], howTouse = [], additionalInfo = [], sizePrice = [];
+        if (body.files['image'] !== (null || undefined)) {
+                let docs = body.files['image'];
+                for (let i = 0; i < docs.length; i++) {
+                        let obj = {
+                                image: docs[i].path
+                        };
+                        productImages.push(obj);
+                }
+        }
+        if (body.files['result'] !== (null || undefined)) {
+                let docs = body.files['result'];
+                for (let i = 0; i < docs.length; i++) {
+                        result.push(docs[i].path);
+                }
+        }
+        if (body.body.step !== undefined) {
+                for (let i = 0; i < body.body.step.length; i++) {
+                        let obj = {
+                                step: body.body.step[i],
+                                description: body.body.stepDescription[i]
+                        };
+                        howTouse.push(obj);
+                }
+        }
+        if (body.body.title !== undefined) {
+                additionalInfo = body.body.title.map((title, i) => ({
+                        title,
+                        description: body.body.addDescription[i]
+                }));
+        }
+        const status = (stock) => stock > 0 ? "STOCK" : "OUTOFSTOCK";
+        if (body.body.stock > 0) {
+                body.body.status = status(body.body.stock);
+        } else {
+                body.body.status = status(body.body.stock);
+        }
+        if (body.body.multipleSize === 'true') {
+                sizePrice = body.body.sizes.map((size, i) => {
+                        const sizeStatus = status(body.body.multipleStock[i]);
+                        return {
+                                size,
+                                price: body.body.multiplePrice[i],
+                                stock: body.body.multipleStock[i],
+                                status: sizeStatus
+                        };
+                });
+        } else {
+                body.body.size = body.body.size;
+        }
+        body.body.howTouse = howTouse;
+        body.body.additionalInfo = additionalInfo;
+        body.body.productImages = productImages;
+        body.body.sizePrice = sizePrice;
+        body.body.result = result;
+        return body.body;
 };
 exports.paginateProductSearch = async (req, res) => {
         try {
@@ -1095,7 +1144,6 @@ exports.editProduct = async (req, res) => {
                                 }
                                 howTouse.push(obj)
                         }
-
                         if (req.body.title != undefined) {
                                 for (let i = 0; i < req.body.title.length; i++) {
                                         let obj = {
