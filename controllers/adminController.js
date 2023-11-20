@@ -3215,6 +3215,10 @@ exports.addToCart = async (req, res, next) => {
                                 }
                         }
                 }
+                const d = new Date(req.body.date);
+                let text = d.toISOString();
+                cart.time = req.body.time;
+                cart.date = text;
                 await cart.save();
                 return res.status(200).json({ msg: `${itemType} added to cart`, data: cart });
         } catch (error) {
