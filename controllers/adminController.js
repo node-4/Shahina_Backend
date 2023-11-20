@@ -3124,9 +3124,9 @@ exports.addToCart = async (req, res, next) => {
                 if (!itemData) {
                         return res.status(400).send({ msg: `${itemType} not found` });
                 }
-                let cart = await Cart.findOne({ user: req.params.userId });
+                let cart = await Cart.findOne({ user: req.body.userId });
                 if (!cart) {
-                        cart = await Cart.create({ user: req.params.userId });
+                        cart = await Cart.create({ user: req.body.userId });
                 }
                 const cartField = getCartFieldByItemType(itemType)
                 if (req.body.priceId != (null || undefined)) {
