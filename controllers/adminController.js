@@ -1179,7 +1179,7 @@ exports.editProduct = async (req, res) => {
                                 skinTypeId: req.body.skinTypeId || data.skinTypeId,
                                 name: req.body.name || data.name,
                                 description: req.body.description || data.description,
-                                additionalInfoadditionalInfo: additionalInfoadditionalInfo || data.additionalInfoadditionalInfo,
+                                additionalInfo: additionalInfo || data.additionalInfo,
                                 howTouse: howTouse || data.howTouse,
                                 ingredients: req.body.ingredients || data.ingredients,
                                 price: req.body.price || data.price,
