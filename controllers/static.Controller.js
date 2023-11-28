@@ -327,3 +327,34 @@ exports.getReturnPrivacy = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+exports.createMembershipTerm = async (req, res) => {
+        try {
+                const data = await staticContent.findOne({ type: "MEMBERSHIPTERM" });
+                if (!data) {
+                        if (!req.body.privacy) {
+                                return res.status(400).send("please specify privacy");
+                        }
+                        const result = await staticContent.create({ terms: req.body.terms, type: "MEMBERSHIPTERM" });
+                        return res.status(200).json({ status: 200, message: "Data create successfully.", data: result });
+                } else {
+                        let terms = req.body.terms || data.terms;
+                        const data1 = await staticContent.findByIdAndUpdate({ _id: data._id }, { terms: terms, type: data.type }, { new: true, });
+                        return res.status(200).json({ status: 200, message: "update successfully.", data: data1 });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getMembershipTerm = async (req, res) => {
+        try {
+                const data = await staticContent.find({ type: "MEMBERSHIPTERM" });
+                if (!data || data.length === 0) {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+                return res.status(200).json({ status: 200, message: "Data found successfully.", data: data });
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};

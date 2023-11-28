@@ -32,6 +32,7 @@ const addOnservices = require("../models/Service/addOnservices");
 const giftCard = require("../models/giftCard");
 const giftPrice = require("../models/giftPrice");
 const memshipCancel = require("../models/memshipCancel");
+const userCard = require("../models/userCard");
 const recentlyView = require("../models/recentlyView");
 const moment = require("moment")
 const commonFunction = require("../middlewares/commonFunction");
@@ -1768,7 +1769,7 @@ exports.placeOrderApp = async (req, res) => {
                                                                                 },
                                                                                 quantity: 1,
                                                                         }
-                                                                        line_items.push(obj2)                                                                        
+                                                                        line_items.push(obj2)
                                                                         subTotals = subTotals + price
                                                                         console.log("1773", subTotals);
                                                                 }
@@ -1790,7 +1791,7 @@ exports.placeOrderApp = async (req, res) => {
                                                                                 },
                                                                                 quantity: 1,
                                                                         }
-                                                                        line_items.push(obj2)                                                            
+                                                                        line_items.push(obj2)
                                                                         subTotals = subTotals + price
                                                                         console.log("1795", subTotals);
                                                                 }
@@ -1810,7 +1811,7 @@ exports.placeOrderApp = async (req, res) => {
                                                                                 },
                                                                                 quantity: 1,
                                                                         }
-                                                                        line_items.push(obj2)                                                            
+                                                                        line_items.push(obj2)
                                                                         subTotals = subTotals + price
                                                                         console.log("1815", subTotals);
                                                                 }
@@ -1833,7 +1834,7 @@ exports.placeOrderApp = async (req, res) => {
                                                                 },
                                                                 quantity: 1,
                                                         }
-                                                        line_items.push(obj2)                                                            
+                                                        line_items.push(obj2)
                                                         subTotals = subTotals + price
                                                         console.log("1838", subTotals);
                                                 }
@@ -4671,6 +4672,84 @@ exports.checkoutApp = async (req, res) => {
                 }
         } catch (error) {
                 console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.createPaymentCard = async (req, res, next) => {
+        try {
+                const data = await User.findOne({ _id: req.user._id, });
+                if (data) {
+                        const saveData = {
+                                user: req.user._id,
+                                name: req.body.name,
+                                number: req.body.number,
+                                month: req.body.month,
+                                year: req.body.year,
+                                cvv: req.body.cvv,
+                                cardType: req.body.cardType,
+                        };
+                        const saved = await userCard.create(saveData);
+                        return res.status(200).json({ status: 200, message: "Card details saved.", data: saved })
+                } else {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getPaymentCard = async (req, res, next) => {
+        try {
+                const data = await User.findOne({ _id: req.user._id, });
+                if (data) {
+                        const getData = await userCard.find({ user: req.user._id });
+                        return res.status(200).json({ status: 200, message: "Card details fetch.", data: getData })
+                } else {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.updatePaymentCard = async (req, res, next) => {
+        try {
+                const data = await User.findOne({ _id: req.user._id, });
+                if (data) {
+                        const payment = await userCard.findById(req.params.id);
+                        if (!payment) {
+                                return res.status(404).json({ status: 404, message: "Card details not fetch", data: {} });
+                        } else {
+                                let obj = {
+                                        name: req.body.name || payment.name,
+                                        number: req.body.number || payment.number,
+                                        month: req.body.month || payment.month,
+                                        year: req.body.year || payment.year,
+                                        cvv: req.body.cvv || payment.cvv,
+                                        cardType: req.body.cardType || payment.cardType,
+                                }
+                                let saved = await userCard.findByIdAndUpdate(payment._id, { obj }, { new: true });
+                                return res.status(200).json({ status: 200, message: "Card details Updated Successfully.", data: saved })
+                        }
+                } else {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+        } catch (err) {
+                console.log(err);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.DeletePaymentCard = async (req, res, next) => {
+        try {
+                const payment = await userCard.findById(req.params.id);
+                if (!payment) {
+                        return res.status(404).json({ status: 404, message: "Card details not fetch", data: {} });
+                } else {
+                        const data = await userCard.findByIdAndDelete({ _id: payment._id, });
+                        return res.status(200).json({ status: 200, message: "Card details Delete Successfully.", data: {} })
+                }
+        } catch (err) {
+                console.log(err);
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };

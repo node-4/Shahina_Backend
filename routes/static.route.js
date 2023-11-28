@@ -29,4 +29,6 @@ module.exports = (app) => {
         app.get('/api/v1/static/getReturnPrivacy', staticContent.getReturnPrivacy);
         app.post('/api/v1/static/createShippingPrivacy', [authJwt.verifyToken], staticContent.createShippingPrivacy);
         app.get('/api/v1/static/getShippingPrivacy', staticContent.getShippingPrivacy);
+        app.post('/api/v1/static/createMembershipTerm', [authJwt.verifyToken], staticContent.createMembershipTerm);
+        app.get('/api/v1/static/getMembershipTerm', staticContent.getMembershipTerm);
 }
