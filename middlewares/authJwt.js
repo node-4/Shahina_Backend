@@ -13,7 +13,7 @@ const verifyToken = (req, res, next) => {
     jwt.verify(token, authConfig.secret, async (err, decoded) => {
         if (err) {
             console.log(err);
-            return res.status(401).send({ message: "Session has been expired! !", });
+            return res.status(401).send({ message: "Please Login to Continue!!", });
         }
         const user = await User.findOne({ _id: decoded.id });
         const user1 = await User.findOne({ _id: decoded.id });
