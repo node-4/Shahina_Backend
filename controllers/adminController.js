@@ -25,6 +25,7 @@ const ingredients = require("../models/ingredients");
 const giftCard = require("../models/giftCard");
 const giftPrice = require("../models/giftPrice");
 const Cart = require("../models/Auth/cartModel");
+const userOrders = require("../models/Auth/userOrders");
 const slot = require("../models/slot");
 const shippingCharges = require("../models/shippingCharges");
 const acneQuiz = require("../models/acneQuiz");
@@ -3082,8 +3083,9 @@ exports.updateServiceStatus = async (req, res, next) => {
                 if (!orders) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
-                let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { serviceStatus: "Done" } }, { new: true });
+                let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { serviceStatus: "Done", paymentStatus: "paid" } }, { new: true });
                 if (update) {
+                        let update3 = await userOrders.findOneAndUpdate({ orderId: orders.orderId }, { $set: { serviceStatus: "Done", servicePaymentStatus: "paid" } }, { new: true });
                         return res.status(200).json({ status: 200, msg: "Order Status update", data: update })
                 }
         } catch (error) {

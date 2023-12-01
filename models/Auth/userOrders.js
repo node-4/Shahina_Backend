@@ -50,6 +50,11 @@ const DocumentSchema = schema({
     enum: ["pending", "paid", "failed"],
     default: "pending"
   },
+  servicePaymentStatus: {
+    type: String,
+    enum: ["pending", "paid", "failed"],
+    default: "pending"
+  },
 }, { timestamps: true })
 DocumentSchema.plugin(mongoosePaginate);
 DocumentSchema.plugin(mongooseAggregatePaginate);
