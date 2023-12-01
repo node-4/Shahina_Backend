@@ -2501,9 +2501,9 @@ exports.getIngredientsBytype = async (req, res) => {
 exports.checkIngredient = async (req, res) => {
         const categories = await ingredients.findOne({ name: req.params.name });
         if (categories) {
-                return res.status(200).json({ message: "A Unfortunately, there is a comedogenic ingredient.", status: 200, data: categories, });
+                return res.status(200).json({ message: "Oops, Product is not safe for your skin.", status: 200, data: categories, });
         } else {
-                return res.status(200).json({ message: "Congratuations! This product does not have any comedogenic ingredient.", status: 200, data: {}, });
+                return res.status(200).json({ message: "Congratulations, Product is safe for your skin.", status: 200, data: {}, });
         }
 
 };
