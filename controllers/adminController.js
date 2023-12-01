@@ -29,7 +29,6 @@ const userOrders = require("../models/Auth/userOrders");
 const slot = require("../models/slot");
 const shippingCharges = require("../models/shippingCharges");
 const acneQuiz = require("../models/acneQuiz");
-const userOrders = require("../models/Auth/userOrders");
 const acneQuizSuggession = require("../models/acneQuizSuggession");
 const frequentlyBuyProduct = require("../models/frequentlyBuyProduct");
 const addOnservices = require("../models/Service/addOnservices");
