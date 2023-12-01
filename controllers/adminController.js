@@ -3061,6 +3061,36 @@ exports.getServiceOrderbyId = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+exports.updateDeliveryStatus = async (req, res, next) => {
+        try {
+                const orders = await productOrder.findById({ _id: req.params.id });
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                let update = await productOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { deliveryStatus: "Done" } }, { new: true });
+                if (update) {
+                        return res.status(200).json({ status: 200, msg: "Order Status update", data: update })
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.updateServiceStatus = async (req, res, next) => {
+        try {
+                const orders = await serviceOrder.findById({ _id: req.params.id });
+                if (!orders) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { serviceStatus: "Done" } }, { new: true });
+                if (update) {
+                        return res.status(200).json({ status: 200, msg: "Order Status update", data: update })
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
 // public
 // const client = new SendleClient({
 //         sendleId: 'shahina_hoja_gmail_c',
