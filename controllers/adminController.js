@@ -486,80 +486,86 @@ exports.createProduct = async (req, res) => {
                 const skinConditionIds = req.body.skinConditionId;
                 const skinTypeIds = req.body.skinTypeId;
                 const brandIds = req.body.brandId;
-                if (!nutritionIds || !productTypeIds || !skinConditionIds || !skinTypeIds || !brandIds ||
-                        !nutritionIds.length || !productTypeIds.length || !skinConditionIds.length || !skinTypeIds.length || !brandIds.length) {
-                        return res.status(400).send({ status: 400, msg: "Arrays (nutritionId, productTypeId, skinConditionId, skinTypeId, brandId) are required" });
-                }
                 const productPromises = [];
-                for (const brandId of brandIds) {
-                        const data5 = await Brand.findById(brandId);
-                        if (!data5 || data5.length === 0) {
-                                return res.status(400).send({ status: 404, msg: `Brand with ID ${brandId} not found` });
+                if (brandIds || brandIds.length > 0) {
+                        for (const brandId of brandIds) {
+                                const data5 = await Brand.findById(brandId);
+                                if (!data5 || data5.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: `Brand with ID ${brandId} not found` });
+                                }
+                                req.body.brandId = brandId;
+                                req.body.nutritionId = null;
+                                req.body.skinTypeId = null;
+                                req.body.productTypeId = null;
+                                req.body.skinConditionId = null;
+                                const constructedProductData = constructProductData(req);
+                                const productCreated = await product.create(constructedProductData);
+                                productPromises.push(productCreated);
                         }
-                        req.body.brandId = brandId;
-                        req.body.nutritionId = null;
-                        req.body.skinTypeId = null;
-                        req.body.productTypeId = null;
-                        req.body.skinConditionId = null;
-                        const constructedProductData = constructProductData(req);
-                        const productCreated = await product.create(constructedProductData);
-                        productPromises.push(productCreated);
                 }
-                for (const skinTypeId of skinTypeIds) {
-                        const data4 = await SkinType.findById(skinTypeId);
-                        if (!data4 || data4.length === 0) {
-                                return res.status(400).send({ status: 404, msg: `SkinType with ID ${skinTypeId} not found` });
+                if (skinTypeIds || skinTypeIds.length > 0) {
+                        for (const skinTypeId of skinTypeIds) {
+                                const data4 = await SkinType.findById(skinTypeId);
+                                if (!data4 || data4.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: `SkinType with ID ${skinTypeId} not found` });
+                                }
+                                req.body.skinTypeId = skinTypeId;
+                                req.body.nutritionId = null;
+                                req.body.brandId = null;
+                                req.body.productTypeId = null;
+                                req.body.skinConditionId = null;
+                                const constructedProductData = constructProductData(req);
+                                const productCreated = await product.create(constructedProductData);
+                                productPromises.push(productCreated);
                         }
-                        req.body.skinTypeId = skinTypeId;
-                        req.body.nutritionId = null;
-                        req.body.brandId = null;
-                        req.body.productTypeId = null;
-                        req.body.skinConditionId = null;
-                        const constructedProductData = constructProductData(req);
-                        const productCreated = await product.create(constructedProductData);
-                        productPromises.push(productCreated);
                 }
-                for (const skinConditionId of skinConditionIds) {
-                        const data3 = await SkinCondition.findById(skinConditionId);
-                        if (!data3 || data3.length === 0) {
-                                return res.status(400).send({ status: 404, msg: `SkinCondition with ID ${skinConditionId} not found` });
+                if (skinConditionIds || skinConditionIds.length > 0) {
+                        for (const skinConditionId of skinConditionIds) {
+                                const data3 = await SkinCondition.findById(skinConditionId);
+                                if (!data3 || data3.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: `SkinCondition with ID ${skinConditionId} not found` });
+                                }
+                                req.body.skinConditionId = skinConditionId;
+                                req.body.nutritionId = null;
+                                req.body.skinTypeId = null;
+                                req.body.productTypeId = null;
+                                req.body.brandId = null;
+                                const constructedProductData = constructProductData(req);
+                                const productCreated = await product.create(constructedProductData);
+                                productPromises.push(productCreated);
                         }
-                        req.body.skinConditionId = skinConditionId;
-                        req.body.nutritionId = null;
-                        req.body.skinTypeId = null;
-                        req.body.productTypeId = null;
-                        req.body.brandId = null;
-                        const constructedProductData = constructProductData(req);
-                        const productCreated = await product.create(constructedProductData);
-                        productPromises.push(productCreated);
                 }
-                for (const productTypeId of productTypeIds) {
-                        const data2 = await ProductType.findById(productTypeId);
-                        if (!data2 || data2.length === 0) {
-                                return res.status(400).send({ status: 404, msg: `ProductType with ID ${productTypeId} not found` });
+                if (productTypeIds || productTypeIds.length > 0) {
+                        for (const productTypeId of productTypeIds) {
+                                const data2 = await ProductType.findById(productTypeId);
+                                if (!data2 || data2.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: `ProductType with ID ${productTypeId} not found` });
+                                }
+                                req.body.productTypeId = productTypeId;
+                                req.body.nutritionId = null;
+                                req.body.skinTypeId = null;
+                                req.body.brandId = null;
+                                req.body.skinConditionId = null;
+                                const constructedProductData = constructProductData(req);
+                                const productCreated = await product.create(constructedProductData);
+                                productPromises.push(productCreated);
                         }
-                        req.body.productTypeId = productTypeId;
-                        req.body.nutritionId = null;
-                        req.body.skinTypeId = null;
-                        req.body.brandId = null;
-                        req.body.skinConditionId = null;
-                        const constructedProductData = constructProductData(req);
-                        const productCreated = await product.create(constructedProductData);
-                        productPromises.push(productCreated);
                 }
-                for (const nutritionId of nutritionIds) {
-                        const data0 = await Nutrition.findById(nutritionId);
-                        if (!data0 || data0.length === 0) {
-                                return res.status(400).send({ status: 404, msg: `Nutrition with ID ${nutritionId} not found` });
+                if (nutritionIds || nutritionIds.length > 0) {
+                        for (const nutritionId of nutritionIds) {
+                                const data0 = await Nutrition.findById(nutritionId);
+                                if (!data0 || data0.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: `Nutrition with ID ${nutritionId} not found` });
+                                }
+                                req.body.nutritionId = nutritionId;
+                                req.body.brandId = null;
+                                req.body.skinTypeId = null;
+                                req.body.productTypeId = null;
+                                req.body.skinConditionId = null;
+                                const constructedProductData = constructProductData(req);
+                                const productCreated = await product.create(constructedProductData);
+                                productPromises.push(productCreated);
                         }
-                        req.body.nutritionId = nutritionId;
-                        req.body.brandId = null;
-                        req.body.skinTypeId = null;
-                        req.body.productTypeId = null;
-                        req.body.skinConditionId = null;
-                        const constructedProductData = constructProductData(req);
-                        const productCreated = await product.create(constructedProductData);
-                        productPromises.push(productCreated);
                 }
                 const products = await Promise.all(productPromises);
                 return res.status(201).send({ status: 200, message: "Products added successfully", data: products });
