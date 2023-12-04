@@ -571,7 +571,7 @@ exports.createProduct = async (req, res) => {
                 return res.status(201).send({ status: 200, message: "Products added successfully", data: products });
         } catch (err) {
                 console.log(err);
-                return res.status(500).send({ message: "Internal server error while creating Products" });
+                return res.status(500).send({ message: "Internal server error while creating Products", data: err });
         }
 };
 const constructProductData = (body) => {
