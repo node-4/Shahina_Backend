@@ -331,7 +331,7 @@ exports.createMembershipTerm = async (req, res) => {
         try {
                 const data = await staticContent.findOne({ type: "MEMBERSHIPTERM" });
                 if (!data) {
-                        if (!req.body.privacy) {
+                        if (!req.body.terms) {
                                 return res.status(400).send("please specify privacy");
                         }
                         const result = await staticContent.create({ terms: req.body.terms, type: "MEMBERSHIPTERM" });
@@ -348,7 +348,7 @@ exports.createMembershipTerm = async (req, res) => {
 };
 exports.getMembershipTerm = async (req, res) => {
         try {
-                const data = await staticContent.find({ type: "MEMBERSHIPTERM" });
+                const data = await staticContent.findOne({ type: "MEMBERSHIPTERM" });
                 if (!data || data.length === 0) {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
