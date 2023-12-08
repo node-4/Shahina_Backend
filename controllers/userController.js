@@ -4753,3 +4753,29 @@ exports.DeletePaymentCard = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+exports.savecard = async (req, res, next) => {
+        try {
+                const { email, cardNumber, expMonth, expYear, cvc } = req.body;
+                stripe.tokens.create({ card: { number: cardNumber, exp_month: expMonth, exp_year: expYear, cvc: cvc, } }).then(async (cardToken) => {
+
+
+                        console.log(cardToken);
+                        return
+                        const customer = await stripe.customers.list({ email });
+                        if (customer.data.length > 0) {
+                                const updatedCustomer = await stripe.customers.update(customer.data[0].id, { source: cardToken, });
+                                return res.json({ message: 'Card updated successfully!', customer: updatedCustomer });
+                        } else {
+                                const newCustomer = await stripe.customers.create({ email, source: cardToken, });
+                                return res.json({ message: 'Card saved successfully!', customer: newCustomer });
+                        }
+                }).catch((error) => {
+                        console.log(error);
+                        return res.status(500).json({ message: 'Error saving card' });
+                });
+        } catch (error) {
+                console.error(error);
+                return res.status(500).json({ message: 'Error saving card' });
+        }
+};
+
