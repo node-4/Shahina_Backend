@@ -1842,6 +1842,35 @@ exports.checkout = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                        orderObjTotalAmount = orderObjTotalAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderStatus: "confirmed",
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                        orderObjTotalAmount = orderObjTotalAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
                                         orderObjTotalAmount = orderObjTotalAmount;
                                         let orderObj = {
@@ -2167,6 +2196,35 @@ exports.checkout = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                        orderObjTotalAmount = orderObjTotalAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderStatus: "confirmed",
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                        orderObjTotalAmount = orderObjTotalAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
                                         orderObjTotalAmount = orderObjTotalAmount;
                                         let orderObj = {
@@ -2757,6 +2815,35 @@ exports.checkoutApp = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                        orderObjTotalAmount = orderObjPaidAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                        orderObjTotalAmount = orderObjPaidAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderStatus: "confirmed",
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
                                         orderObjTotalAmount = orderObjPaidAmount;
                                         let orderObj = {
@@ -3062,6 +3149,35 @@ exports.checkoutApp = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                        orderObjTotalAmount = orderObjPaidAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                        orderObjTotalAmount = orderObjPaidAmount;
+                                        let orderObj = {
+                                                userId: req.user._id,
+                                                orderId: orderId,
+                                                productOrder: productOrderId,
+                                                serviceOrder: serviceOrderId,
+                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                applyCoupan: cartResponse.coupon,
+                                                couponDiscount: couponDiscount,
+                                                orderStatus: "confirmed",
+                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        }
+                                        let saveOrder1 = await userOrders.create(orderObj);
+                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
                                         orderObjTotalAmount = orderObjPaidAmount;
                                         let orderObj = {
