@@ -4565,3 +4565,30 @@ exports.removeSlot = async (req, res) => {
                 return res.status(200).json({ message: "Slot Deleted Successfully !" });
         }
 };
+
+exports.createSlot1 = async (req, res) => {
+        try {
+                for (let i = 0; i < req.body.date.length; i++) {
+                        const fromTime = new Date(req.body.date[i].from);
+                        const toTime = new Date(req.body.date[i].to);
+                        const halfHour = 15 * 60 * 1000;
+                        while (fromTime.getTime() < toTime.getTime()) {
+                                const slotEndTime = new Date(fromTime.getTime() + halfHour);
+                                let findSlot = await slot.findOne({ date: req.body.date[i].date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
+                                if (!findSlot) {
+                                        const slot1 = new slot({
+                                                date: req.body.date[i].date,
+                                                from: fromTime.toISOString(),
+                                                to: slotEndTime.toISOString(),
+                                        });
+                                        await slot1.save();
+                                        fromTime.setTime(slotEndTime.getTime());
+                                }
+                        }
+                }
+                return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
+        } catch (error) {
+                console.log(error);
+                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
+        }
+};
