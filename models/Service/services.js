@@ -48,6 +48,12 @@ var storeSchema = new schema({
         beforeAfterImage: {
                 type: String
         },
+        totalTime: {
+                type: String
+        },
+        totalMin: {
+                type: Number
+        },
         mPrice: {
                 type: Number
         },

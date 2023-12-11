@@ -45,8 +45,11 @@ const DocumentSchema = schema({
         date: {
                 type: Date,
         },
-        time: {
-                type: String,
+        toTime: {
+                type: Date,
+        },
+        fromTime: {
+                type: Date,
         },
         suggesstion: {
                 type: String,

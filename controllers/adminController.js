@@ -1363,6 +1363,17 @@ exports.createService = async (req, res) => {
                 req.body.sizePrice = sizePrice;
                 req.body.images = images;
                 req.body.beforeAfterImage = beforeAfterImage;
+                function convertTimeToMinutes(timeString) {
+                        const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                        const match = timeString.match(regex);
+                        if (!match) {
+                                throw new Error("Invalid time format");
+                        }
+                        const hours = parseInt(match[1]) || 0;
+                        const minutes = parseInt(match[2]) || 0;
+                        return hours * 60 + minutes;
+                }
+                req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
                 const ProductCreated = await services.create(req.body);
                 if (ProductCreated) {
                         return res.status(201).send({ status: 200, message: "Service add successfully", data: ProductCreated, });
@@ -2638,50 +2649,6 @@ exports.deleteGiftCard = async (req, res) => {
                 }
         } catch (err) {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
-        }
-};
-exports.createSlot = async (req, res) => {
-        try {
-                let findSlot = await slot.findOne({ date: req.body.date, from: req.body.from, to: req.body.to, });
-                if (findSlot) {
-                        return res.status(409).json({ message: "Slot already exit.", status: 404, data: {} });
-                } else {
-                        const data = { date: req.body.date, from: req.body.from, to: req.body.to, };
-                        const category = await slot.create(data);
-                        return res.status(200).json({ message: "Slot add successfully.", status: 200, data: category });
-                }
-        } catch (error) {
-                return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
-        }
-};
-exports.getSlot = async (req, res) => {
-        const categories = await slot.find({});
-        if (categories.length > 0) {
-                return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
-        }
-        return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
-
-};
-exports.updateSlot = async (req, res) => {
-        const { id } = req.params;
-        const category = await slot.findById(id);
-        if (!category) {
-                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
-        }
-        category.date = req.body.date || category.date;
-        category.from = req.body.from || category.from;
-        category.to = req.body.to || category.to;
-        let update = await category.save();
-        return res.status(200).json({ message: "Updated Successfully", data: update });
-};
-exports.removeSlot = async (req, res) => {
-        const { id } = req.params;
-        const category = await slot.findById(id);
-        if (!category) {
-                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
-        } else {
-                await slot.findByIdAndDelete(category._id);
-                return res.status(200).json({ message: "Slot Deleted Successfully !" });
         }
 };
 exports.createShippingCharges = async (req, res) => {
@@ -4537,3 +4504,64 @@ const reffralCode = async () => {
         }
         return OTP;
 }
+exports.createSlot = async (req, res) => {
+        try {
+                const fromTime = new Date(req.body.from);
+                const toTime = new Date(req.body.to);
+                const halfHour = 15 * 60 * 1000;
+                while (fromTime.getTime() < toTime.getTime()) {
+                        const slotEndTime = new Date(fromTime.getTime() + halfHour);
+                        let findSlot = await slot.findOne({ date: req.body.date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
+                        if (!findSlot) {
+                                const slot1 = new slot({
+                                        date: req.body.date,
+                                        from: fromTime.toISOString(),
+                                        to: slotEndTime.toISOString(),
+                                });
+                                await slot1.save();
+                                fromTime.setTime(slotEndTime.getTime());
+                        }
+                }
+                return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
+        }
+};
+exports.getSlot = async (req, res) => {
+        if (req.query.date) {
+                const categories = await slot.find({ date: req.query.date });
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+
+        } else {
+                const categories = await slot.find({});
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+        }
+};
+exports.updateSlot = async (req, res) => {
+        const { id } = req.params;
+        const category = await slot.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
+        }
+        category.date = req.body.date || category.date;
+        category.from = req.body.from || category.from;
+        category.to = req.body.to || category.to;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeSlot = async (req, res) => {
+        const { id } = req.params;
+        const category = await slot.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
+        } else {
+                await slot.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Slot Deleted Successfully !" });
+        }
+};
