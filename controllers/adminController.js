@@ -2406,6 +2406,7 @@ exports.getServiceOrderswithDate = async (req, res) => {
                         .sort({ date: 1 });
                 const datewiseData = datewiseOrders.reduce((result, order) => {
                         const { date, time } = order;
+                        console.log(date, time);
                         const dateObject = new Date(date);
                         const orderDate = `${dateObject.getDate()}/${dateObject.getMonth() + 1}/${dateObject.getFullYear()}`;
                         const orderTime = time;
@@ -2437,6 +2438,7 @@ exports.getServiceOrderswithDate = async (req, res) => {
                         ...datewiseData[date],
                 }));
                 const datewiseDataArrayFormatted = datewiseDataArray.map((entry) => {
+                        console.log(entry.orders[0]);
                         const [day, month, year] = entry.date.split('/');
                         const time = entry.orders[0].orderTime;
                         const [hours, minutes] = time.split(':');
@@ -2472,6 +2474,7 @@ exports.getServiceOrderswithDate = async (req, res) => {
                 });
                 return res.status(200).json(JSON.parse(jsonResponse));
         } catch (err) {
+                console.log(err);
                 return res.status(500).json({ status: 500, message: "Internal server error", error: err.message });
         }
 };
@@ -4529,7 +4532,23 @@ exports.createSlot = async (req, res) => {
 };
 exports.getSlot = async (req, res) => {
         if (req.query.date) {
-                const categories = await slot.find({ date: req.query.date });
+                const categories = await slot.find({ date: req.query.date, slotBlocked: false });
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+
+        } else {
+                const categories = await slot.find({ slotBlocked: false });
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+        }
+};
+exports.getSlotForAdmin = async (req, res) => {
+        if (req.query.date) {
+                const categories = await slot.find({ date: req.query.date, });
                 if (categories.length > 0) {
                         return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
                 }
@@ -4565,7 +4584,6 @@ exports.removeSlot = async (req, res) => {
                 return res.status(200).json({ message: "Slot Deleted Successfully !" });
         }
 };
-
 exports.createSlot1 = async (req, res) => {
         try {
                 for (let i = 0; i < req.body.date.length; i++) {
