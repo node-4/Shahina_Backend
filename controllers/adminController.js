@@ -40,11 +40,21 @@ const transactionModel = require("../models/transactionModel");
 const notification = require("../models/notification");
 const commonFunction = require("../middlewares/commonFunction");
 const XLSX = require("xlsx");
+const fs = require("fs");
 const nodemailer = require("nodemailer");
-// const sendleApiKey = 'KkZkQ3MdyRtwsT3s9rMww5w5';
-// const sendleApiBaseUrl = 'https://api.sendle.com';
-// const sdk = require('api')('@sendle/v1.0#25eje35llbmpa1g');
 const { SendleClient } = require('sendle-node');
+// public
+// const client = new SendleClient({
+//         sendleId: 'shahina_hoja_gmail_c',
+//         apiKey: 'KkZkQ3MdyRtwsT3s9rMww5w5',
+//         sandbox: false,
+// });
+// test 
+const client = new SendleClient({
+        sendleId: 'SANDBOX_shahina_hoja_gmail_c',
+        apiKey: 'sandbox_W5xZ3WFY8zBPdpQP5x8w3WQf',
+        sandbox: true,
+});
 exports.registration = async (req, res) => {
         const { phone, email } = req.body;
         try {
@@ -710,275 +720,6 @@ exports.getIdProduct = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
-// exports.getIdProductByToken = async (req, res) => {
-//         try {
-//                 const data = await product.findById(req.params.id).populate('brandId');
-//                 if (!data) {
-//                         return res.status(400).send({ msg: "Product not found" });
-//                 } else {
-//                         const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
-//                         if (userData.isSubscription == true) {
-//                                 if (data.multipleSize == true) {
-//                                         let sizePrice = []
-//                                         for (let i = 0; i < data.sizePrice.length; i++) {
-//                                                 let membershipDiscount = parseFloat(data.sizePrice[i].price) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
-//                                                 let membshipPrice = parseFloat(data.sizePrice[i].price) - parseFloat(membershipDiscount).toFixed(2)
-//                                                 let obj = {
-//                                                         size: data.sizePrice[i].size,
-//                                                         price: data.sizePrice[i].price,
-//                                                         stock: data.sizePrice[i].stock,
-//                                                         status: data.sizePrice[i].status,
-//                                                         membershipDiscount: membershipDiscount,
-//                                                         membshipPrice: membshipPrice,
-//                                                         membershipDiscountPer: userData.subscriptionId.discount,
-//                                                 }
-//                                                 sizePrice.push(obj)
-//                                         }
-//                                         let obj = {
-//                                                 brandId: data.brandId,
-//                                                 nutritionId: data.nutritionId,
-//                                                 productTypeId: data.productTypeId,
-//                                                 skinConditionId: data.skinConditionId,
-//                                                 skinTypeId: data.skinTypeId,
-//                                                 name: data.name,
-//                                                 description: data.description,
-//                                                 size: data.size,
-//                                                 sizePrice: sizePrice,
-//                                                 multipleSize: data.multipleSize,
-//                                                 contents: data.contents,
-//                                                 result: data.result,
-//                                                 benfit: data.benfit,
-//                                                 additionalInfo: data.additionalInfo,
-//                                                 howTouse: data.howTouse,
-//                                                 methodToUse: data.methodToUse,
-//                                                 returnPolicy: data.returnPolicy,
-//                                                 keyIngredients: data.keyIngredients,
-//                                                 ingredients: data.ingredients,
-//                                                 price: data.price,
-//                                                 ratings: data.ratings,
-//                                                 productImages: data.productImages,
-//                                                 stock: data.stock,
-//                                                 numOfReviews: data.numOfReviews,
-//                                                 reviews: data.reviews,
-//                                                 status: data.howTouse,
-//                                                 beforeAfterImage: data.beforeAfterImage,
-//                                                 acneType: data.acneType,
-//                                                 considerAcne: data.considerAcne,
-//                                         }
-//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
-//                                         if (findData) {
-//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         } else {
-//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         }
-//                                 } else {
-//                                         console.log("658--------------------------");
-//                                         let sizePrice = [];
-//                                         let membershipDiscount = parseFloat(data.price) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
-//                                         let membshipPrice = parseFloat(data.price) - parseFloat(membershipDiscount).toFixed(2);
-//                                         let obj = {
-//                                                 brandId: data.brandId,
-//                                                 nutritionId: data.nutritionId,
-//                                                 productTypeId: data.productTypeId,
-//                                                 skinConditionId: data.skinConditionId,
-//                                                 skinTypeId: data.skinTypeId,
-//                                                 name: data.name,
-//                                                 description: data.description,
-//                                                 size: data.size,
-//                                                 sizePrice: sizePrice,
-//                                                 multipleSize: data.multipleSize,
-//                                                 contents: data.contents,
-//                                                 result: data.result,
-//                                                 benfit: data.benfit,
-//                                                 additionalInfo: data.additionalInfo,
-//                                                 howTouse: data.howTouse,
-//                                                 methodToUse: data.methodToUse,
-//                                                 returnPolicy: data.returnPolicy,
-//                                                 keyIngredients: data.keyIngredients,
-//                                                 ingredients: data.ingredients,
-//                                                 price: data.price,
-//                                                 ratings: data.ratings,
-//                                                 productImages: data.productImages,
-//                                                 stock: data.stock,
-//                                                 numOfReviews: data.numOfReviews,
-//                                                 reviews: data.reviews,
-//                                                 status: data.howTouse,
-//                                                 beforeAfterImage: data.beforeAfterImage,
-//                                                 acneType: data.acneType,
-//                                                 considerAcne: data.considerAcne,
-//                                                 membershipDiscount: membershipDiscount,
-//                                                 membshipPrice: membshipPrice,
-//                                                 membershipDiscountPer: userData.subscriptionId.discount,
-//                                         }
-//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
-//                                         if (findData) {
-//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         } else {
-//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         }
-//                                 }
-//                         } else {
-//                                 if (data.multipleSize == true) {
-//                                         let sizePrice = []
-//                                         for (let i = 0; i < data.sizePrice.length; i++) {
-//                                                 let obj = {
-//                                                         size: data.sizePrice[i].size,
-//                                                         price: data.sizePrice[i].price,
-//                                                         stock: data.sizePrice[i].stock,
-//                                                         status: data.sizePrice[i].status,
-//                                                         membershipDiscount: 0,
-//                                                         membshipPrice: 0,
-//                                                         membershipDiscountPer: 0,
-//                                                 }
-//                                                 sizePrice.push(obj)
-//                                         }
-//                                         let obj = {
-//                                                 brandId: data.brandId,
-//                                                 nutritionId: data.nutritionId,
-//                                                 productTypeId: data.productTypeId,
-//                                                 skinConditionId: data.skinConditionId,
-//                                                 skinTypeId: data.skinTypeId,
-//                                                 name: data.name,
-//                                                 description: data.description,
-//                                                 size: data.size,
-//                                                 sizePrice: sizePrice,
-//                                                 multipleSize: data.multipleSize,
-//                                                 contents: data.contents,
-//                                                 result: data.result,
-//                                                 benfit: data.benfit,
-//                                                 additionalInfo: data.additionalInfo,
-//                                                 howTouse: data.howTouse,
-//                                                 methodToUse: data.methodToUse,
-//                                                 returnPolicy: data.returnPolicy,
-//                                                 keyIngredients: data.keyIngredients,
-//                                                 ingredients: data.ingredients,
-//                                                 price: data.price,
-//                                                 ratings: data.ratings,
-//                                                 productImages: data.productImages,
-//                                                 stock: data.stock,
-//                                                 numOfReviews: data.numOfReviews,
-//                                                 reviews: data.reviews,
-//                                                 status: data.howTouse,
-//                                                 beforeAfterImage: data.beforeAfterImage,
-//                                                 acneType: data.acneType,
-//                                                 considerAcne: data.considerAcne,
-//                                         }
-//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
-//                                         if (findData) {
-//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         } else {
-//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         }
-//                                         console.log("662--------------------------");
-//                                 } else {
-//                                         console.log("664--------------------------");
-//                                         let sizePrice = [];
-//                                        let obj = {
-//                                                 brandId: data.brandId,
-//                                                 nutritionId: data.nutritionId,
-//                                                 productTypeId: data.productTypeId,
-//                                                 skinConditionId: data.skinConditionId,
-//                                                 skinTypeId: data.skinTypeId,
-//                                                 name: data.name,
-//                                                 description: data.description,
-//                                                 size: data.size,
-//                                                 sizePrice: sizePrice,
-//                                                 multipleSize: data.multipleSize,
-//                                                 contents: data.contents,
-//                                                 result: data.result,
-//                                                 benfit: data.benfit,
-//                                                 additionalInfo: data.additionalInfo,
-//                                                 howTouse: data.howTouse,
-//                                                 methodToUse: data.methodToUse,
-//                                                 returnPolicy: data.returnPolicy,
-//                                                 keyIngredients: data.keyIngredients,
-//                                                 ingredients: data.ingredients,
-//                                                 price: data.price,
-//                                                 ratings: data.ratings,
-//                                                 productImages: data.productImages,
-//                                                 stock: data.stock,
-//                                                 numOfReviews: data.numOfReviews,
-//                                                 reviews: data.reviews,
-//                                                 status: data.howTouse,
-//                                                 beforeAfterImage: data.beforeAfterImage,
-//                                                 acneType: data.acneType,
-//                                                 considerAcne: data.considerAcne,
-//                                                 membershipDiscount: 0,
-//                                                 membshipPrice: 0,
-//                                                 membershipDiscountPer: 0,
-//                                         }
-//                                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
-//                                         if (findData) {
-//                                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         } else {
-//                                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
-//                                                 if (saved) {
-//                                                         return res.status(200).json({ status: 200, message: "Product data found.", data: obj });
-//                                                 }
-//                                         }
-//                                 }
-//                         }
-
-
-//                         return;
-//                         let membshipPrice = 0;
-//                         let membershipDiscount = 0;
-//                         let membershipDiscountPer = 0;
-//                         if (userData.isSubscription == true) {
-//                                 membershipDiscountPer = userData.subscriptionId.discount;
-//                                 const finalPrice = data.ultipleSize ? data.sizePrice.find((size) => size.status === 'STOCK').price : data.price;
-//                                 membershipDiscount = parseFloat(finalPrice) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
-//                                 membshipPrice = parseFloat(finalPrice) - parseFloat(membershipDiscount).toFixed(2);
-//                         } else {
-//                                 membershipDiscountPer = 0;
-//                                 membershipDiscount = 0;
-//                                 membshipPrice = 0;
-//                         }
-//                         membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
-//                         const serviceWithDynamicFields = {
-//                                 ...data.toObject(),
-//                                 membershipDiscountPer,
-//                                 membershipDiscount,
-//                                 membshipPrice,
-//                         };
-//                         // const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
-//                         // if (findData) {
-//                         //         const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
-//                         //         if (saved) {
-//                         //                 return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
-//                         //         }
-//                         // } else {
-//                         //         const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
-//                         //         if (saved) {
-//                         //                 return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
-//                         //         }
-//                         // }
-//                 }
-//         } catch (err) {
-//                 return res.status(500).send({ msg: "Internal server error", error: err.message });
-//         }
-// };
 exports.getIdProductByToken = async (req, res) => {
         try {
                 const productId = req.params.id;
@@ -1058,50 +799,6 @@ exports.getIdProductByToken = async (req, res) => {
                 return res.status(500).json({ msg: "Internal server error", error: err.message });
         }
 };
-// exports.getIdProductByToken = async (req, res) => {
-//         try {
-//                 const data = await product.findById(req.params.id).populate('brandId');
-//                 if (!data) {
-//                         return res.status(400).send({ msg: "Product not found" });
-//                 } else {
-//                         const userData = await User.findOne({ _id: req.user._id }).select('-password').populate('subscriptionId');
-//                         let membshipPrice = 0;
-//                         let membershipDiscount = 0;
-//                         let membershipDiscountPer = 0;
-//                         if (userData.isSubscription == true) {
-//                                 membershipDiscountPer = userData.subscriptionId.discount;
-//                                 const finalPrice = data.multipleSize ? data.sizePrice.find((size) => size.status === 'STOCK').price : data.price;
-//                                 membershipDiscount = parseFloat(finalPrice) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2));
-//                                 membshipPrice = parseFloat(finalPrice) - parseFloat(membershipDiscount).toFixed(2);
-//                         } else {
-//                                 membershipDiscountPer = 0;
-//                                 membershipDiscount = 0;
-//                                 membshipPrice = 0;
-//                         }
-//                         membershipDiscount = parseFloat(membershipDiscount).toFixed(2);
-//                         const serviceWithDynamicFields = {
-//                                 ...data.toObject(),
-//                                 membershipDiscountPer,
-//                                 membershipDiscount,
-//                                 membshipPrice,
-//                         };
-//                         const findData = await recentlyView.findOne({ user: req.user._id, products: data._id });
-//                         if (findData) {
-//                                 const saved = await recentlyView.findByIdAndUpdate({ _id: findData._id }, { $set: { products: data._id } }, { new: true });
-//                                 if (saved) {
-//                                         return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
-//                                 }
-//                         } else {
-//                                 const saved = await recentlyView.create({ user: req.user._id, products: data._id, type: "P" });
-//                                 if (saved) {
-//                                         return res.status(200).json({ status: 200, message: "Product data found.", data: serviceWithDynamicFields });
-//                                 }
-//                         }
-//                 }
-//         } catch (err) {
-//                 return res.status(500).send({ msg: "Internal server error", error: err.message });
-//         }
-// };
 exports.editProduct = async (req, res) => {
         try {
                 const data = await product.findById(req.params.id);
@@ -3079,18 +2776,6 @@ exports.updateServiceStatus = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-// public
-// const client = new SendleClient({
-//         sendleId: 'shahina_hoja_gmail_c',
-//         apiKey: 'KkZkQ3MdyRtwsT3s9rMww5w5',
-//         sandbox: false,
-// });
-// test 
-const client = new SendleClient({
-        sendleId: 'SANDBOX_shahina_hoja_gmail_c',
-        apiKey: 'sandbox_W5xZ3WFY8zBPdpQP5x8w3WQf',
-        sandbox: true,
-});
 exports.createShipment = async (req, res) => {
         try {
                 const orders = await productOrder.findById({ _id: req.body.productOrderId });
@@ -3134,6 +2819,435 @@ exports.getShipmentByproductOrderId = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
+exports.getAllcoupan = async (req, res, next) => {
+        try {
+                const cart = await coupanModel.find({ orderStatus: { $ne: "unconfirmed" } }).populate('user senderUser');
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Get all rewards.", cart: {} })
+                } else {
+                        return res.status(200).json({ success: true, msg: "Get all rewards.", cart: cart })
+                }
+        } catch (error) {
+                console.log(error)
+                next(error);
+        }
+}
+exports.getAllTransaction = async (req, res, next) => {
+        try {
+                const cart = await transactionModel.find().populate('user subscriptionId');
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Get transaction.", data: {} })
+                } else {
+                        return res.status(200).json({ success: true, msg: "Get transaction.", data: cart })
+                }
+        } catch (error) {
+                console.log(error)
+                next(error);
+        }
+}
+exports.sendNotification = async (req, res) => {
+        try {
+                const admin = await User.findById({ _id: req.user._id });
+                if (!admin) {
+                        return res.status(404).json({ status: 404, message: "Admin not found" });
+                } else {
+                        if (req.body.total == "ALL") {
+                                let userData = await User.find({ userType: req.body.sendTo });
+                                if (userData.length == 0) {
+                                        return res.status(404).json({ status: 404, message: "User not found" });
+                                } else {
+                                        for (let i = 0; i < userData.length; i++) {
+                                                if (userData.deviceToken != null || userData.deviceToken != undefined) {
+                                                        let result = await commonFunction.pushNotificationforUser(userData[i].deviceToken, req.body.title, req.body.body);
+                                                        let obj = {
+                                                                userId: userData[i]._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj)
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully." });
+                                                } else {
+                                                        let obj = {
+                                                                userId: userData[i]._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj)
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully." });
+                                                }
+                                        }
+                                }
+                        }
+                        if (req.body.total == "SINGLE") {
+                                let userData = await User.findById({ _id: req.body._id, userType: req.body.sendTo });
+                                if (!userData) {
+                                        return res.status(404).json({ status: 404, message: "Employee not found" });
+                                } else {
+                                        if (userData.deviceToken != null || userData.deviceToken != undefined) {
+                                                let result = await commonFunction.pushNotificationforUser(userData.deviceToken, req.body.title, req.body.body);
+                                                let obj = {
+                                                        userId: userData._id,
+                                                        title: req.body.title,
+                                                        body: req.body.body,
+                                                        date: req.body.date,
+                                                        image: req.body.image,
+                                                        time: req.body.time,
+                                                }
+                                                let data = await notification.create(obj)
+                                                if (data) {
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully.", data: data });
+                                                }
+                                        } else {
+                                                let obj = {
+                                                        userId: userData._id,
+                                                        title: req.body.title,
+                                                        body: req.body.body,
+                                                        date: req.body.date,
+                                                        image: req.body.image,
+                                                        time: req.body.time,
+                                                }
+                                                let data = await notification.create(obj)
+                                                if (data) {
+                                                        let obj1 = {
+                                                                userId: admin._id,
+                                                                title: req.body.title,
+                                                                body: req.body.body,
+                                                                date: req.body.date,
+                                                                image: req.body.image,
+                                                                time: req.body.time,
+                                                        }
+                                                        await notification.create(obj1)
+                                                        return res.status(200).json({ status: 200, message: "Notification send successfully.", data: data });
+                                                }
+                                        }
+                                }
+                        }
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+}
+exports.allNotification = async (req, res) => {
+        try {
+                const admin = await User.findById({ _id: req.user._id });
+                if (!admin) {
+                        return res.status(404).json({ status: 404, message: "Admin not found" });
+                } else {
+                        let findNotification = await notification.find({ userId: admin._id }).populate('userId');
+                        if (findNotification.length == 0) {
+                                return res.status(404).json({ status: 404, message: "Notification data not found successfully.", data: {} })
+                        } else {
+                                return res.status(200).json({ status: 200, message: "Notification data found successfully.", data: findNotification })
+                        }
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+}
+exports.addCoupan = async (req, res) => {
+        try {
+                if (req.body.completeVisit != (null || undefined)) {
+                        const data = await coupanModel.findOne({ used: false, user: req.body.user, completeVisit: { $gt: 0 } });
+                        if (data) {
+                                return res.json({ status: 409, message: 'Coupan already exit.', data: {} });
+                        }
+                }
+                if (req.file) {
+                        req.body.image = req.file.path;
+                }
+                const d = new Date(req.body.expirationDate);
+                req.body.expirationDate = d.toISOString();
+                const de = new Date(req.body.activationDate);
+                req.body.activationDate = de.toISOString();
+                req.body.code = await reffralCode();
+                req.body.orderStatus = "confirmed";
+                req.body.paymentStatus = 'paid'
+                let saveStore = await coupanModel(req.body).save();
+                if (saveStore) {
+                        const data = await User.findOne({ _id: req.body.user, });
+                        if (data) {
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { checkIn: data.checkIn + (req.body.completeVisit || 0) } }, { new: true });
+                                if (update) {
+                                        return res.json({ status: 200, message: 'Coupan add successfully.', data: saveStore });
+                                }
+                        }
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.deleteCoupan = async (req, res) => {
+        try {
+                const data = await coupanModel.findById(req.params.id);
+                if (!data) {
+                        return res.status(404).json({ message: "Coupan not found.", status: 404, data: {} });
+                }
+                await coupanModel.findByIdAndDelete({ _id: req.params.id });
+                return res.status(200).json({ message: "Coupan  delete.", status: 200, data: {} });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.uploadClient = async (req, res) => {
+        try {
+                const file = req.file;
+                const path = file.path;
+                await new Promise((resolve, reject) => {
+                        fs.access(path, fs.constants.F_OK, (err) => {
+                                if (err) {
+                                        console.error('File does not exist');
+                                        reject(err);
+                                } else {
+                                        resolve();
+                                }
+                        });
+                });
+                const workbook = XLSX.readFile(file.path);
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const orders = XLSX.utils.sheet_to_json(sheet);
+                console.log(orders);
+                orders.forEach(async (orderData) => {
+                        let findUser1 = await User.findOne({ $and: [{ $or: [{ email: orderData["email"] }, { phone: orderData["phone"] }] }] });
+                        if (!findUser1) {
+                                const orderObj = {
+                                        firstName: orderData["firstName"],
+                                        lastName: orderData["lastName"],
+                                        gender: orderData["gender"],
+                                        dob: orderData["dob"],
+                                        phone: orderData["phone"],
+                                        email: orderData["email"],
+                                        refferalCode: await reffralCode(),
+                                        // password: bcrypt.hashSync(orderData["password"], 8),
+                                        userType: "USER"
+                                };
+                                const order = await User.create(orderObj);
+                        }
+                });
+                fs.unlink(path, (err) => {
+                        if (err) {
+                                console.error(err);
+                                return res.status(500).json({ message: "Error deleting file" });
+                        }
+                });
+                return res.status(200).json({ message: "Data uploaded successfully" });
+
+        } catch (error) {
+                console.log(error);
+                return res.status(500).json({ status: 0, message: error.message });
+        }
+};
+const reffralCode = async () => {
+        var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let OTP = '';
+        for (let i = 0; i < 6; i++) {
+                OTP += digits[Math.floor(Math.random() * 36)];
+        }
+        return OTP;
+}
+exports.createSlot = async (req, res) => {
+        try {
+                const fromTime = new Date(req.body.from);
+                const toTime = new Date(req.body.to);
+                const halfHour = 15 * 60 * 1000;
+                while (fromTime.getTime() < toTime.getTime()) {
+                        const slotEndTime = new Date(fromTime.getTime() + halfHour);
+                        let findSlot = await slot.findOne({ date: req.body.date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
+                        if (!findSlot) {
+                                const slot1 = new slot({
+                                        date: req.body.date,
+                                        from: fromTime.toISOString(),
+                                        to: slotEndTime.toISOString(),
+                                });
+                                await slot1.save();
+                                fromTime.setTime(slotEndTime.getTime());
+                        }
+                }
+                return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
+        } catch (error) {
+                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
+        }
+};
+exports.getSlot = async (req, res) => {
+        if (req.query.date) {
+                const categories = await slot.find({ date: req.query.date, slotBlocked: false });
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+
+        } else {
+                const categories = await slot.find({ slotBlocked: false });
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+        }
+};
+exports.getSlotForAdmin = async (req, res) => {
+        if (req.query.date) {
+                const categories = await slot.find({ date: req.query.date, });
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+
+        } else {
+                const categories = await slot.find({});
+                if (categories.length > 0) {
+                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+                }
+                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+        }
+};
+exports.updateSlot = async (req, res) => {
+        const { id } = req.params;
+        const category = await slot.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
+        }
+        category.date = req.body.date || category.date;
+        category.from = req.body.from || category.from;
+        category.to = req.body.to || category.to;
+        let update = await category.save();
+        return res.status(200).json({ message: "Updated Successfully", data: update });
+};
+exports.removeSlot = async (req, res) => {
+        const { id } = req.params;
+        const category = await slot.findById(id);
+        if (!category) {
+                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
+        } else {
+                await slot.findByIdAndDelete(category._id);
+                return res.status(200).json({ message: "Slot Deleted Successfully !" });
+        }
+};
+exports.createSlot1 = async (req, res) => {
+        try {
+                for (let i = 0; i < req.body.date.length; i++) {
+                        const fromTime = new Date(req.body.date[i].from);
+                        const toTime = new Date(req.body.date[i].to);
+                        const halfHour = 15 * 60 * 1000;
+                        while (fromTime.getTime() < toTime.getTime()) {
+                                const slotEndTime = new Date(fromTime.getTime() + halfHour);
+                                let findSlot = await slot.findOne({ date: req.body.date[i].date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
+                                if (!findSlot) {
+                                        const slot1 = new slot({
+                                                date: req.body.date[i].date,
+                                                from: fromTime.toISOString(),
+                                                to: slotEndTime.toISOString(),
+                                        });
+                                        await slot1.save();
+                                        fromTime.setTime(slotEndTime.getTime());
+                                }
+                        }
+                }
+                return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
+        } catch (error) {
+                console.log(error);
+                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
+        }
+};
+exports.slotBlocked = async (req, res) => {
+        try {
+                let x2 = `${req.body.date}T00:00:00.000+00:00`
+                let x = `${req.body.date}T${req.body.from}:00.000+00:00`
+                let x1 = `${req.body.date}T${req.body.to}:00.000+00:00`
+                let findSlot = await slot.find({ from: { $gte: x }, to: { $lte: x1 }, date: x2 });
+                if (findSlot.length > 0) {
+                        let data = [];
+                        for (let i = 0; i < findSlot.length; i++) {
+                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { slotBlocked: true, title: req.body.title, description: req.body.description } }, { new: true });
+                                data.push(updateSlot)
+                        }
+                        return res.status(200).json({ message: "Slots Blocked  found.", status: 200, data: data, });
+                } else {
+                        return res.status(404).json({ message: "Slots not  found.", status: 404, data: {}, });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
+        }
+};
+exports.addToCart = async (req, res) => {
+        try {
+                let cart = await Cart.findOne({ user: req.body.userId });
+                if (!cart) {
+                        let findService = await services.findById({ _id: req.body.serviceId });
+                        if (!findService) {
+                                return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
+                        } else {
+                                const d = new Date(req.body.date);
+                                let text = d.toISOString();
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`
+                                let ser = {
+                                        serviceId: findService._id
+                                }
+                                let services = []
+                                services.push(ser)
+                                let obj = {
+                                        user: req.body.userId,
+                                        date: text,
+                                        toTime: x,
+                                        services: services
+                                }
+                                let saveCart = await Cart.create(obj);
+                                return res.status(200).json({ status: 200, message: 'Service added to cart', data: saveCart });
+                        }
+                } else {
+                        if(cart.services.length>0){
+                                for (let i = 0; i < cart.services.length; i++) {
+                                        
+                                }
+                        }else{
+
+                        }
+                }
+        } catch (error) {
+                next(error);
+        }
+}
+
+
+
+
+
+///////////////////////////////////////////////////////////////// old code ///////////////////////////////////////////////////////////////////////////////////
 exports.addToCart = async (req, res, next) => {
         try {
                 const itemType = req.params.type;
@@ -4245,368 +4359,4 @@ exports.deleteCartItem = async (req, res, next) => {
                 next(error);
         }
 };
-exports.getAllcoupan = async (req, res, next) => {
-        try {
-                const cart = await coupanModel.find({ orderStatus: { $ne: "unconfirmed" } }).populate('user senderUser');
-                if (!cart) {
-                        return res.status(200).json({ success: false, msg: "Get all rewards.", cart: {} })
-                } else {
-                        return res.status(200).json({ success: true, msg: "Get all rewards.", cart: cart })
-                }
-        } catch (error) {
-                console.log(error)
-                next(error);
-        }
-}
-exports.getAllTransaction = async (req, res, next) => {
-        try {
-                const cart = await transactionModel.find().populate('user subscriptionId');
-                if (!cart) {
-                        return res.status(200).json({ success: false, msg: "Get transaction.", data: {} })
-                } else {
-                        return res.status(200).json({ success: true, msg: "Get transaction.", data: cart })
-                }
-        } catch (error) {
-                console.log(error)
-                next(error);
-        }
-}
-exports.sendNotification = async (req, res) => {
-        try {
-                const admin = await User.findById({ _id: req.user._id });
-                if (!admin) {
-                        return res.status(404).json({ status: 404, message: "Admin not found" });
-                } else {
-                        if (req.body.total == "ALL") {
-                                let userData = await User.find({ userType: req.body.sendTo });
-                                if (userData.length == 0) {
-                                        return res.status(404).json({ status: 404, message: "User not found" });
-                                } else {
-                                        for (let i = 0; i < userData.length; i++) {
-                                                if (userData.deviceToken != null || userData.deviceToken != undefined) {
-                                                        let result = await commonFunction.pushNotificationforUser(userData[i].deviceToken, req.body.title, req.body.body);
-                                                        let obj = {
-                                                                userId: userData[i]._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj)
-                                                        let obj1 = {
-                                                                userId: admin._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj1)
-                                                        return res.status(200).json({ status: 200, message: "Notification send successfully." });
-                                                } else {
-                                                        let obj = {
-                                                                userId: userData[i]._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj)
-                                                        let obj1 = {
-                                                                userId: admin._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj1)
-                                                        return res.status(200).json({ status: 200, message: "Notification send successfully." });
-                                                }
-                                        }
-                                }
-                        }
-                        if (req.body.total == "SINGLE") {
-                                let userData = await User.findById({ _id: req.body._id, userType: req.body.sendTo });
-                                if (!userData) {
-                                        return res.status(404).json({ status: 404, message: "Employee not found" });
-                                } else {
-                                        if (userData.deviceToken != null || userData.deviceToken != undefined) {
-                                                let result = await commonFunction.pushNotificationforUser(userData.deviceToken, req.body.title, req.body.body);
-                                                let obj = {
-                                                        userId: userData._id,
-                                                        title: req.body.title,
-                                                        body: req.body.body,
-                                                        date: req.body.date,
-                                                        image: req.body.image,
-                                                        time: req.body.time,
-                                                }
-                                                let data = await notification.create(obj)
-                                                if (data) {
-                                                        let obj1 = {
-                                                                userId: admin._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj1)
-                                                        return res.status(200).json({ status: 200, message: "Notification send successfully.", data: data });
-                                                }
-                                        } else {
-                                                let obj = {
-                                                        userId: userData._id,
-                                                        title: req.body.title,
-                                                        body: req.body.body,
-                                                        date: req.body.date,
-                                                        image: req.body.image,
-                                                        time: req.body.time,
-                                                }
-                                                let data = await notification.create(obj)
-                                                if (data) {
-                                                        let obj1 = {
-                                                                userId: admin._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj1)
-                                                        return res.status(200).json({ status: 200, message: "Notification send successfully.", data: data });
-                                                }
-                                        }
-                                }
-                        }
-                }
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-}
-exports.allNotification = async (req, res) => {
-        try {
-                const admin = await User.findById({ _id: req.user._id });
-                if (!admin) {
-                        return res.status(404).json({ status: 404, message: "Admin not found" });
-                } else {
-                        let findNotification = await notification.find({ userId: admin._id }).populate('userId');
-                        if (findNotification.length == 0) {
-                                return res.status(404).json({ status: 404, message: "Notification data not found successfully.", data: {} })
-                        } else {
-                                return res.status(200).json({ status: 200, message: "Notification data found successfully.", data: findNotification })
-                        }
-                }
-        } catch (error) {
-                console.log(error);
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
-        }
-}
-exports.addCoupan = async (req, res) => {
-        try {
-                if (req.body.completeVisit != (null || undefined)) {
-                        const data = await coupanModel.findOne({ used: false, user: req.body.user, completeVisit: { $gt: 0 } });
-                        if (data) {
-                                return res.json({ status: 409, message: 'Coupan already exit.', data: {} });
-                        }
-                }
-                if (req.file) {
-                        req.body.image = req.file.path;
-                }
-                const d = new Date(req.body.expirationDate);
-                req.body.expirationDate = d.toISOString();
-                const de = new Date(req.body.activationDate);
-                req.body.activationDate = de.toISOString();
-                req.body.code = await reffralCode();
-                req.body.orderStatus = "confirmed";
-                req.body.paymentStatus = 'paid'
-                let saveStore = await coupanModel(req.body).save();
-                if (saveStore) {
-                        const data = await User.findOne({ _id: req.body.user, });
-                        if (data) {
-                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { checkIn: data.checkIn + (req.body.completeVisit || 0) } }, { new: true });
-                                if (update) {
-                                        return res.json({ status: 200, message: 'Coupan add successfully.', data: saveStore });
-                                }
-                        }
-                }
-        } catch (error) {
-                console.error(error);
-                return res.status(500).send({ status: 500, message: "Server error" + error.message });
-        }
-};
-exports.deleteCoupan = async (req, res) => {
-        try {
-                const data = await coupanModel.findById(req.params.id);
-                if (!data) {
-                        return res.status(404).json({ message: "Coupan not found.", status: 404, data: {} });
-                }
-                await coupanModel.findByIdAndDelete({ _id: req.params.id });
-                return res.status(200).json({ message: "Coupan  delete.", status: 200, data: {} });
-        } catch (err) {
-                return res.status(500).send({ msg: "internal server error", error: err.message, });
-        }
-};
-const fs = require("fs");
-exports.uploadClient = async (req, res) => {
-        try {
-                const file = req.file;
-                const path = file.path;
-                await new Promise((resolve, reject) => {
-                        fs.access(path, fs.constants.F_OK, (err) => {
-                                if (err) {
-                                        console.error('File does not exist');
-                                        reject(err);
-                                } else {
-                                        resolve();
-                                }
-                        });
-                });
-                const workbook = XLSX.readFile(file.path);
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const orders = XLSX.utils.sheet_to_json(sheet);
-                console.log(orders);
-                orders.forEach(async (orderData) => {
-                        let findUser1 = await User.findOne({ $and: [{ $or: [{ email: orderData["email"] }, { phone: orderData["phone"] }] }] });
-                        if (!findUser1) {
-                                const orderObj = {
-                                        firstName: orderData["firstName"],
-                                        lastName: orderData["lastName"],
-                                        gender: orderData["gender"],
-                                        dob: orderData["dob"],
-                                        phone: orderData["phone"],
-                                        email: orderData["email"],
-                                        refferalCode: await reffralCode(),
-                                        // password: bcrypt.hashSync(orderData["password"], 8),
-                                        userType: "USER"
-                                };
-                                const order = await User.create(orderObj);
-                        }
-                });
-                fs.unlink(path, (err) => {
-                        if (err) {
-                                console.error(err);
-                                return res.status(500).json({ message: "Error deleting file" });
-                        }
-                });
-                return res.status(200).json({ message: "Data uploaded successfully" });
-
-        } catch (error) {
-                console.log(error);
-                return res.status(500).json({ status: 0, message: error.message });
-        }
-};
-const reffralCode = async () => {
-        var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        let OTP = '';
-        for (let i = 0; i < 6; i++) {
-                OTP += digits[Math.floor(Math.random() * 36)];
-        }
-        return OTP;
-}
-exports.createSlot = async (req, res) => {
-        try {
-                const fromTime = new Date(req.body.from);
-                const toTime = new Date(req.body.to);
-                const halfHour = 15 * 60 * 1000;
-                while (fromTime.getTime() < toTime.getTime()) {
-                        const slotEndTime = new Date(fromTime.getTime() + halfHour);
-                        let findSlot = await slot.findOne({ date: req.body.date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
-                        if (!findSlot) {
-                                const slot1 = new slot({
-                                        date: req.body.date,
-                                        from: fromTime.toISOString(),
-                                        to: slotEndTime.toISOString(),
-                                });
-                                await slot1.save();
-                                fromTime.setTime(slotEndTime.getTime());
-                        }
-                }
-                return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
-        } catch (error) {
-                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
-        }
-};
-exports.getSlot = async (req, res) => {
-        if (req.query.date) {
-                const categories = await slot.find({ date: req.query.date, slotBlocked: false });
-                if (categories.length > 0) {
-                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
-                }
-                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
-
-        } else {
-                const categories = await slot.find({ slotBlocked: false });
-                if (categories.length > 0) {
-                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
-                }
-                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
-        }
-};
-exports.getSlotForAdmin = async (req, res) => {
-        if (req.query.date) {
-                const categories = await slot.find({ date: req.query.date, });
-                if (categories.length > 0) {
-                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
-                }
-                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
-
-        } else {
-                const categories = await slot.find({});
-                if (categories.length > 0) {
-                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
-                }
-                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
-        }
-};
-exports.updateSlot = async (req, res) => {
-        const { id } = req.params;
-        const category = await slot.findById(id);
-        if (!category) {
-                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
-        }
-        category.date = req.body.date || category.date;
-        category.from = req.body.from || category.from;
-        category.to = req.body.to || category.to;
-        let update = await category.save();
-        return res.status(200).json({ message: "Updated Successfully", data: update });
-};
-exports.removeSlot = async (req, res) => {
-        const { id } = req.params;
-        const category = await slot.findById(id);
-        if (!category) {
-                return res.status(404).json({ message: "Slot Not Found", status: 404, data: {} });
-        } else {
-                await slot.findByIdAndDelete(category._id);
-                return res.status(200).json({ message: "Slot Deleted Successfully !" });
-        }
-};
-exports.createSlot1 = async (req, res) => {
-        try {
-                for (let i = 0; i < req.body.date.length; i++) {
-                        const fromTime = new Date(req.body.date[i].from);
-                        const toTime = new Date(req.body.date[i].to);
-                        const halfHour = 15 * 60 * 1000;
-                        while (fromTime.getTime() < toTime.getTime()) {
-                                const slotEndTime = new Date(fromTime.getTime() + halfHour);
-                                let findSlot = await slot.findOne({ date: req.body.date[i].date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
-                                if (!findSlot) {
-                                        const slot1 = new slot({
-                                                date: req.body.date[i].date,
-                                                from: fromTime.toISOString(),
-                                                to: slotEndTime.toISOString(),
-                                        });
-                                        await slot1.save();
-                                        fromTime.setTime(slotEndTime.getTime());
-                                }
-                        }
-                }
-                return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
-        } catch (error) {
-                console.log(error);
-                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
-        }
-};
+///////////////////////////////////////////////////////////////// old code ///////////////////////////////////////////////////////////////////////////////////

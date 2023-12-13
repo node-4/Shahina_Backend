@@ -109,6 +109,7 @@ module.exports = (app) => {
         app.get("/api/v1/admin/Slot/allSlot", auth.getSlot);
         app.get("/api/v1/admin/Slot/getSlotForAdmin", auth.getSlotForAdmin);
         app.put("/api/v1/admin/Slot/updateSlot/:id", [authJwt.verifyToken], auth.updateSlot);
+        app.put("/api/v1/admin/Slot/slotBlocked", [authJwt.verifyToken], auth.slotBlocked);
         app.delete("/api/v1/admin/Slot/deleteSlot/:id", [authJwt.verifyToken], auth.removeSlot);
         app.post("/api/v1/admin/ShippingCharges/addShippingCharges", [authJwt.verifyToken], auth.createShippingCharges);
         app.get("/api/v1/admin/ShippingCharges/allShippingCharges", auth.getShippingCharges);

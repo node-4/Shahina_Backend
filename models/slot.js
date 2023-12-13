@@ -3,6 +3,12 @@ const schema = mongoose.Schema;
 const mongoosePaginate = require('mongoose-paginate');
 
 const DocumentSchema = schema({
+        title: {
+                type: String,
+        },
+        description: {
+                type: String,
+        },
         date: {
                 type: Date,
         },
