@@ -85,6 +85,10 @@ const DocumentSchema = schema({
                 type: Number,
                 default: 0
         },
+        noShow: {
+                type: Boolean,
+                default: false,
+        },
         serviceAddresss: {
                 houseFlat: {
                         type: String,
@@ -98,7 +102,7 @@ const DocumentSchema = schema({
         },
         orderStatus: {
                 type: String,
-                enum: ["unconfirmed", "confirmed", "cancel"],
+                enum: ["adminUnconfirmed", "unconfirmed", "confirmed", "cancel"],
                 default: "unconfirmed",
         },
         serviceStatus: {

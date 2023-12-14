@@ -136,8 +136,11 @@ module.exports = (app) => {
         app.delete("/api/v1/admin/AddOnServices/deleteAddOnServices/:id", [authJwt.verifyToken], auth.removeAddOnServices);
         app.post("/api/v1/admin/createShipment", auth.createShipment);
         app.get("/api/v1/admin/getAllShipment", [authJwt.verifyToken], auth.getAllShipment);
-        app.post('/api/v1/admin/addtoCart/:type/:id', [authJwt.verifyToken], auth.addToCart);
-        app.get('/api/v1/admin/getCart/:userId', [authJwt.verifyToken], auth.getCart);
+        app.post('/api/v1/admin/addtoCart/:id', [authJwt.verifyToken], auth.addToCart);
+        app.put("/api/v1/admin/addSuggestionToServiceCart/:userId/:date", [authJwt.verifyToken], auth.addSuggestionToServiceCart);
+        app.put("/api/v1/admin/noShowUpdate/:userId/:date", [authJwt.verifyToken], auth.noShowUpdate);
+        app.put("/api/v1/admin/reSechduleOrder/:userId/:date", [authJwt.verifyToken], auth.reSechduleOrder);
+        app.get('/api/v1/admin/getCart/:userId/:date', [authJwt.verifyToken], auth.getCart);
         app.post('/api/v1/admin/checkout/:userId', [authJwt.verifyToken], auth.checkout);
         app.get("/api/v1/admin/successOrder/:orderId", [authJwt.verifyToken], auth.successOrder);
         app.get("/api/v1/admin/cancelOrder/:orderId", [authJwt.verifyToken], auth.cancelOrder);
