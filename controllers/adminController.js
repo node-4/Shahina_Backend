@@ -3262,30 +3262,85 @@ exports.removeSlot = async (req, res) => {
 };
 exports.createSlot1 = async (req, res) => {
         try {
+                function getAmPm(date) {
+                        return date.getHours() < 12 ? 'AM' : 'PM';
+                }
                 for (let i = 0; i < req.body.date.length; i++) {
-                        const fromTime = new Date(req.body.date[i].from);
-                        const toTime = new Date(req.body.date[i].to);
+                        const startTime = new Date(req.body.date[i].from);
+                        const endTime = new Date(req.body.date[i].to);
                         const halfHour = 15 * 60 * 1000;
-                        while (fromTime.getTime() < toTime.getTime()) {
-                                const slotEndTime = new Date(fromTime.getTime() + halfHour);
-                                let findSlot = await slot.findOne({ date: req.body.date[i].date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
+                        while (startTime.getTime() < endTime.getTime()) {
+                                const slotEndTime = new Date(startTime.getTime() + halfHour);
+                                let findSlot = await slot.findOne({
+                                        date: req.body.date[i].date,
+                                        from: startTime.toISOString(),
+                                        to: slotEndTime.toISOString()
+                                });
+
                                 if (!findSlot) {
+                                        console.log({
+                                                date: req.body.date[i].date,
+                                                from: startTime.toISOString(),
+                                                to: slotEndTime.toISOString(),
+                                                fromAmPm: getAmPm(startTime),
+                                                toAmPm: getAmPm(slotEndTime),
+                                        });
+
                                         const slot1 = new slot({
                                                 date: req.body.date[i].date,
-                                                from: fromTime.toISOString(),
+                                                from: startTime.toISOString(),
                                                 to: slotEndTime.toISOString(),
+                                                fromAmPm: getAmPm(startTime),
+                                                toAmPm: getAmPm(slotEndTime),
                                         });
+
                                         await slot1.save();
-                                        fromTime.setTime(slotEndTime.getTime());
                                 }
+
+                                startTime.setTime(slotEndTime.getTime());
                         }
                 }
-                return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
+
+                return res.status(200).json({
+                        message: "Slots added successfully.",
+                        status: 200,
+                        data: {},
+                });
         } catch (error) {
                 console.log(error);
-                return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
+                return res.status(500).json({
+                        status: 500,
+                        message: "Internal server error",
+                        data: error.message,
+                });
         }
 };
+// exports.createSlot1 = async (req, res) => {
+//         try {
+//                 for (let i = 0; i < req.body.date.length; i++) {
+//                         const fromTime = new Date(req.body.date[i].from);
+//                         const toTime = new Date(req.body.date[i].to);
+//                         const halfHour = 15 * 60 * 1000;
+//                         while (fromTime.getTime() < toTime.getTime()) {
+//                                 const slotEndTime = new Date(fromTime.getTime() + halfHour);
+//                                 let findSlot = await slot.findOne({ date: req.body.date[i].date, from: fromTime.toISOString(), to: slotEndTime.toISOString() });
+//                                 if (!findSlot) {
+//                                         const slot1 = new slot({
+//                                                 date: req.body.date[i].date,
+//                                                 from: fromTime.toISOString(),
+//                                                 to: slotEndTime.toISOString(),
+//                                         });
+//                                         await slot1.save();
+//                                         fromTime.setTime(slotEndTime.getTime());
+//                                 }
+//                         }
+//                 }
+//                 return res.status(200).json({ message: "Slots added successfully.", status: 200, data: {}, });
+//         } catch (error) {
+//                 console.log(error);
+//                 return res.status(500).json({ status: 500, message: "Internal server error ", data: error.message, });
+//         }
+// };
 exports.slotBlocked = async (req, res) => {
         try {
                 let x2 = `${req.body.date}T00:00:00.000+00:00`
@@ -3815,9 +3870,6 @@ exports.deleteCartItem = async (req, res, next) => {
                 next(error);
         }
 };
-
-
-
 ///////////////////////////////////////////////////////////////// old code ///////////////////////////////////////////////////////////////////////////////////
 // exports.addToCart = async (req, res, next) => {
 //         try {

@@ -18,6 +18,14 @@ const DocumentSchema = schema({
         to: {
                 type: Date,
         },
+        fromAmPm: {
+                type: String,
+                enum: ['AM', 'PM'],
+        },
+        toAmPm: {
+                type: String,
+                enum: ['AM', 'PM'],
+        },
         isBooked: {
                 type: Boolean,
                 default: false,
