@@ -63,5 +63,6 @@ module.exports = (app) => {
         app.delete("/api/v1/user/card/delete/:id", [authJwt.verifyToken], auth.DeletePaymentCard);
 
         app.post("/api/v1/user/card/newOne", auth.savecard);
+        // app.post("/api/v1/user/update/TimeService", auth.updateTimeService);
 
 }

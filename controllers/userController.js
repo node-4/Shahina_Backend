@@ -3784,4 +3784,52 @@ exports.savecard = async (req, res, next) => {
                 return res.status(500).json({ message: 'Error saving card' });
         }
 };
+// exports.updateTimeService = async (req, res) => {
+//         try {
+//                 const data = await services.find();
+
+//                 if (data.length === 0) {
+//                         return res.status(400).send({ msg: "not found" });
+//                 }
+
+//                 for (let i = 0; i < data.length; i++) {
+//                         function convertTimeToMinutes(timeString) {
+//                                 const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+//                                 const match = timeString.match(regex);
+//                                 if (!match) {
+//                                         throw new Error("Invalid time format");
+//                                 }
+//                                 const hours = parseInt(match[1]) || 0;
+//                                 const minutes = parseInt(match[2]) || 0;
+//                                 return hours * 60 + minutes;
+//                         }
+
+//                         // Generate a random time less than 1 hour
+//                         const randomHours = Math.floor(Math.random() * 2)
+//                         const randomMinutes = Math.floor(Math.random() * 60); // Random minutes between 0 and 59
+//                         const randomTotalTime = `${randomHours}hr ${randomMinutes}min`;
+
+//                         const totalMin = convertTimeToMinutes(randomTotalTime);
+
+//                         // Determine how to display totalTime based on totalMin
+//                         let displayTotalTime;
+//                         if (totalMin < 60) {
+//                                 displayTotalTime = `${randomMinutes}min`;
+//                         } else {
+//                                 displayTotalTime = randomTotalTime;
+//                         }
+
+//                         // Update the services with the new time
+//                         const update = await services.findByIdAndUpdate(
+//                                 { _id: data[i]._id },
+//                                 { $set: { totalTime: displayTotalTime, totalMin: totalMin } },
+//                                 { new: true }
+//                         );
+//                 }
+
+//                 return res.status(200).json({ status: 200, message: "Service data updated.", data: data });
+//         } catch (err) {
+//                 return res.status(500).send({ msg: "internal server error", error: err.message });
+//         }
+// };
 
