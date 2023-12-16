@@ -2140,17 +2140,42 @@ exports.getServiceOrderswithDate = async (req, res) => {
                         date,
                         ...datewiseData[date],
                 }));
-
-               
                 const datewiseDataArrayFormatted = datewiseDataArray.map((entry) => {
                         const [day, month, year] = entry.date.split('/');
                         const orderTime = entry.orders[0].orderTime;
-                        const timeIndex = orderTime.indexOf(':');
-                        const orderTime1 = orderTime.slice(timeIndex - 2, timeIndex + 5);
-                        const hr = orderTime1.slice(0, 2);
-                        const min = orderTime1.slice(3, 5);
-                        return {date: Number(day),month: Number(month),year: Number(year),hr: hr,min: min,totalOrders: entry.totalOrders,orders: entry.orders,};
+
+                        // Extract hour and minute from the orderTime
+                        const orderDateTime = new Date(orderTime);
+                        let orderHour = orderDateTime.getHours();
+                        let orderMinute = orderDateTime.getMinutes();
+
+                        // Add 6 hours and 30 minutes
+                        orderHour += 6;
+                        orderMinute += 30;
+
+                        // Adjust if minutes overflow to the next hour
+                        if (orderMinute >= 60) {
+                                orderMinute -= 60;
+                                orderHour += 1;
+                        }
+
+                        // Format hours and minutes with leading zeros
+                        const formattedOrderHour = orderHour.toString().padStart(2, '0');
+                        const formattedOrderMinute = orderMinute.toString().padStart(2, '0');
+
+                        return {
+                                date: Number(day),
+                                month: Number(month),
+                                year: Number(year),
+                                orderTime: `${formattedOrderHour}:${formattedOrderMinute}`,
+                                orderHour,
+                                orderMinute,
+                                totalOrders: entry.totalOrders,
+                                orders: entry.orders,
+                        };
                 });
+
+
                 const response = {
                         status: 200,
                         message: "Orders data found.",
