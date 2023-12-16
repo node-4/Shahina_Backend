@@ -791,7 +791,12 @@ exports.getServiceOrders = async (req, res, next) => {
 };
 exports.getServiceOrderbyId = async (req, res, next) => {
         try {
-                const orders = await serviceOrder.findById({ _id: req.params.id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                const orders = await serviceOrder.findById({ _id: req.params.id }).populate([
+                        { path: "user", }, 
+                        { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, 
+                        { path: "services.serviceId", select: { reviews: 0 } }, 
+                        { path: "coupon", select: "couponCode discount expirationDate" },
+                ]);
                 if (!orders) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
