@@ -3346,7 +3346,8 @@ exports.slotBlocked = async (req, res) => {
                 let x2 = `${req.body.date}T00:00:00.000+00:00`
                 let x = `${req.body.date}T${req.body.from}:00.000+00:00`
                 let x1 = `${req.body.date}T${req.body.to}:00.000+00:00`
-                let findSlot = await slot.find({ from: { $gte: x }, to: { $lte: x1 }, date: x2 });
+                console.log({ from: { $gte: x }, to: { $lte: x1 }, date: x2 });
+                let findSlot = await slot.find({ from: { $gte: x1 }, to: { $lte: x }, date: x2 });
                 if (findSlot.length > 0) {
                         let data = [];
                         for (let i = 0; i < findSlot.length; i++) {
