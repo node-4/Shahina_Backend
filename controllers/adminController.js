@@ -2141,21 +2141,16 @@ exports.getServiceOrderswithDate = async (req, res) => {
                         ...datewiseData[date],
                 }));
 
+               
                 const datewiseDataArrayFormatted = datewiseDataArray.map((entry) => {
-                        console.log(entry.orders[0]);
                         const [day, month, year] = entry.date.split('/');
                         const orderTime = entry.orders[0].orderTime;
-
-                        return {
-                                date: Number(day),
-                                month: Number(month),
-                                year: Number(year),
-                                orderTime,
-                                totalOrders: entry.totalOrders,
-                                orders: entry.orders,
-                        };
+                        const timeIndex = orderTime.indexOf(':');
+                        const orderTime1 = orderTime.slice(timeIndex - 2, timeIndex + 5);
+                        const hr = orderTime1.slice(0, 2);
+                        const min = orderTime1.slice(3, 5);
+                        return {date: Number(day),month: Number(month),year: Number(year),hr: hr,min: min,totalOrders: entry.totalOrders,orders: entry.orders,};
                 });
-
                 const response = {
                         status: 200,
                         message: "Orders data found.",
