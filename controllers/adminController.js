@@ -3236,6 +3236,7 @@ exports.getSlotForAdmin = async (req, res) => {
         try {
                 const { fromDate, date, toDate, page, limit } = req.query;
                 let query = {};
+                const categories = await slot.find({});
                 if (date) {
                         query.date = date;
                 }
@@ -3253,7 +3254,7 @@ exports.getSlotForAdmin = async (req, res) => {
                 }
                 let options = {
                         page: Number(page) || 1,
-                        limit: Number(limit) || 35,
+                        limit: Number(limit) || categories.length,
                         sort: { date: 1 },
                 };
                 let data = await slot.paginate(query, options);
@@ -4393,6 +4394,18 @@ exports.checkout = async (req, res) => {
                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
                         }
                 }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getServiceOrdersByuserId = async (req, res, next) => {
+        try {
+                const orders = await serviceOrder.find({ user: req.params.userId, orderStatus: "confirmed" }).sort({ createdAt: -1 }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                if (orders.length == 0) {
+                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                }
+                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
         } catch (error) {
                 console.log(error);
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });

@@ -91,6 +91,7 @@ module.exports = (app) => {
         app.get("/api/v1/clientReview/get/:id", [authJwt.verifyToken], auth.getClientReviewById);
         app.get("/api/v1/admin/ProductOrder", [authJwt.verifyToken], auth.getProductOrder);
         app.get("/api/v1/admin/ServiceOrders", [authJwt.verifyToken], auth.getServiceOrders);
+        app.get("/api/v1/admin/getServiceOrdersByuserId/:userId", auth.getServiceOrdersByuserId);
         app.get("/api/v1/admin/getServiceOrderswithDate", [authJwt.verifyToken], auth.getServiceOrderswithDate);
         app.post("/api/v1/admin/Ingredient/addIngredient", [authJwt.verifyToken], auth.createIngredients);
         app.get("/api/v1/admin/Ingredient/allIngredient", auth.getIngredients);
