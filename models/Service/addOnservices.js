@@ -9,8 +9,11 @@ var storeSchema = new schema({
         image: {
                 type: String
         },
-        time: {
+        totalTime: {
                 type: String
+        },
+        totalMin: {
+                type: Number
         },
         price: {
                 type: Number

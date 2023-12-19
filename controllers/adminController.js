@@ -1313,6 +1313,25 @@ exports.editService = async (req, res) => {
                                 discount = data.discount;
                         }
                         req.body.images = images;
+                        let totalMin, totalTime;
+                        if (req.body.totalTime != (null || undefined)) {
+                                totalMin = convertTimeToMinutes(req.body.totalTime)
+                                function convertTimeToMinutes(timeString) {
+                                        const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                                        const match = timeString.match(regex);
+                                        if (!match) {
+                                                throw new Error("Invalid time format");
+                                        }
+                                        const hours = parseInt(match[1]) || 0;
+                                        const minutes = parseInt(match[2]) || 0;
+                                        return hours * 60 + minutes;
+                                };
+                                totalTime = req.body.totalTime;
+                                totalMin = req.body.totalMin;
+                        } else {
+                                totalTime = data.totalTime;
+                                totalMin = data.totalMin;
+                        }
                         let productObj = {
                                 categoryId: req.body.categoryId || data.categoryId,
                                 name: req.body.name || data.name,
@@ -1323,6 +1342,8 @@ exports.editService = async (req, res) => {
                                 description: req.body.description || data.description,
                                 discountPrice: discountPrice,
                                 discount: discount,
+                                totalTime: totalTime,
+                                totalMin: totalMin
                         }
                         const data1 = await services.findByIdAndUpdate({ _id: data._id }, { $set: productObj }, { new: true });
                         return res.status(200).json({ status: 200, message: "Service update successfully.", data: data1 });
@@ -2761,7 +2782,18 @@ exports.createAddOnServices = async (req, res) => {
                         if (req.file) {
                                 image = req.file ? req.file.path : "";
                         }
-                        const data = { name: req.body.name, price: req.body.price, time: req.body.time, image: image, description: req.body.description, };
+                        function convertTimeToMinutes(timeString) {
+                                const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                                const match = timeString.match(regex);
+                                if (!match) {
+                                        throw new Error("Invalid time format");
+                                }
+                                const hours = parseInt(match[1]) || 0;
+                                const minutes = parseInt(match[2]) || 0;
+                                return hours * 60 + minutes;
+                        }
+                        req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
+                        const data = { name: req.body.name, price: req.body.price, totalTime: req.body.totalTime, totalMin: req.body.totalMin, image: image, description: req.body.description, };
                         const category = await addOnservices.create(data);
                         return res.status(200).json({ message: "AddOnServices add successfully.", status: 200, data: category });
                 }
@@ -2815,11 +2847,28 @@ exports.updateAddOnServices = async (req, res) => {
         if (category1) {
                 return res.status(404).json({ message: "AddOnServices already exit", status: 404, data: {} });
         }
-        let image;
         if (req.file) {
                 category.image = req.file ? req.file.path : "";
         } else {
                 category.image = category.image;
+        }
+        if (req.body.totalTime != (null || undefined)) {
+                req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
+                function convertTimeToMinutes(timeString) {
+                        const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                        const match = timeString.match(regex);
+                        if (!match) {
+                                throw new Error("Invalid time format");
+                        }
+                        const hours = parseInt(match[1]) || 0;
+                        const minutes = parseInt(match[2]) || 0;
+                        return hours * 60 + minutes;
+                };
+                category.totalTime = req.body.totalTime;
+                category.totalMin = req.body.totalMin;
+        } else {
+                category.totalTime = category.totalTime;
+                category.totalMin = category.totalMin;
         }
         category.name = req.body.name || category.name;
         category.price = req.body.price || category.price;
@@ -3296,7 +3345,6 @@ exports.createSlot1 = async (req, res) => {
                                         from: startTime.toISOString(),
                                         to: slotEndTime.toISOString()
                                 });
-
                                 if (!findSlot) {
                                         console.log({
                                                 date: req.body.date[i].date,
@@ -3305,7 +3353,6 @@ exports.createSlot1 = async (req, res) => {
                                                 fromAmPm: getAmPm(startTime),
                                                 toAmPm: getAmPm(slotEndTime),
                                         });
-
                                         const slot1 = new slot({
                                                 date: req.body.date[i].date,
                                                 from: startTime.toISOString(),
@@ -3313,14 +3360,11 @@ exports.createSlot1 = async (req, res) => {
                                                 fromAmPm: getAmPm(startTime),
                                                 toAmPm: getAmPm(slotEndTime),
                                         });
-
                                         await slot1.save();
                                 }
-
                                 startTime.setTime(slotEndTime.getTime());
                         }
                 }
-
                 return res.status(200).json({
                         message: "Slots added successfully.",
                         status: 200,
@@ -5094,6 +5138,55 @@ exports.cancelOrder = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+async function generateSlots() {
+        try {
+                function getAmPm(date) {
+                        return date.getHours() < 12 ? 'AM' : 'PM';
+                }
+                const numberOfDays = 365;
+                const intervalMilliseconds = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+                const currentDate = new Date();
+                const endDate = new Date(currentDate.getTime() + numberOfDays * intervalMilliseconds);
+                for (let currentDate = new Date(); currentDate.getTime() < endDate.getTime(); currentDate.setDate(currentDate.getDate() + 1)) {
+                        const startTime = new Date(`${currentDate.toISOString().split('T')[0]}T09:00:00`);
+                        const endTime = new Date(`${currentDate.toISOString().split('T')[0]}T17:00:00`);
+                        const halfHour = 15 * 60 * 1000;
+                        while (startTime.getTime() < endTime.getTime()) {
+                                const slotEndTime = new Date(startTime.getTime() + halfHour);
+                                let findSlot = await slot.findOne({
+                                        date: currentDate.toISOString().split('T')[0],
+                                        from: startTime.toISOString(),
+                                        to: slotEndTime.toISOString()
+                                });
+                                if (!findSlot) {
+                                        console.log({
+                                                date: currentDate.toISOString().split('T')[0],
+                                                from: startTime.toISOString(),
+                                                to: slotEndTime.toISOString(),
+                                                fromAmPm: getAmPm(startTime),
+                                                toAmPm: getAmPm(slotEndTime),
+                                        });
+
+                                        const slot1 = new slot({
+                                                date: currentDate.toISOString().split('T')[0],
+                                                from: startTime.toISOString(),
+                                                to: slotEndTime.toISOString(),
+                                                fromAmPm: getAmPm(startTime),
+                                                toAmPm: getAmPm(slotEndTime),
+                                        });
+                                        await slot1.save();
+                                }
+                                startTime.setTime(slotEndTime.getTime());
+                        }
+                }
+
+                console.log("Slots added successfully.");
+        } catch (error) {
+                console.log("Slots error.", error);
+        }
+}
+generateSlots()
+
 // exports.deleteCartItem = async (req, res, next) => {
 //         try {
 //                 const itemType = req.params.type;
