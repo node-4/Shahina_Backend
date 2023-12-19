@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 const mongoosePaginate = require('mongoose-paginate');
-
+const mongooseAggregatePaginate = require("mongoose-aggregate-paginate");
 const DocumentSchema = schema({
         title: {
                 type: String,
@@ -35,6 +35,6 @@ const DocumentSchema = schema({
                 default: false,
         }
 }, { timestamps: true });
-
+DocumentSchema.plugin(mongooseAggregatePaginate);
 DocumentSchema.plugin(mongoosePaginate);
 module.exports = mongoose.model("slot", DocumentSchema);

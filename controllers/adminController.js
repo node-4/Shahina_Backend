@@ -3233,19 +3233,34 @@ exports.getSlot = async (req, res) => {
         }
 };
 exports.getSlotForAdmin = async (req, res) => {
-        if (req.query.date) {
-                const categories = await slot.find({ date: req.query.date, });
-                if (categories.length > 0) {
-                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
+        try {
+                const { fromDate, date, toDate, page, limit } = req.query;
+                let query = {};
+                if (date) {
+                        query.date = date;
                 }
-                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+                if (fromDate && !toDate) {
+                        query.date = { $gte: fromDate };
+                }
+                if (!fromDate && toDate) {
+                        query.date = { $lte: toDate };
+                }
+                if (fromDate && toDate) {
+                        query.$and = [
+                                { date: { $gte: fromDate } },
+                                { date: { $lte: toDate } },
+                        ]
+                }
+                let options = {
+                        page: Number(page) || 1,
+                        limit: Number(limit) || 15,
+                        sort: { date: 1 },
+                };
+                let data = await slot.paginate(query, options);
+                return res.status(200).json({ status: 200, message: "Slot data found.", data: data });
 
-        } else {
-                const categories = await slot.find({});
-                if (categories.length > 0) {
-                        return res.status(201).json({ message: "Slot Found", status: 200, data: categories, });
-                }
-                return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
+        } catch (err) {
+                return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
 exports.updateSlot = async (req, res) => {
