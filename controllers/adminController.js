@@ -3255,7 +3255,7 @@ exports.getSlotForAdmin = async (req, res) => {
                 let options = {
                         page: Number(page) || 1,
                         limit: Number(limit) || categories.length,
-                        sort: { date: 1 },
+                        sort: { from: 1 },
                 };
                 let data = await slot.paginate(query, options);
                 return res.status(200).json({ status: 200, message: "Slot data found.", data: data });
