@@ -1528,6 +1528,29 @@ const calculateCartResponse = async (cart, userId) => {
                                 total += cartGift.total;
                         });
                 }
+
+
+                // let totalTime = 0;
+                // if (cartResponse.services.length > 0) {
+                //         for (let i = 0; i < cartResponse.services.length; i++) {
+                //                 totalTime = totalTime + cartResponse.services[i].serviceId.totalMin;
+                //         }
+                // }
+                // if (cartResponse.AddOnservicesSchema.length > 0) {
+                //         for (let i = 0; i < cartResponse.AddOnservicesSchema.length; i++) {
+                //                 totalTime = totalTime + cartResponse.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                //         }
+                // }
+                // const timeArray = cartResponse.toTime.split(':');
+                // const hours = parseInt(timeArray[0]);
+                // const minutes = parseInt(timeArray[1]);
+                // const providedTimeInMinutes = hours * 60 + minutes;
+                // let fromTimeInMinutes = providedTimeInMinutes + totalTime + 30;
+                // const fromTime = new Date(d);
+                // fromTime.setMinutes(fromTimeInMinutes);
+                // let x = `${req.body.date}T${cartResponse.toTime}:00.000Z`
+
+
                 cartResponse.subTotal = parseFloat(subTotal.toFixed(2));
                 cartResponse.onProductDiscount = parseFloat(onProductDiscount.toFixed(2));
                 cartResponse.offerDiscount = parseFloat(offerDiscount.toFixed(2));
@@ -1538,6 +1561,7 @@ const calculateCartResponse = async (cart, userId) => {
                 cartResponse.deliveryAddresss = data2;
                 cartResponse.contactDetail = data4;
                 cartResponse.billingAddresss = data5;
+                cartResponse.timeInMin = "8hr 10 min";
                 return cartResponse;
         } catch (error) {
                 throw error;

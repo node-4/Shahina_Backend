@@ -3894,6 +3894,7 @@ const calculateCartResponse = async (cart, userId) => {
                 cartResponse.deliveryAddresss = data2;
                 cartResponse.contactDetail = data4;
                 cartResponse.billingAddresss = data5;
+                cartResponse.timeInMin = "8hr 10 min";
                 return cartResponse;
         } catch (error) {
                 throw error;
