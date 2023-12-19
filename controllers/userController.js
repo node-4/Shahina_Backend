@@ -1125,16 +1125,20 @@ exports.addDateAndtimetoServiceCart = async (req, res) => {
                 if (!userData) {
                         return res.status(404).send({ status: 404, message: "User not found" });
                 } else {
-                        let findCart = await Cart.findOne({ user: userData._id }).populate([
-                                { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
-                                { path: "services.serviceId", select: { reviews: 0 } },
-                        ]);
+                        let findCart = await Cart.findOne({ user: userData._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } },]);
                         if (findCart) {
                                 const d = new Date(req.body.date);
                                 let text = d.toISOString();
                                 let totalTime = 0;
-                                for (let i = 0; i < findCart.services.length; i++) {
-                                        totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                if (findCart.services.length > 0) {
+                                        for (let i = 0; i < findCart.services.length; i++) {
+                                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                        }
+                                }
+                                if (findCart.AddOnservicesSchema.length > 0) {
+                                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                                totalTime = totalTime + findCart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                        }
                                 }
                                 const timeArray = req.body.time.split(':');
                                 const hours = parseInt(timeArray[0]);
