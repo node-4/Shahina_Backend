@@ -3286,56 +3286,56 @@ exports.removeSlot = async (req, res) => {
                 return res.status(200).json({ message: "Slot Deleted Successfully !" });
         }
 };
-exports.createSlot1 = async (req, res) => {
-        try {
-                function getAmPm(date) {
-                        return date.getHours() < 12 ? 'AM' : 'PM';
-                }
-                for (let i = 0; i < req.body.date.length; i++) {
-                        const startTime = new Date(req.body.date[i].from);
-                        const endTime = new Date(req.body.date[i].to);
-                        const halfHour = 15 * 60 * 1000;
-                        while (startTime.getTime() < endTime.getTime()) {
-                                const slotEndTime = new Date(startTime.getTime() + halfHour);
-                                let findSlot = await slot.findOne({
-                                        date: req.body.date[i].date,
-                                        from: startTime.toISOString(),
-                                        to: slotEndTime.toISOString()
-                                });
-                                if (!findSlot) {
-                                        console.log({
-                                                date: req.body.date[i].date,
-                                                from: startTime.toISOString(),
-                                                to: slotEndTime.toISOString(),
-                                                fromAmPm: getAmPm(startTime),
-                                                toAmPm: getAmPm(slotEndTime),
-                                        });
-                                        const slot1 = new slot({
-                                                date: req.body.date[i].date,
-                                                from: startTime.toISOString(),
-                                                to: slotEndTime.toISOString(),
-                                                fromAmPm: getAmPm(startTime),
-                                                toAmPm: getAmPm(slotEndTime),
-                                        });
-                                        await slot1.save();
-                                }
-                                startTime.setTime(slotEndTime.getTime());
-                        }
-                }
-                return res.status(200).json({
-                        message: "Slots added successfully.",
-                        status: 200,
-                        data: {},
-                });
-        } catch (error) {
-                console.log(error);
-                return res.status(500).json({
-                        status: 500,
-                        message: "Internal server error",
-                        data: error.message,
-                });
-        }
-};
+// exports.createSlot1 = async (req, res) => {
+//         try {
+//                 function getAmPm(date) {
+//                         return date.getHours() < 12 ? 'AM' : 'PM';
+//                 }
+//                 for (let i = 0; i < req.body.date.length; i++) {
+//                         const startTime = new Date(req.body.date[i].from);
+//                         const endTime = new Date(req.body.date[i].to);
+//                         const halfHour = 15 * 60 * 1000;
+//                         while (startTime.getTime() < endTime.getTime()) {
+//                                 const slotEndTime = new Date(startTime.getTime() + halfHour);
+//                                 let findSlot = await slot.findOne({
+//                                         date: req.body.date[i].date,
+//                                         from: startTime.toISOString(),
+//                                         to: slotEndTime.toISOString()
+//                                 });
+//                                 if (!findSlot) {
+//                                         console.log({
+//                                                 date: req.body.date[i].date,
+//                                                 from: startTime.toISOString(),
+//                                                 to: slotEndTime.toISOString(),
+//                                                 fromAmPm: getAmPm(startTime),
+//                                                 toAmPm: getAmPm(slotEndTime),
+//                                         });
+//                                         const slot1 = new slot({
+//                                                 date: req.body.date[i].date,
+//                                                 from: startTime.toISOString(),
+//                                                 to: slotEndTime.toISOString(),
+//                                                 fromAmPm: getAmPm(startTime),
+//                                                 toAmPm: getAmPm(slotEndTime),
+//                                         });
+//                                         await slot1.save();
+//                                 }
+//                                 startTime.setTime(slotEndTime.getTime());
+//                         }
+//                 }
+//                 return res.status(200).json({
+//                         message: "Slots added successfully.",
+//                         status: 200,
+//                         data: {},
+//                 });
+//         } catch (error) {
+//                 console.log(error);
+//                 return res.status(500).json({
+//                         status: 500,
+//                         message: "Internal server error",
+//                         data: error.message,
+//                 });
+//         }
+// };
 exports.slotBlocked = async (req, res) => {
         try {
                 let x2 = `${req.body.date}T00:00:00.000Z`
@@ -3815,6 +3815,30 @@ const calculateCartResponse = async (cart, userId) => {
                 const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                 const data3 = await User.findOne({ _id: userId });
                 const data4 = await contact.findOne().select('name image phone email numOfReviews google mapLink map ratings -_id');
+                let totalTime = 0;
+                if (cart.services.length > 0) {
+                        for (let i = 0; i < cart.services.length; i++) {
+                                totalTime = totalTime + cart.services[i].serviceId.totalMin;
+                        }
+                }
+                if (cart.AddOnservicesSchema.length > 0) {
+                        for (let i = 0; i < cart.AddOnservicesSchema.length; i++) {
+                                totalTime = totalTime + cart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                        }
+                }
+                var dateTimeString = cart.toTime;
+                var dateTimeObject = new Date(dateTimeString);
+                let d = dateTimeObject.toISOString().split('T')[0];
+                var hours1 = dateTimeObject.getUTCHours();
+                var minutes1 = dateTimeObject.getUTCMinutes();
+                const hours = parseInt(hours1);
+                const minutes = parseInt(minutes1);
+                const providedTimeInMinutes = hours * 60 + minutes;
+                let fromTimeInMinutes = providedTimeInMinutes + totalTime + 30;
+                const fromTime = new Date(d);
+                fromTime.setMinutes(fromTimeInMinutes);
+                cart.fromTime = fromTime;
+                cart.save();
                 let offerDiscount = 0, onProductDiscount = 0, membershipDiscount = 0, shipping = 0, total = 0, subTotal = 0;
                 const cartResponse = cart.toObject();
                 if (cartResponse.services.length > 0) {
@@ -3894,7 +3918,10 @@ const calculateCartResponse = async (cart, userId) => {
                 cartResponse.deliveryAddresss = data2;
                 cartResponse.contactDetail = data4;
                 cartResponse.billingAddresss = data5;
-                cartResponse.timeInMin = "8hr 10 min";
+                var hours2 = Math.floor(totalTime / 60);
+                var minutes2 = totalTime % 60;
+                let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                cartResponse.timeInMin = timeInMin;
                 return cartResponse;
         } catch (error) {
                 throw error;
@@ -5495,48 +5522,51 @@ exports.cancelOrder = async (req, res) => {
 async function generateSlots() {
         try {
                 function getAmPm(date) {
-                        return date.getHours() < 12 ? 'AM' : 'PM';
-                }
-                const numberOfDays = 365;
-                const intervalMilliseconds = 24 * 60 * 60 * 1000;
-                const currentDate = new Date();
-                const endDate = new Date(currentDate.getTime() + numberOfDays * intervalMilliseconds);
-                for (let currentDate = new Date(); currentDate.getTime() < endDate.getTime(); currentDate.setDate(currentDate.getDate() + 1)) {
-                        const startTime = new Date(`${currentDate.toISOString().split('T')[0]}T09:00:00`);
-                        const endTime = new Date(`${currentDate.toISOString().split('T')[0]}T17:00:00`);
-                        const halfHour = 15 * 60 * 1000;
-                        while (startTime.getTime() < endTime.getTime()) {
-                                const slotEndTime = new Date(startTime.getTime() + halfHour);
-                                let findSlot = await slot.findOne({
-                                        date: currentDate.toISOString().split('T')[0],
-                                        from: startTime.toISOString(),
-                                        to: slotEndTime.toISOString()
-                                });
-                                if (!findSlot) {
-                                        console.log({
-                                                date: currentDate.toISOString().split('T')[0],
-                                                from: startTime.toISOString(),
-                                                to: slotEndTime.toISOString(),
-                                                fromAmPm: getAmPm(startTime),
-                                                toAmPm: getAmPm(slotEndTime),
-                                        });
-
-                                        const slot1 = new slot({
-                                                date: currentDate.toISOString().split('T')[0],
-                                                from: startTime.toISOString(),
-                                                to: slotEndTime.toISOString(),
-                                                fromAmPm: getAmPm(startTime),
-                                                toAmPm: getAmPm(slotEndTime),
-                                        });
-                                        await slot1.save();
-                                }
-                                startTime.setTime(slotEndTime.getTime());
+                        const hours = date.getUTCHours();
+                        if (hours >= 12 && hours < 24) {
+                                return 'PM';
+                        } else {
+                                return 'AM';
                         }
                 }
+                async function generateSlots(startDate, numberOfDays = 365) {
+                        const intervalMilliseconds = 24 * 60 * 60 * 1000;
+                        let currentDate = new Date(startDate);
+                        currentDate.setUTCHours(9, 0, 0, 0);
+                        const endDate = new Date(currentDate.getTime() + numberOfDays * intervalMilliseconds);
+                        const slots = [];
+                        for (; currentDate.getTime() < endDate.getTime(); currentDate.setDate(currentDate.getDate() + 1)) {
+                                const startTime = new Date(currentDate.getTime());
+                                const endTime = new Date(currentDate.getTime() + 8 * 60 * 60 * 1000); // 8 hours
+                                const halfHour = 15 * 60 * 1000;
 
-                console.log("Slots added successfully.");
+                                while (startTime.getTime() < endTime.getTime()) {
+                                        const slotEndTime = new Date(startTime.getTime() + halfHour);
+                                        let obj = {
+                                                date: currentDate.toISOString().split('T')[0],
+                                                from: startTime.toISOString(),
+                                                to: slotEndTime.toISOString(),
+                                                fromAmPm: getAmPm(startTime),
+                                                toAmPm: getAmPm(slotEndTime),
+                                        }
+                                        let findSlot = await slot.findOne(obj);
+                                        if (!findSlot) {
+                                                const slot1 = new slot(obj);
+                                                await slot1.save();
+                                                slots.push(obj);
+                                        }
+                                        startTime.setTime(slotEndTime.getTime());
+                                }
+                        }
+
+
+                        return slots;
+                }
+                const generatedSlots = generateSlots(new Date());
+                console.log(generatedSlots);
         } catch (error) {
                 console.log("Slots error.", error);
         }
 }
 // generateSlots()
+
