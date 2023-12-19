@@ -3407,11 +3407,11 @@ exports.createSlot1 = async (req, res) => {
 // };
 exports.slotBlocked = async (req, res) => {
         try {
-                let x2 = `${req.body.date}T00:00:00.000+00:00`
-                let x = `${req.body.date}T${req.body.from}:00.000+00:00`
-                let x1 = `${req.body.date}T${req.body.to}:00.000+00:00`
-                console.log({ from: { $gte: x }, to: { $lte: x1 }, date: x2 });
-                let findSlot = await slot.find({ from: { $gte: x1 }, to: { $lte: x }, date: x2 });
+                let x2 = `${req.body.date}T00:00:00.000Z`
+                let x = `${req.body.date}T${req.body.from}:00.000Z`
+                let x1 = `${req.body.date}T${req.body.to}:00.000Z`
+                console.log({ from: { $gte: new Date(x) }, to: { $lte: new Date(x1) }, date: new Date(x2) });
+                let findSlot = await slot.find({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2) });
                 if (findSlot.length > 0) {
                         let data = [];
                         for (let i = 0; i < findSlot.length; i++) {
@@ -5185,7 +5185,7 @@ async function generateSlots() {
                 console.log("Slots error.", error);
         }
 }
-generateSlots()
+// generateSlots()
 
 // exports.deleteCartItem = async (req, res, next) => {
 //         try {
