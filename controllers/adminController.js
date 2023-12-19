@@ -3253,7 +3253,7 @@ exports.getSlotForAdmin = async (req, res) => {
                 }
                 let options = {
                         page: Number(page) || 1,
-                        limit: Number(limit) || 15,
+                        limit: Number(limit) || 35,
                         sort: { date: 1 },
                 };
                 let data = await slot.paginate(query, options);
