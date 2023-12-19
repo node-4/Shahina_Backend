@@ -497,7 +497,6 @@ exports.createProduct = async (req, res) => {
                 const skinTypeIds = req.body.skinTypeId;
                 const brandIds = req.body.brandId;
                 const productPromises = [];
-                console.log(brandIds);
                 if (brandIds != (null || undefined)) {
                         if (brandIds || brandIds.length > 0) {
                                 for (const brandId of brandIds) {
@@ -805,6 +804,7 @@ exports.editProduct = async (req, res) => {
                 if (!data) {
                         return res.status(400).send({ msg: "not found" });
                 } else {
+                        console.log(req.body);
                         if (req.body.brandId != (null || undefined)) {
                                 const data0 = await Brand.findById(req.body.brandId);
                                 if (!data0 || data0.length === 0) {
@@ -1062,12 +1062,23 @@ exports.createService = async (req, res) => {
                 req.body.beforeAfterImage = beforeAfterImage;
                 function convertTimeToMinutes(timeString) {
                         const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                        const regex1 = /(\d+)\s*(?:min)?/;
                         const match = timeString.match(regex);
+                        const match1 = timeString.match(regex1);
                         if (!match) {
-                                throw new Error("Invalid time format");
+                                if (!match1) {
+                                        throw new Error("Invalid time format");
+                                }
                         }
-                        const hours = parseInt(match[1]) || 0;
-                        const minutes = parseInt(match[2]) || 0;
+                        let hours, minutes;
+                        if (match) {
+                                hours = parseInt(match[1]) || 0;
+                                minutes = parseInt(match[2]) || 0;
+                        }
+                        if (match1) {
+                                hours = 0;
+                                minutes = parseInt(match1[1]) || 0;
+                        }
                         return hours * 60 + minutes;
                 }
                 req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
@@ -1318,14 +1329,25 @@ exports.editService = async (req, res) => {
                                 totalMin = convertTimeToMinutes(req.body.totalTime)
                                 function convertTimeToMinutes(timeString) {
                                         const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                                        const regex1 = /(\d+)\s*(?:min)?/;
                                         const match = timeString.match(regex);
+                                        const match1 = timeString.match(regex1);
                                         if (!match) {
-                                                throw new Error("Invalid time format");
+                                                if (!match1) {
+                                                        throw new Error("Invalid time format");
+                                                }
                                         }
-                                        const hours = parseInt(match[1]) || 0;
-                                        const minutes = parseInt(match[2]) || 0;
+                                        let hours, minutes;
+                                        if (match) {
+                                                hours = parseInt(match[1]) || 0;
+                                                minutes = parseInt(match[2]) || 0;
+                                        }
+                                        if (match1) {
+                                                hours = 0;
+                                                minutes = parseInt(match1[1]) || 0;
+                                        }
                                         return hours * 60 + minutes;
-                                };
+                                }
                                 totalTime = req.body.totalTime;
                                 totalMin = req.body.totalMin;
                         } else {
@@ -2784,12 +2806,23 @@ exports.createAddOnServices = async (req, res) => {
                         }
                         function convertTimeToMinutes(timeString) {
                                 const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                                const regex1 = /(\d+)\s*(?:min)?/;
                                 const match = timeString.match(regex);
+                                const match1 = timeString.match(regex1);
                                 if (!match) {
-                                        throw new Error("Invalid time format");
+                                        if (!match1) {
+                                                throw new Error("Invalid time format");
+                                        }
                                 }
-                                const hours = parseInt(match[1]) || 0;
-                                const minutes = parseInt(match[2]) || 0;
+                                let hours, minutes;
+                                if (match) {
+                                        hours = parseInt(match[1]) || 0;
+                                        minutes = parseInt(match[2]) || 0;
+                                }
+                                if (match1) {
+                                        hours = 0;
+                                        minutes = parseInt(match1[1]) || 0;
+                                }
                                 return hours * 60 + minutes;
                         }
                         req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
@@ -2798,6 +2831,7 @@ exports.createAddOnServices = async (req, res) => {
                         return res.status(200).json({ message: "AddOnServices add successfully.", status: 200, data: category });
                 }
         } catch (error) {
+                console.log(error);
                 return res.status(500).json({ status: 500, message: "internal server error ", data: error.message, });
         }
 };
@@ -2856,14 +2890,25 @@ exports.updateAddOnServices = async (req, res) => {
                 req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
                 function convertTimeToMinutes(timeString) {
                         const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                        const regex1 = /(\d+)\s*(?:min)?/;
                         const match = timeString.match(regex);
+                        const match1 = timeString.match(regex1);
                         if (!match) {
-                                throw new Error("Invalid time format");
+                                if (!match1) {
+                                        throw new Error("Invalid time format");
+                                }
                         }
-                        const hours = parseInt(match[1]) || 0;
-                        const minutes = parseInt(match[2]) || 0;
+                        let hours, minutes;
+                        if (match) {
+                                hours = parseInt(match[1]) || 0;
+                                minutes = parseInt(match[2]) || 0;
+                        }
+                        if (match1) {
+                                hours = 0;
+                                minutes = parseInt(match1[1]) || 0;
+                        }
                         return hours * 60 + minutes;
-                };
+                }
                 category.totalTime = req.body.totalTime;
                 category.totalMin = req.body.totalMin;
         } else {
