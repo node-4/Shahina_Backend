@@ -107,6 +107,7 @@ module.exports = (app) => {
         app.delete("/api/v1/GiftCards/deletegiftCard/:id", [authJwt.verifyToken], auth.deleteGiftCard);
         app.post("/api/v1/admin/Slot/addSlot", [authJwt.verifyToken], auth.createSlot);
         app.get("/api/v1/admin/Slot/allSlot", auth.getSlot);
+        app.get("/api/v1/admin/Slot/getAvailableSlotOnwhichDate", auth.getAvailableSlotOnwhichDate);
         app.get("/api/v1/admin/Slot/getSlotForAdmin", auth.getSlotForAdmin);
         app.put("/api/v1/admin/Slot/updateSlot/:id", [authJwt.verifyToken], auth.updateSlot);
         app.put("/api/v1/admin/Slot/slotBlocked", [authJwt.verifyToken], auth.slotBlocked);

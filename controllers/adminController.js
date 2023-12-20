@@ -42,6 +42,7 @@ const commonFunction = require("../middlewares/commonFunction");
 const XLSX = require("xlsx");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
+const moment = require("moment")
 const { SendleClient } = require('sendle-node');
 // public
 // const client = new SendleClient({
@@ -3232,6 +3233,63 @@ exports.getSlot = async (req, res) => {
                 return res.status(201).json({ message: "Slot not Found", status: 404, data: {}, });
         }
 };
+exports.getAvailableSlotOnwhichDate = async (req, res) => {
+        try {
+                const { year, month } = req.query;
+                if((year == (null || undefined )) && (month == (null || undefined )) ){
+                        const currentDate = new Date();
+                        const year = currentDate.getFullYear();
+                        const month = currentDate.getMonth() + 1;
+                        const startDate = moment(`${year}-${month}-01`).startOf('month');
+                        const endDate = moment(startDate).endOf('month');
+                        const slots = await slot.find({ date: { $gte: startDate, $lte: endDate } }).sort({ date: 1 });
+                        if (slots.length === 0) {
+                                return res.json({ allSlot: [] });
+                        }
+                        let uniqueDates = new Set();
+                        let allSlot = [];
+                        for (let i = 0; i < slots.length; i++) {
+                                if (!uniqueDates.has(slots[i].date.toString())) {
+                                        const categories = await slot.find({ date: slots[i].date, slotBlocked: false }).count();
+                                        const allBooked = categories === 0 ? 'yes' : 'no';
+                                        let obj = {
+                                                date: slots[i].date,
+                                                allBooked: allBooked,
+                                        };
+                                        allSlot.push(obj);
+                                        uniqueDates.add(slots[i].date.toString());
+                                }
+                        }
+                        return res.json({ allSlot });
+                }else{
+                        const startDate = moment(`${year}-${month}-01`).startOf('month');
+                        const endDate = moment(startDate).endOf('month');
+                        const slots = await slot.find({ date: { $gte: startDate, $lte: endDate } }).sort({ date: 1 });
+                        if (slots.length === 0) {
+                                return res.json({ allSlot: [] });
+                        }
+                        let uniqueDates = new Set();
+                        let allSlot = [];
+                        for (let i = 0; i < slots.length; i++) {
+                                if (!uniqueDates.has(slots[i].date.toString())) {
+                                        const categories = await slot.find({ date: slots[i].date, slotBlocked: false }).count();
+                                        const allBooked = categories === 0 ? 'yes' : 'no';
+                                        let obj = {
+                                                date: slots[i].date,
+                                                allBooked: allBooked,
+                                        };
+                                        allSlot.push(obj);
+                                        uniqueDates.add(slots[i].date.toString());
+                                }
+                        }
+                        return res.json({ allSlot });
+                }
+        } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: 'Internal Server Error' });
+        }
+};
+
 exports.getSlotForAdmin = async (req, res) => {
         try {
                 const { fromDate, date, toDate, page, limit } = req.query;
