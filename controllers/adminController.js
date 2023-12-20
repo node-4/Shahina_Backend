@@ -3251,12 +3251,10 @@ exports.getAvailableSlotOnwhichDate = async (req, res) => {
                         for (let i = 0; i < slots.length; i++) {
                                 if (!uniqueDates.has(slots[i].date.toString())) {
                                         const categories = await slot.find({ date: slots[i].date, slotBlocked: false }).count();
-                                        const categories1 = await slot.find({ date: slots[i].date, slotBlocked: false }).lean();
                                         const allBooked = categories === 0 ? 'yes' : 'no';
                                         let obj = {
                                                 date: slots[i].date,
                                                 allBooked: allBooked,
-                                                data: categories1
                                         };
                                         allSlot.push(obj);
                                         uniqueDates.add(slots[i].date.toString());
@@ -3275,12 +3273,10 @@ exports.getAvailableSlotOnwhichDate = async (req, res) => {
                         for (let i = 0; i < slots.length; i++) {
                                 if (!uniqueDates.has(slots[i].date.toString())) {
                                         const categories = await slot.find({ date: slots[i].date, slotBlocked: false }).count();
-                                        const categories1 = await slot.find({ date: slots[i].date, slotBlocked: false }).lean();
                                         const allBooked = categories === 0 ? 'yes' : 'no';
                                         let obj = {
                                                 date: slots[i].date,
                                                 allBooked: allBooked,
-                                                data: categories1
                                         };
                                         allSlot.push(obj);
                                         uniqueDates.add(slots[i].date.toString());
