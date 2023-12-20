@@ -1613,24 +1613,74 @@ exports.checkout = async (req, res) => {
                                 let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId, couponDiscount = 0, orderObjTotalAmount = 0;
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
-                                let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
-                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        for (const cartProduct of cartResponse.products) {
-                                                if (cartProduct.productId.multipleSize == true) {
-                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                let orderId = await reffralCode();
+                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                        const dateObject = new Date(findCart.date);
+                                        const dateString = dateObject.toISOString().split('T')[0];
+                                        const newTime = "00:00:00.000+00:00";
+                                        const replacedDateString = `${dateString}T${newTime}`;
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        if (findSlot1.length > 0) {
+                                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                        let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        for (const cartProduct of cartResponse.products) {
+                                                                if (cartProduct.productId.multipleSize == true) {
+                                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                        if (data3.isSubscription === true) {
+                                                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                                if (findSubscription) {
+                                                                                                        membershipDiscountPercentage = findSubscription.discount;
+                                                                                                }
+                                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total - membershipDiscount);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        } else {
+                                                                                                membershipDiscount += 0;
+                                                                                                cartProduct.membershipDiscount = membershipDiscount
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        }
+                                                                                }
+                                                                        }
+                                                                } else {
                                                                         if (data3.isSubscription === true) {
                                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
                                                                                 if (findSubscription) {
                                                                                         membershipDiscountPercentage = findSubscription.discount;
                                                                                 }
-                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                 membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
@@ -1638,296 +1688,445 @@ exports.checkout = async (req, res) => {
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         } else {
-                                                                                membershipDiscount += 0;
-                                                                                cartProduct.membershipDiscount = membershipDiscount
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                let x = 0.00;
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
-                                                                                total += (cartProduct.total);
+                                                                                total += cartProduct.total;
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         }
                                                                 }
                                                         }
-                                                } else {
-                                                        if (data3.isSubscription === true) {
-                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                                if (findSubscription) {
-                                                                        membershipDiscountPercentage = findSubscription.discount;
-                                                                }
-                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += (cartProduct.total - membershipDiscount);
-                                                                productFBPTotal += cartProduct.total
+                                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                subTotal += cartFBP.subTotal;
+                                                                total += cartFBP.total;
+                                                                productFBPTotal += cartFBP.total
                                                                 const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
+                                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                                        quantity: cartFBP.quantity,
                                                                 };
-                                                                productArray.push(newCartItem)
+                                                                frequentlyBuyProductArray.push(newCartItem);
+                                                        });
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        if (cartResponse.pickupFromStore == true) {
+                                                                shipping = 0.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                cartResponse.pickUp = data1;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                                         } else {
-                                                                let x = 0.00;
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                                productFBPTotal += cartProduct.total
-                                                                const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
-                                                                };
-                                                                productArray.push(newCartItem)
-                                                        }
-                                                }
-                                        }
-                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
-                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                subTotal += cartFBP.subTotal;
-                                                total += cartFBP.total;
-                                                productFBPTotal += cartFBP.total
-                                                const newCartItem = {
-                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
-                                                        price: cartFBP.frequentlyBuyProductId.price,
-                                                        quantity: cartFBP.quantity,
-                                                };
-                                                frequentlyBuyProductArray.push(newCartItem);
-                                        });
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        if (cartResponse.pickupFromStore == true) {
-                                                shipping = 0.00;
-                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                cartResponse.pickUp = data1;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
-                                        } else {
-                                                shipping = 0.00;
-                                                if (productFBPTotal <= 150) {
-                                                        shipping = 8.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                } else {
-                                                        shipping = 12.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                }
-                                                cartResponse.deliveryAddresss = data2;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.shipping = shipping;
-                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
-                                        }
-                                        cartResponse.products = productArray;
-                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
-                                        let saveOrder = await productOrder.create(cartResponse);
-                                        productOrderId = saveOrder._id;
-                                }
-                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
-                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        if (cartResponse.services.length > 0) {
-                                                for (const cartProduct of cartResponse.services) {
-                                                        if (cartProduct.serviceId.type === "offer") {
-                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                        }
-                                                        if (cartProduct.serviceId.type === "Service") {
-                                                                if (data3.isSubscription === true) {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        }
+                                                                shipping = 0.00;
+                                                                if (productFBPTotal <= 150) {
+                                                                        shipping = 8.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                                 } else {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
+                                                                        shipping = 12.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                }
+                                                                cartResponse.deliveryAddresss = data2;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.shipping = shipping;
+                                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                        }
+                                                        cartResponse.products = productArray;
+                                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
+                                                        let saveOrder = await productOrder.create(cartResponse);
+                                                        productOrderId = saveOrder._id;
+                                                }
+                                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        if (cartResponse.services.length > 0) {
+                                                                for (const cartProduct of cartResponse.services) {
+                                                                        if (cartProduct.serviceId.type === "offer") {
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
                                                                                 offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
                                                                                 subTotal += cartProduct.subTotal;
+                                                                                total += cartProduct.total;
+                                                                        }
+                                                                        if (cartProduct.serviceId.type === "Service") {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                } else {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                }
                                                                         }
                                                                 }
                                                         }
-                                                }
-                                        }
-                                        if (cartResponse.AddOnservicesSchema.length > 0) {
-                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        subTotal += cartGift.subTotal;
-                                                        total += cartGift.total;
-                                                });
-                                        }
-                                        cartResponse.date = findCart.date;
-                                        cartResponse.time = findCart.time;
-                                        cartResponse.suggesstion = findCart.suggesstion;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.total = total;
-                                        cartResponse.serviceAddresss = data1;
-                                        orderObjTotalAmount = orderObjTotalAmount + total;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        cartResponse.orderStatus = "confirmed";
-                                        let saveOrder = await serviceOrder.create(cartResponse);
-                                        const dateObject = new Date(findCart.date);
-                                        const dateString = dateObject.toISOString().split('T')[0];
-                                        const newTime = "00:00:00.000+00:00";
-                                        const replacedDateString = `${dateString}T${newTime}`;
-                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
-                                        if (saveOrder) {
-                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
-                                                if (findSlot.length > 0) {
-                                                        for (let i = 0; i < findSlot.length; i++) {
-                                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
-                                                                console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                        if (cartResponse.AddOnservicesSchema.length > 0) {
+                                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        subTotal += cartGift.subTotal;
+                                                                        total += cartGift.total;
+                                                                });
                                                         }
+                                                        cartResponse.date = findCart.date;
+                                                        cartResponse.toTime = findCart.toTime;
+                                                        cartResponse.fromTime = findCart.fromTime;
+                                                        cartResponse.time = findCart.time;
+                                                        cartResponse.suggesstion = findCart.suggesstion;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.total = total;
+                                                        cartResponse.serviceAddresss = data1;
+                                                        orderObjTotalAmount = orderObjTotalAmount + total;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        cartResponse.orderStatus = "confirmed";
+                                                        let saveOrder = await serviceOrder.create(cartResponse);
+                                                        const dateObject = new Date(findCart.date);
+                                                        const dateString = dateObject.toISOString().split('T')[0];
+                                                        const newTime = "00:00:00.000+00:00";
+                                                        const replacedDateString = `${dateString}T${newTime}`;
+                                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
+                                                        if (saveOrder) {
+                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                if (findSlot.length > 0) {
+                                                                        for (let i = 0; i < findSlot.length; i++) {
+                                                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
+                                                                                console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                        }
+                                                                }
+                                                        }
+                                                        serviceOrderId = saveOrder._id;
                                                 }
-                                        }
-                                        serviceOrderId = saveOrder._id;
-                                }
-                                if (cartResponse.gifts.length > 0) {
-                                        let total = 0, subTotal = 0;
-                                        cartResponse.gifts.forEach(async (cartGift) => {
-                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                subTotal += cartGift.subTotal;
-                                                total += cartGift.total;
-                                                let obj = {
-                                                        senderUser: req.user._id,
-                                                        code: cartResponse.orderId,
-                                                        title: 'Buy a gift Card',
-                                                        email: cartGift.email,
-                                                        description: "Your friend Gift a gift card",
-                                                        price: cartGift.giftPriceId.price,
-                                                        discount: cartGift.giftPriceId.giftCardrewards,
-                                                        per: "Amount",
-                                                }
-                                                orderObjTotalAmount = orderObjTotalAmount + total;
-                                                orderObjPaidAmount = orderObjPaidAmount + total;
-                                                let saveOrder = await coupanModel.create(obj);
-                                                if (saveOrder) {
-                                                        giftOrderId = saveOrder._id;
+                                                if (cartResponse.gifts.length > 0) {
+                                                        let total = 0, subTotal = 0;
+                                                        cartResponse.gifts.forEach(async (cartGift) => {
+                                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                subTotal += cartGift.subTotal;
+                                                                total += cartGift.total;
+                                                                let obj = {
+                                                                        senderUser: req.user._id,
+                                                                        code: cartResponse.orderId,
+                                                                        title: 'Buy a gift Card',
+                                                                        email: cartGift.email,
+                                                                        description: "Your friend Gift a gift card",
+                                                                        price: cartGift.giftPriceId.price,
+                                                                        discount: cartGift.giftPriceId.giftCardrewards,
+                                                                        per: "Amount",
+                                                                }
+                                                                orderObjTotalAmount = orderObjTotalAmount + total;
+                                                                orderObjPaidAmount = orderObjPaidAmount + total;
+                                                                let saveOrder = await coupanModel.create(obj);
+                                                                if (saveOrder) {
+                                                                        giftOrderId = saveOrder._id;
+                                                                        let orderObj = {
+                                                                                userId: req.user._id,
+                                                                                orderId: orderId,
+                                                                                giftOrder: giftOrderId,
+                                                                                productOrder: productOrderId,
+                                                                                serviceOrder: serviceOrderId,
+                                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                                couponDiscount: couponDiscount,
+                                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                        }
+                                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                                }
+                                                        });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                                        orderObjTotalAmount = orderObjTotalAmount;
                                                         let orderObj = {
                                                                 userId: req.user._id,
                                                                 orderId: orderId,
-                                                                giftOrder: giftOrderId,
                                                                 productOrder: productOrderId,
                                                                 serviceOrder: serviceOrderId,
                                                                 orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderStatus: "confirmed",
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                                        orderObjTotalAmount = orderObjTotalAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else {
+                                                        orderObjTotalAmount = orderObjTotalAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
                                                                 couponDiscount: couponDiscount,
                                                                 orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
                                                         }
                                                         let saveOrder1 = await userOrders.create(orderObj);
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
-                                        });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
-                                        orderObjTotalAmount = orderObjTotalAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderStatus: "confirmed",
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        } else {
+                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
-                                        orderObjTotalAmount = orderObjTotalAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
-                                        }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
-                                        orderObjTotalAmount = orderObjTotalAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                for (const cartProduct of cartResponse.products) {
+                                                        if (cartProduct.productId.multipleSize == true) {
+                                                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                        if (findSubscription) {
+                                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                                        }
+                                                                                        let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                        membershipDiscount += x;
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                } else {
+                                                                                        membershipDiscount += 0;
+                                                                                        cartProduct.membershipDiscount = membershipDiscount
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                }
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                if (data3.isSubscription === true) {
+                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                        if (findSubscription) {
+                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                        }
+                                                                        let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                } else {
+                                                                        let x = 0.00;
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += cartProduct.total;
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                }
+                                                        }
+                                                }
+                                                cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                        cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        subTotal += cartFBP.subTotal;
+                                                        total += cartFBP.total;
+                                                        productFBPTotal += cartFBP.total
+                                                        const newCartItem = {
+                                                                frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                price: cartFBP.frequentlyBuyProductId.price,
+                                                                quantity: cartFBP.quantity,
+                                                        };
+                                                        frequentlyBuyProductArray.push(newCartItem);
+                                                });
+                                                cartResponse.subTotal = subTotal;
+                                                cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                cartResponse.offerDiscount = Number(offerDiscount);
+                                                if (cartResponse.pickupFromStore == true) {
+                                                        shipping = 0.00;
+                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        cartResponse.pickUp = data1;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
+                                                } else {
+                                                        shipping = 0.00;
+                                                        if (productFBPTotal <= 150) {
+                                                                shipping = 8.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        } else {
+                                                                shipping = 12.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        }
+                                                        cartResponse.deliveryAddresss = data2;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.shipping = shipping;
+                                                        cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                }
+                                                cartResponse.products = productArray;
+                                                cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                cartResponse._id = new mongoose.Types.ObjectId();
+                                                orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
+                                                let saveOrder = await productOrder.create(cartResponse);
+                                                productOrderId = saveOrder._id;
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        if (cartResponse.gifts.length > 0) {
+                                                let total = 0, subTotal = 0;
+                                                cartResponse.gifts.forEach(async (cartGift) => {
+                                                        cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        subTotal += cartGift.subTotal;
+                                                        total += cartGift.total;
+                                                        let obj = {
+                                                                senderUser: req.user._id,
+                                                                code: cartResponse.orderId,
+                                                                title: 'Buy a gift Card',
+                                                                email: cartGift.email,
+                                                                description: "Your friend Gift a gift card",
+                                                                price: cartGift.giftPriceId.price,
+                                                                discount: cartGift.giftPriceId.giftCardrewards,
+                                                                per: "Amount",
+                                                        }
+                                                        orderObjTotalAmount = orderObjTotalAmount + total;
+                                                        orderObjPaidAmount = orderObjPaidAmount + total;
+                                                        let saveOrder = await coupanModel.create(obj);
+                                                        if (saveOrder) {
+                                                                giftOrderId = saveOrder._id;
+                                                                let orderObj = {
+                                                                        userId: req.user._id,
+                                                                        orderId: orderId,
+                                                                        giftOrder: giftOrderId,
+                                                                        productOrder: productOrderId,
+                                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                        couponDiscount: couponDiscount,
+                                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                }
+                                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                        }
+                                                });
+                                        } else {
+                                                orderObjTotalAmount = orderObjTotalAmount;
+                                                let orderObj = {
+                                                        userId: req.user._id,
+                                                        orderId: orderId,
+                                                        productOrder: productOrderId,
+                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                        applyCoupan: cartResponse.coupon,
+                                                        couponDiscount: couponDiscount,
+                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                }
+                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        }
                                 }
                         } else {
                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
@@ -1944,22 +2143,72 @@ exports.checkout = async (req, res) => {
                                 const cartResponse = findCart.toObject();
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
-                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        for (const cartProduct of cartResponse.products) {
-                                                if (cartProduct.productId.multipleSize == true) {
-                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                        const dateObject = new Date(findCart.date);
+                                        const dateString = dateObject.toISOString().split('T')[0];
+                                        const newTime = "00:00:00.000+00:00";
+                                        const replacedDateString = `${dateString}T${newTime}`;
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        if (findSlot1.length > 0) {
+                                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                        let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        for (const cartProduct of cartResponse.products) {
+                                                                if (cartProduct.productId.multipleSize == true) {
+                                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                        if (data3.isSubscription === true) {
+                                                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                                if (findSubscription) {
+                                                                                                        membershipDiscountPercentage = findSubscription.discount;
+                                                                                                }
+                                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total - membershipDiscount);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        } else {
+                                                                                                membershipDiscount += 0;
+                                                                                                cartProduct.membershipDiscount = membershipDiscount
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        }
+                                                                                }
+                                                                        }
+                                                                } else {
                                                                         if (data3.isSubscription === true) {
                                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
                                                                                 if (findSubscription) {
                                                                                         membershipDiscountPercentage = findSubscription.discount;
                                                                                 }
-                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                 membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
@@ -1967,321 +2216,468 @@ exports.checkout = async (req, res) => {
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         } else {
-                                                                                membershipDiscount += 0;
-                                                                                cartProduct.membershipDiscount = membershipDiscount
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                let x = 0.00;
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
-                                                                                total += (cartProduct.total);
+                                                                                total += cartProduct.total;
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         }
                                                                 }
                                                         }
-                                                } else {
-                                                        if (data3.isSubscription === true) {
-                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                                if (findSubscription) {
-                                                                        membershipDiscountPercentage = findSubscription.discount;
-                                                                }
-                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += (cartProduct.total - membershipDiscount);
-                                                                productFBPTotal += cartProduct.total
+                                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                subTotal += cartFBP.subTotal;
+                                                                total += cartFBP.total;
+                                                                productFBPTotal += cartFBP.total
                                                                 const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
+                                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                                        quantity: cartFBP.quantity,
                                                                 };
-                                                                productArray.push(newCartItem)
+                                                                frequentlyBuyProductArray.push(newCartItem);
+                                                        });
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        if (cartResponse.pickupFromStore == true) {
+                                                                shipping = 0.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                cartResponse.pickUp = data1;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                                         } else {
-                                                                let x = 0.00;
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                                productFBPTotal += cartProduct.total
-                                                                const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
-                                                                };
-                                                                productArray.push(newCartItem)
-                                                        }
-                                                }
-                                        }
-                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
-                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                subTotal += cartFBP.subTotal;
-                                                total += cartFBP.total;
-                                                productFBPTotal += cartFBP.total
-                                                const newCartItem = {
-                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
-                                                        price: cartFBP.frequentlyBuyProductId.price,
-                                                        quantity: cartFBP.quantity,
-                                                };
-                                                frequentlyBuyProductArray.push(newCartItem);
-                                        });
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        if (cartResponse.pickupFromStore == true) {
-                                                shipping = 0.00;
-                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                cartResponse.pickUp = data1;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
-                                        } else {
-                                                shipping = 0.00;
-                                                if (productFBPTotal <= 150) {
-                                                        shipping = 8.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                } else {
-                                                        shipping = 12.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                }
-                                                cartResponse.deliveryAddresss = data2;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.shipping = shipping;
-                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
-                                        }
-                                        cartResponse.products = productArray;
-                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
-                                        let saveOrder = await productOrder.create(cartResponse);
-                                        productOrderId = saveOrder._id;
-                                }
-                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
-                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        if (cartResponse.services.length > 0) {
-                                                for (const cartProduct of cartResponse.services) {
-                                                        if (cartProduct.serviceId.type === "offer") {
-                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                        }
-                                                        if (cartProduct.serviceId.type === "Service") {
-                                                                if (data3.isSubscription === true) {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        }
-                                                                        // console.log(data3.isSubscription);
-                                                                        // const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                                        // if (findSubscription) {
-                                                                        //         membershipDiscountPercentage = findSubscription.discount;
-                                                                        // }
-                                                                        // let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                        // cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                        // membershipDiscount += x;
-                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                        // cartProduct.offerDiscount = 0.00;
-                                                                        // offerDiscount += cartProduct.offerDiscount;
-                                                                        // total += cartProduct.total;
-                                                                        // subTotal += cartProduct.subTotal;
+                                                                shipping = 0.00;
+                                                                if (productFBPTotal <= 150) {
+                                                                        shipping = 8.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                                 } else {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
+                                                                        shipping = 12.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                }
+                                                                cartResponse.deliveryAddresss = data2;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.shipping = shipping;
+                                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                        }
+                                                        cartResponse.products = productArray;
+                                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
+                                                        let saveOrder = await productOrder.create(cartResponse);
+                                                        productOrderId = saveOrder._id;
+                                                }
+                                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        if (cartResponse.services.length > 0) {
+                                                                for (const cartProduct of cartResponse.services) {
+                                                                        if (cartProduct.serviceId.type === "offer") {
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
                                                                                 offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
                                                                                 subTotal += cartProduct.subTotal;
+                                                                                total += cartProduct.total;
                                                                         }
-                                                                        // let x = 0;
-                                                                        // cartProduct.membershipDiscount = x
-                                                                        // membershipDiscount += x;
-                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        // cartProduct.offerDiscount = 0.00;
-                                                                        // offerDiscount += cartProduct.offerDiscount;
-                                                                        // subTotal += cartProduct.subTotal;
-                                                                        // total += cartProduct.total;
+                                                                        if (cartProduct.serviceId.type === "Service") {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                        // console.log(data3.isSubscription);
+                                                                                        // const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                        // if (findSubscription) {
+                                                                                        //         membershipDiscountPercentage = findSubscription.discount;
+                                                                                        // }
+                                                                                        // let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                        // cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                        // membershipDiscount += x;
+                                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                        // cartProduct.offerDiscount = 0.00;
+                                                                                        // offerDiscount += cartProduct.offerDiscount;
+                                                                                        // total += cartProduct.total;
+                                                                                        // subTotal += cartProduct.subTotal;
+                                                                                } else {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                        // let x = 0;
+                                                                                        // cartProduct.membershipDiscount = x
+                                                                                        // membershipDiscount += x;
+                                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                        // cartProduct.offerDiscount = 0.00;
+                                                                                        // offerDiscount += cartProduct.offerDiscount;
+                                                                                        // subTotal += cartProduct.subTotal;
+                                                                                        // total += cartProduct.total;
+                                                                                }
+                                                                        }
                                                                 }
                                                         }
-                                                }
-                                        }
-                                        if (cartResponse.AddOnservicesSchema.length > 0) {
-                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        subTotal += cartGift.subTotal;
-                                                        total += cartGift.total;
-                                                });
-                                        }
-                                        cartResponse.date = findCart.date;
-                                        cartResponse.toTime = findCart.toTime;
-                                        cartResponse.fromTime = findCart.fromTime;
-                                        cartResponse.time = findCart.time;
-                                        cartResponse.suggesstion = findCart.suggesstion;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.total = total;
-                                        cartResponse.serviceAddresss = data1;
-                                        orderObjTotalAmount = orderObjTotalAmount + total;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        cartResponse.orderStatus = "confirmed";
-                                        let saveOrder = await serviceOrder.create(cartResponse);
-                                        const dateObject = new Date(findCart.date);
-                                        const dateString = dateObject.toISOString().split('T')[0];
-                                        const newTime = "00:00:00.000+00:00";
-                                        const replacedDateString = `${dateString}T${newTime}`;
-                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
-                                        if (saveOrder) {
-                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
-                                                if (findSlot.length > 0) {
-                                                        for (let i = 0; i < findSlot.length; i++) {
-                                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
-                                                                console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                        if (cartResponse.AddOnservicesSchema.length > 0) {
+                                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        subTotal += cartGift.subTotal;
+                                                                        total += cartGift.total;
+                                                                });
                                                         }
+                                                        cartResponse.date = findCart.date;
+                                                        cartResponse.toTime = findCart.toTime;
+                                                        cartResponse.fromTime = findCart.fromTime;
+                                                        cartResponse.time = findCart.time;
+                                                        cartResponse.suggesstion = findCart.suggesstion;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.total = total;
+                                                        cartResponse.serviceAddresss = data1;
+                                                        orderObjTotalAmount = orderObjTotalAmount + total;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        cartResponse.orderStatus = "confirmed";
+                                                        let saveOrder = await serviceOrder.create(cartResponse);
+                                                        const dateObject = new Date(findCart.date);
+                                                        const dateString = dateObject.toISOString().split('T')[0];
+                                                        const newTime = "00:00:00.000+00:00";
+                                                        const replacedDateString = `${dateString}T${newTime}`;
+                                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
+                                                        if (saveOrder) {
+                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                if (findSlot.length > 0) {
+                                                                        for (let i = 0; i < findSlot.length; i++) {
+                                                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
+                                                                                console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                        }
+                                                                }
+                                                        }
+                                                        serviceOrderId = saveOrder._id;
                                                 }
-                                        }
-                                        serviceOrderId = saveOrder._id;
-                                }
-                                if (cartResponse.gifts.length > 0) {
-                                        let total = 0, subTotal = 0;
-                                        cartResponse.gifts.forEach(async (cartGift) => {
-                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                subTotal += cartGift.subTotal;
-                                                total += cartGift.total;
-                                                let obj = {
-                                                        senderUser: req.user._id,
-                                                        code: cartResponse.orderId,
-                                                        title: 'Buy a gift Card',
-                                                        email: cartGift.email,
-                                                        description: "Your friend Gift a gift card",
-                                                        price: cartGift.giftPriceId.price,
-                                                        discount: cartGift.giftPriceId.giftCardrewards,
-                                                        per: "Amount",
-                                                }
-                                                orderObjTotalAmount = orderObjTotalAmount + total;
-                                                orderObjPaidAmount = orderObjPaidAmount + total;
-                                                let saveOrder = await coupanModel.create(obj);
-                                                if (saveOrder) {
-                                                        giftOrderId = saveOrder._id;
+                                                if (cartResponse.gifts.length > 0) {
+                                                        let total = 0, subTotal = 0;
+                                                        cartResponse.gifts.forEach(async (cartGift) => {
+                                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                subTotal += cartGift.subTotal;
+                                                                total += cartGift.total;
+                                                                let obj = {
+                                                                        senderUser: req.user._id,
+                                                                        code: cartResponse.orderId,
+                                                                        title: 'Buy a gift Card',
+                                                                        email: cartGift.email,
+                                                                        description: "Your friend Gift a gift card",
+                                                                        price: cartGift.giftPriceId.price,
+                                                                        discount: cartGift.giftPriceId.giftCardrewards,
+                                                                        per: "Amount",
+                                                                }
+                                                                orderObjTotalAmount = orderObjTotalAmount + total;
+                                                                orderObjPaidAmount = orderObjPaidAmount + total;
+                                                                let saveOrder = await coupanModel.create(obj);
+                                                                if (saveOrder) {
+                                                                        giftOrderId = saveOrder._id;
+                                                                        let orderObj = {
+                                                                                userId: req.user._id,
+                                                                                orderId: orderId,
+                                                                                giftOrder: giftOrderId,
+                                                                                productOrder: productOrderId,
+                                                                                serviceOrder: serviceOrderId,
+                                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                                couponDiscount: couponDiscount,
+                                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                        }
+                                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                                }
+                                                        });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                                        orderObjTotalAmount = orderObjTotalAmount;
                                                         let orderObj = {
                                                                 userId: req.user._id,
                                                                 orderId: orderId,
-                                                                giftOrder: giftOrderId,
                                                                 productOrder: productOrderId,
                                                                 serviceOrder: serviceOrderId,
                                                                 orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderStatus: "confirmed",
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                                        orderObjTotalAmount = orderObjTotalAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else {
+                                                        orderObjTotalAmount = orderObjTotalAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
                                                                 couponDiscount: couponDiscount,
                                                                 orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
                                                         }
                                                         let saveOrder1 = await userOrders.create(orderObj);
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
-                                        });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
-                                        orderObjTotalAmount = orderObjTotalAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderStatus: "confirmed",
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        } else {
+                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
-                                        orderObjTotalAmount = orderObjTotalAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
-                                        }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
-                                        orderObjTotalAmount = orderObjTotalAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                for (const cartProduct of cartResponse.products) {
+                                                        if (cartProduct.productId.multipleSize == true) {
+                                                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                        if (findSubscription) {
+                                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                                        }
+                                                                                        let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                        membershipDiscount += x;
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                } else {
+                                                                                        membershipDiscount += 0;
+                                                                                        cartProduct.membershipDiscount = membershipDiscount
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                }
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                if (data3.isSubscription === true) {
+                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                        if (findSubscription) {
+                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                        }
+                                                                        let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                } else {
+                                                                        let x = 0.00;
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += cartProduct.total;
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                }
+                                                        }
+                                                }
+                                                cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                        cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        subTotal += cartFBP.subTotal;
+                                                        total += cartFBP.total;
+                                                        productFBPTotal += cartFBP.total
+                                                        const newCartItem = {
+                                                                frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                price: cartFBP.frequentlyBuyProductId.price,
+                                                                quantity: cartFBP.quantity,
+                                                        };
+                                                        frequentlyBuyProductArray.push(newCartItem);
+                                                });
+                                                cartResponse.subTotal = subTotal;
+                                                cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                cartResponse.offerDiscount = Number(offerDiscount);
+                                                if (cartResponse.pickupFromStore == true) {
+                                                        shipping = 0.00;
+                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        cartResponse.pickUp = data1;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
+                                                } else {
+                                                        shipping = 0.00;
+                                                        if (productFBPTotal <= 150) {
+                                                                shipping = 8.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        } else {
+                                                                shipping = 12.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        }
+                                                        cartResponse.deliveryAddresss = data2;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.shipping = shipping;
+                                                        cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                }
+                                                cartResponse.products = productArray;
+                                                cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                cartResponse._id = new mongoose.Types.ObjectId();
+                                                orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
+                                                let saveOrder = await productOrder.create(cartResponse);
+                                                productOrderId = saveOrder._id;
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        if (cartResponse.gifts.length > 0) {
+                                                let total = 0, subTotal = 0;
+                                                cartResponse.gifts.forEach(async (cartGift) => {
+                                                        cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        subTotal += cartGift.subTotal;
+                                                        total += cartGift.total;
+                                                        let obj = {
+                                                                senderUser: req.user._id,
+                                                                code: cartResponse.orderId,
+                                                                title: 'Buy a gift Card',
+                                                                email: cartGift.email,
+                                                                description: "Your friend Gift a gift card",
+                                                                price: cartGift.giftPriceId.price,
+                                                                discount: cartGift.giftPriceId.giftCardrewards,
+                                                                per: "Amount",
+                                                        }
+                                                        orderObjTotalAmount = orderObjTotalAmount + total;
+                                                        orderObjPaidAmount = orderObjPaidAmount + total;
+                                                        let saveOrder = await coupanModel.create(obj);
+                                                        if (saveOrder) {
+                                                                giftOrderId = saveOrder._id;
+                                                                let orderObj = {
+                                                                        userId: req.user._id,
+                                                                        orderId: orderId,
+                                                                        giftOrder: giftOrderId,
+                                                                        productOrder: productOrderId,
+                                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                        couponDiscount: couponDiscount,
+                                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                }
+                                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                        }
+                                                });
+                                        } else {
+                                                orderObjTotalAmount = orderObjTotalAmount;
+                                                let orderObj = {
+                                                        userId: req.user._id,
+                                                        orderId: orderId,
+                                                        productOrder: productOrderId,
+                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                        applyCoupan: cartResponse.coupon,
+                                                        couponDiscount: couponDiscount,
+                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                }
+                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        }
                                 }
                         } else {
                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
@@ -2581,22 +2977,72 @@ exports.checkoutApp = async (req, res) => {
                                 const cartResponse = findCart.toObject();
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
-                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        for (const cartProduct of cartResponse.products) {
-                                                if (cartProduct.productId.multipleSize == true) {
-                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                        const dateObject = new Date(findCart.date);
+                                        const dateString = dateObject.toISOString().split('T')[0];
+                                        const newTime = "00:00:00.000+00:00";
+                                        const replacedDateString = `${dateString}T${newTime}`;
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        if (findSlot1.length > 0) {
+                                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        for (const cartProduct of cartResponse.products) {
+                                                                if (cartProduct.productId.multipleSize == true) {
+                                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                        if (data3.isSubscription === true) {
+                                                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                                if (findSubscription) {
+                                                                                                        membershipDiscountPercentage = findSubscription.discount;
+                                                                                                }
+                                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total - membershipDiscount);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        } else {
+                                                                                                membershipDiscount += 0;
+                                                                                                cartProduct.membershipDiscount = membershipDiscount
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        }
+                                                                                }
+                                                                        }
+                                                                } else {
                                                                         if (data3.isSubscription === true) {
                                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
                                                                                 if (findSubscription) {
                                                                                         membershipDiscountPercentage = findSubscription.discount;
                                                                                 }
-                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                 membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
@@ -2604,303 +3050,442 @@ exports.checkoutApp = async (req, res) => {
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         } else {
-                                                                                membershipDiscount += 0;
-                                                                                cartProduct.membershipDiscount = membershipDiscount
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                let x = 0.00;
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
-                                                                                total += (cartProduct.total);
+                                                                                total += cartProduct.total;
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         }
                                                                 }
                                                         }
-                                                } else {
-                                                        if (data3.isSubscription === true) {
-                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                                if (findSubscription) {
-                                                                        membershipDiscountPercentage = findSubscription.discount;
-                                                                }
-                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += (cartProduct.total - membershipDiscount);
-                                                                productFBPTotal += cartProduct.total
+                                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                subTotal += cartFBP.subTotal;
+                                                                total += cartFBP.total;
                                                                 const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
+                                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                                        quantity: cartFBP.quantity,
                                                                 };
-                                                                productArray.push(newCartItem)
+                                                                frequentlyBuyProductArray.push(newCartItem);
+                                                        });
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        if (cartResponse.pickupFromStore == true) {
+                                                                shipping = 0.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                cartResponse.pickUp = data1;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                                         } else {
-                                                                let x = 0.00;
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                                productFBPTotal += cartProduct.total
-                                                                const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
-                                                                };
-                                                                productArray.push(newCartItem)
-                                                        }
-                                                }
-                                        }
-                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
-                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                subTotal += cartFBP.subTotal;
-                                                total += cartFBP.total;
-                                                const newCartItem = {
-                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
-                                                        price: cartFBP.frequentlyBuyProductId.price,
-                                                        quantity: cartFBP.quantity,
-                                                };
-                                                frequentlyBuyProductArray.push(newCartItem);
-                                        });
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        if (cartResponse.pickupFromStore == true) {
-                                                shipping = 0.00;
-                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                cartResponse.pickUp = data1;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
-                                                orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
-                                        } else {
-                                                if (productFBPTotal <= 150) {
-                                                        shipping = 8.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                } else {
-                                                        shipping = 12.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                }
-                                                cartResponse.deliveryAddresss = data2;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.shipping = shipping;
-                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
-                                                orderObjTotalAmount = orderObjTotalAmount + orderObjPaidAmount;
-                                        }
-                                        cartResponse.products = productArray;
-                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        let saveOrder = await productOrder.create(cartResponse);
-                                        productOrderId = saveOrder._id;
-                                }
-                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
-                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        if (cartResponse.services.length > 0) {
-                                                for (const cartProduct of cartResponse.services) {
-                                                        if (cartProduct.serviceId.type === "offer") {
-                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                        }
-                                                        if (cartProduct.serviceId.type === "Service") {
-                                                                if (data3.isSubscription === true) {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        }
+                                                                if (productFBPTotal <= 150) {
+                                                                        shipping = 8.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                                 } else {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
+                                                                        shipping = 12.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                }
+                                                                cartResponse.deliveryAddresss = data2;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.shipping = shipping;
+                                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                        }
+                                                        cartResponse.products = productArray;
+                                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        let saveOrder = await productOrder.create(cartResponse);
+                                                        productOrderId = saveOrder._id;
+                                                }
+                                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        if (cartResponse.services.length > 0) {
+                                                                for (const cartProduct of cartResponse.services) {
+                                                                        if (cartProduct.serviceId.type === "offer") {
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
                                                                                 offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
                                                                                 subTotal += cartProduct.subTotal;
+                                                                                total += cartProduct.total;
+                                                                        }
+                                                                        if (cartProduct.serviceId.type === "Service") {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                } else {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                }
+                                                                        }
+                                                                }
+                                                        }
+                                                        if (cartResponse.AddOnservicesSchema.length > 0) {
+                                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        subTotal += cartGift.subTotal;
+                                                                        total += cartGift.total;
+                                                                });
+                                                        }
+                                                        cartResponse.date = findCart.date;
+                                                        cartResponse.time = findCart.time;
+                                                        cartResponse.suggesstion = findCart.suggesstion;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.total = total;
+                                                        cartResponse.serviceAddresss = data1;
+                                                        orderObjPaidAmount = orderObjPaidAmount + total;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        let saveOrder = await serviceOrder.create(cartResponse);
+                                                        serviceOrderId = saveOrder._id;
+                                                }
+                                                orderObjTotalAmount = orderObjPaidAmount;
+                                                if (cartResponse.coupon != (null || undefined)) {
+                                                        if (cartResponse.coupon.completeVisit == 5 && data3.orderVisit > 5) {
+                                                                if (cartResponse.coupon.used == false) {
+                                                                        if (cartResponse.coupon.per == "Percentage") {
+                                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                        } else {
+                                                                                couponDiscount = cartResponse.coupon.discount;
+                                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                if (cartResponse.coupon.used == false) {
+                                                                        if (cartResponse.coupon.per == "Percentage") {
+                                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                        } else {
+                                                                                couponDiscount = cartResponse.coupon.discount;
+                                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
                                                                         }
                                                                 }
                                                         }
                                                 }
-                                        }
-                                        if (cartResponse.AddOnservicesSchema.length > 0) {
-                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        subTotal += cartGift.subTotal;
-                                                        total += cartGift.total;
-                                                });
-                                        }
-                                        cartResponse.date = findCart.date;
-                                        cartResponse.time = findCart.time;
-                                        cartResponse.suggesstion = findCart.suggesstion;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.total = total;
-                                        cartResponse.serviceAddresss = data1;
-                                        orderObjTotalAmount = orderObjTotalAmount + total;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        let saveOrder = await serviceOrder.create(cartResponse);
-                                        serviceOrderId = saveOrder._id;
-                                }
-                                if (cartResponse.coupon != (null || undefined)) {
-                                        if (cartResponse.coupon.completeVisit == 5 && data3.orderVisit > 5) {
-                                                if (cartResponse.coupon.used == false) {
-                                                        if (cartResponse.coupon.per == "Percentage") {
-                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                        } else {
-                                                                couponDiscount = cartResponse.coupon.discount;
-                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
-                                                        }
-                                                }
-                                        } else {
-                                                if (cartResponse.coupon.used == false) {
-                                                        if (cartResponse.coupon.per == "Percentage") {
-                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                        } else {
-                                                                couponDiscount = cartResponse.coupon.discount;
-                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
-                                                        }
-                                                }
-                                        }
-                                }
-                                if (cartResponse.gifts.length > 0) {
-                                        let total = 0, subTotal = 0;
-                                        cartResponse.gifts.forEach(async (cartGift) => {
-                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                subTotal += cartGift.subTotal;
-                                                total += cartGift.total;
-                                                let obj = {
-                                                        senderUser: req.user._id,
-                                                        code: cartResponse.orderId,
-                                                        title: 'Buy a gift Card',
-                                                        email: cartGift.email,
-                                                        description: "Your friend Gift a gift card",
-                                                        price: cartGift.giftPriceId.price,
-                                                        discount: cartGift.giftPriceId.giftCardrewards,
-                                                        per: "Amount",
-                                                }
-                                                orderObjTotalAmount = orderObjTotalAmount + total;
-                                                orderObjTotalAmount = orderObjTotalAmount + total;
-                                                let saveOrder = await coupanModel.create(obj);
-                                                if (saveOrder) {
-                                                        giftOrderId = saveOrder._id;
+                                                if (cartResponse.gifts.length > 0) {
+                                                        let total = 0, subTotal = 0;
+                                                        cartResponse.gifts.forEach(async (cartGift) => {
+                                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                subTotal += cartGift.subTotal;
+                                                                total += cartGift.total;
+                                                                let obj = {
+                                                                        senderUser: req.user._id,
+                                                                        code: cartResponse.orderId,
+                                                                        title: 'Buy a gift Card',
+                                                                        email: cartGift.email,
+                                                                        description: "Your friend Gift a gift card",
+                                                                        price: cartGift.giftPriceId.price,
+                                                                        discount: cartGift.giftPriceId.giftCardrewards,
+                                                                        per: "Amount",
+                                                                }
+                                                                orderObjPaidAmount = orderObjPaidAmount + total;
+                                                                let saveOrder = await coupanModel.create(obj);
+                                                                if (saveOrder) {
+                                                                        giftOrderId = saveOrder._id;
+                                                                        let orderObj = {
+                                                                                userId: req.user._id,
+                                                                                orderId: orderId,
+                                                                                giftOrder: giftOrderId,
+                                                                                productOrder: productOrderId,
+                                                                                serviceOrder: serviceOrderId,
+                                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                                couponDiscount: couponDiscount,
+                                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                        }
+                                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                                }
+                                                        });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                                        orderObjTotalAmount = orderObjPaidAmount;
                                                         let orderObj = {
                                                                 userId: req.user._id,
                                                                 orderId: orderId,
-                                                                giftOrder: giftOrderId,
                                                                 productOrder: productOrderId,
                                                                 serviceOrder: serviceOrderId,
                                                                 orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                                        orderObjTotalAmount = orderObjPaidAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderStatus: "confirmed",
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else {
+                                                        orderObjTotalAmount = orderObjPaidAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
                                                                 couponDiscount: couponDiscount,
                                                                 orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
                                                         }
                                                         let saveOrder1 = await userOrders.create(orderObj);
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
-                                        });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
-                                        orderObjTotalAmount = orderObjPaidAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        } else {
+                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
-                                        orderObjTotalAmount = orderObjPaidAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderStatus: "confirmed",
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
-                                        }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
-                                        orderObjTotalAmount = orderObjPaidAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                for (const cartProduct of cartResponse.products) {
+                                                        if (cartProduct.productId.multipleSize == true) {
+                                                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                        if (findSubscription) {
+                                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                                        }
+                                                                                        let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                        membershipDiscount += x;
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                } else {
+                                                                                        membershipDiscount += 0;
+                                                                                        cartProduct.membershipDiscount = membershipDiscount
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                }
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                if (data3.isSubscription === true) {
+                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                        if (findSubscription) {
+                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                        }
+                                                                        let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                } else {
+                                                                        let x = 0.00;
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += cartProduct.total;
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                }
+                                                        }
+                                                }
+                                                cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                        cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        subTotal += cartFBP.subTotal;
+                                                        total += cartFBP.total;
+                                                        const newCartItem = {
+                                                                frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                price: cartFBP.frequentlyBuyProductId.price,
+                                                                quantity: cartFBP.quantity,
+                                                        };
+                                                        frequentlyBuyProductArray.push(newCartItem);
+                                                });
+                                                cartResponse.subTotal = subTotal;
+                                                cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                cartResponse.offerDiscount = Number(offerDiscount);
+                                                if (cartResponse.pickupFromStore == true) {
+                                                        shipping = 0.00;
+                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        cartResponse.pickUp = data1;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
+                                                } else {
+                                                        if (productFBPTotal <= 150) {
+                                                                shipping = 8.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        } else {
+                                                                shipping = 12.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        }
+                                                        cartResponse.deliveryAddresss = data2;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.shipping = shipping;
+                                                        cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                }
+                                                cartResponse.products = productArray;
+                                                cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                cartResponse._id = new mongoose.Types.ObjectId();
+                                                let saveOrder = await productOrder.create(cartResponse);
+                                                productOrderId = saveOrder._id;
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        orderObjTotalAmount = orderObjPaidAmount;
+                                        if (cartResponse.gifts.length > 0) {
+                                                let total = 0, subTotal = 0;
+                                                cartResponse.gifts.forEach(async (cartGift) => {
+                                                        cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        subTotal += cartGift.subTotal;
+                                                        total += cartGift.total;
+                                                        let obj = {
+                                                                senderUser: req.user._id,
+                                                                code: cartResponse.orderId,
+                                                                title: 'Buy a gift Card',
+                                                                email: cartGift.email,
+                                                                description: "Your friend Gift a gift card",
+                                                                price: cartGift.giftPriceId.price,
+                                                                discount: cartGift.giftPriceId.giftCardrewards,
+                                                                per: "Amount",
+                                                        }
+                                                        orderObjPaidAmount = orderObjPaidAmount + total;
+                                                        let saveOrder = await coupanModel.create(obj);
+                                                        if (saveOrder) {
+                                                                giftOrderId = saveOrder._id;
+                                                                let orderObj = {
+                                                                        userId: req.user._id,
+                                                                        orderId: orderId,
+                                                                        giftOrder: giftOrderId,
+                                                                        productOrder: productOrderId,
+                                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                }
+                                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                        }
+                                                });
+                                        } else {
+                                                orderObjTotalAmount = orderObjPaidAmount;
+                                                let orderObj = {
+                                                        userId: req.user._id,
+                                                        orderId: orderId,
+                                                        productOrder: productOrderId,
+                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                }
+                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        }
                                 }
                         } else {
                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
@@ -2917,22 +3502,72 @@ exports.checkoutApp = async (req, res) => {
                                 const cartResponse = findCart.toObject();
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
-                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
-                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        for (const cartProduct of cartResponse.products) {
-                                                if (cartProduct.productId.multipleSize == true) {
-                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
-                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                        const dateObject = new Date(findCart.date);
+                                        const dateString = dateObject.toISOString().split('T')[0];
+                                        const newTime = "00:00:00.000+00:00";
+                                        const replacedDateString = `${dateString}T${newTime}`;
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        if (findSlot1.length > 0) {
+                                                if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                        let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        for (const cartProduct of cartResponse.products) {
+                                                                if (cartProduct.productId.multipleSize == true) {
+                                                                        for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                                if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                        if (data3.isSubscription === true) {
+                                                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                                if (findSubscription) {
+                                                                                                        membershipDiscountPercentage = findSubscription.discount;
+                                                                                                }
+                                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total - membershipDiscount);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        } else {
+                                                                                                membershipDiscount += 0;
+                                                                                                cartProduct.membershipDiscount = membershipDiscount
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                                total += (cartProduct.total);
+                                                                                                productFBPTotal += cartProduct.total
+                                                                                                const newCartItem = {
+                                                                                                        productId: cartProduct.productId._id,
+                                                                                                        price: cartProduct.productId.sizePrice[i].price,
+                                                                                                        size: cartProduct.size,
+                                                                                                        quantity: cartProduct.quantity,
+                                                                                                };
+                                                                                                productArray.push(newCartItem);
+                                                                                        }
+                                                                                }
+                                                                        }
+                                                                } else {
                                                                         if (data3.isSubscription === true) {
                                                                                 const findSubscription = await Subscription.findById(data3.subscriptionId);
                                                                                 if (findSubscription) {
                                                                                         membershipDiscountPercentage = findSubscription.discount;
                                                                                 }
-                                                                                let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                 membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
@@ -2940,301 +3575,442 @@ exports.checkoutApp = async (req, res) => {
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         } else {
-                                                                                membershipDiscount += 0;
-                                                                                cartProduct.membershipDiscount = membershipDiscount
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                let x = 0.00;
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
-                                                                                total += (cartProduct.total);
+                                                                                total += cartProduct.total;
                                                                                 productFBPTotal += cartProduct.total
                                                                                 const newCartItem = {
                                                                                         productId: cartProduct.productId._id,
-                                                                                        price: cartProduct.productId.sizePrice[i].price,
-                                                                                        size: cartProduct.size,
+                                                                                        price: cartProduct.productId.price,
                                                                                         quantity: cartProduct.quantity,
                                                                                 };
-                                                                                productArray.push(newCartItem);
+                                                                                productArray.push(newCartItem)
                                                                         }
                                                                 }
                                                         }
-                                                } else {
-                                                        if (data3.isSubscription === true) {
-                                                                const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                                if (findSubscription) {
-                                                                        membershipDiscountPercentage = findSubscription.discount;
-                                                                }
-                                                                let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += (cartProduct.total - membershipDiscount);
-                                                                productFBPTotal += cartProduct.total
+                                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                                subTotal += cartFBP.subTotal;
+                                                                total += cartFBP.total;
                                                                 const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
+                                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                        price: cartFBP.frequentlyBuyProductId.price,
+                                                                        quantity: cartFBP.quantity,
                                                                 };
-                                                                productArray.push(newCartItem)
+                                                                frequentlyBuyProductArray.push(newCartItem);
+                                                        });
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        if (cartResponse.pickupFromStore == true) {
+                                                                shipping = 0.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                cartResponse.pickUp = data1;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
                                                         } else {
-                                                                let x = 0.00;
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                                productFBPTotal += cartProduct.total
-                                                                const newCartItem = {
-                                                                        productId: cartProduct.productId._id,
-                                                                        price: cartProduct.productId.price,
-                                                                        quantity: cartProduct.quantity,
-                                                                };
-                                                                productArray.push(newCartItem)
-                                                        }
-                                                }
-                                        }
-                                        cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
-                                                cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
-                                                subTotal += cartFBP.subTotal;
-                                                total += cartFBP.total;
-                                                const newCartItem = {
-                                                        frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
-                                                        price: cartFBP.frequentlyBuyProductId.price,
-                                                        quantity: cartFBP.quantity,
-                                                };
-                                                frequentlyBuyProductArray.push(newCartItem);
-                                        });
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        if (cartResponse.pickupFromStore == true) {
-                                                shipping = 0.00;
-                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                cartResponse.pickUp = data1;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.total = cartResponse.subTotal - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
-                                        } else {
-                                                if (productFBPTotal <= 150) {
-                                                        shipping = 8.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                } else {
-                                                        shipping = 12.00;
-                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
-                                                }
-                                                cartResponse.deliveryAddresss = data2;
-                                                cartResponse.billingAddresss = data5;
-                                                cartResponse.shipping = shipping;
-                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
-                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
-                                        }
-                                        cartResponse.products = productArray;
-                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        let saveOrder = await productOrder.create(cartResponse);
-                                        productOrderId = saveOrder._id;
-                                }
-                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
-                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                                        if (cartResponse.services.length > 0) {
-                                                for (const cartProduct of cartResponse.services) {
-                                                        if (cartProduct.serviceId.type === "offer") {
-                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                subTotal += cartProduct.subTotal;
-                                                                total += cartProduct.total;
-                                                        }
-                                                        if (cartProduct.serviceId.type === "Service") {
-                                                                if (data3.isSubscription === true) {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        }
+                                                                if (productFBPTotal <= 150) {
+                                                                        shipping = 8.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
                                                                 } else {
-                                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
-                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
-                                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
-                                                                                subTotal += cartProduct.subTotal;
-                                                                        } else {
-                                                                                let x = 0
-                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                membershipDiscount += x;
+                                                                        shipping = 12.00;
+                                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                                }
+                                                                cartResponse.deliveryAddresss = data2;
+                                                                cartResponse.billingAddresss = data5;
+                                                                cartResponse.shipping = shipping;
+                                                                cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                                orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                        }
+                                                        cartResponse.products = productArray;
+                                                        cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        let saveOrder = await productOrder.create(cartResponse);
+                                                        productOrderId = saveOrder._id;
+                                                }
+                                                if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                        if (cartResponse.services.length > 0) {
+                                                                for (const cartProduct of cartResponse.services) {
+                                                                        if (cartProduct.serviceId.type === "offer") {
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
                                                                                 offerDiscount += cartProduct.offerDiscount;
-                                                                                total += cartProduct.total;
                                                                                 subTotal += cartProduct.subTotal;
+                                                                                total += cartProduct.total;
+                                                                        }
+                                                                        if (cartProduct.serviceId.type === "Service") {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                } else {
+                                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        } else {
+                                                                                                let x = 0
+                                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                                membershipDiscount += x;
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                                total += cartProduct.total;
+                                                                                                subTotal += cartProduct.subTotal;
+                                                                                        }
+                                                                                }
+                                                                        }
+                                                                }
+                                                        }
+                                                        if (cartResponse.AddOnservicesSchema.length > 0) {
+                                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
+                                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        subTotal += cartGift.subTotal;
+                                                                        total += cartGift.total;
+                                                                });
+                                                        }
+                                                        cartResponse.date = findCart.date;
+                                                        cartResponse.time = findCart.time;
+                                                        cartResponse.suggesstion = findCart.suggesstion;
+                                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                        cartResponse.offerDiscount = Number(offerDiscount);
+                                                        cartResponse.subTotal = subTotal;
+                                                        cartResponse.total = total;
+                                                        cartResponse.serviceAddresss = data1;
+                                                        orderObjPaidAmount = orderObjPaidAmount + total;
+                                                        cartResponse._id = new mongoose.Types.ObjectId();
+                                                        let saveOrder = await serviceOrder.create(cartResponse);
+                                                        serviceOrderId = saveOrder._id;
+                                                }
+                                                orderObjTotalAmount = orderObjPaidAmount;
+                                                if (cartResponse.coupon != (null || undefined)) {
+                                                        if (cartResponse.coupon.completeVisit == 5 && data3.orderVisit > 5) {
+                                                                if (cartResponse.coupon.used == false) {
+                                                                        if (cartResponse.coupon.per == "Percentage") {
+                                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                        } else {
+                                                                                couponDiscount = cartResponse.coupon.discount;
+                                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                if (cartResponse.coupon.used == false) {
+                                                                        if (cartResponse.coupon.per == "Percentage") {
+                                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
+                                                                        } else {
+                                                                                couponDiscount = cartResponse.coupon.discount;
+                                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
                                                                         }
                                                                 }
                                                         }
                                                 }
-                                        }
-                                        if (cartResponse.AddOnservicesSchema.length > 0) {
-                                                cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                        subTotal += cartGift.subTotal;
-                                                        total += cartGift.total;
-                                                });
-                                        }
-                                        cartResponse.date = findCart.date;
-                                        cartResponse.time = findCart.time;
-                                        cartResponse.suggesstion = findCart.suggesstion;
-                                        cartResponse.memberShipPer = Number(membershipDiscountPercentage);
-                                        cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                                        cartResponse.offerDiscount = Number(offerDiscount);
-                                        cartResponse.subTotal = subTotal;
-                                        cartResponse.total = total;
-                                        cartResponse.serviceAddresss = data1;
-                                        orderObjPaidAmount = orderObjPaidAmount + total;
-                                        cartResponse._id = new mongoose.Types.ObjectId();
-                                        let saveOrder = await serviceOrder.create(cartResponse);
-                                        serviceOrderId = saveOrder._id;
-                                }
-                                orderObjTotalAmount = orderObjPaidAmount;
-                                if (cartResponse.coupon != (null || undefined)) {
-                                        if (cartResponse.coupon.completeVisit == 5 && data3.orderVisit > 5) {
-                                                if (cartResponse.coupon.used == false) {
-                                                        if (cartResponse.coupon.per == "Percentage") {
-                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                        } else {
-                                                                couponDiscount = cartResponse.coupon.discount;
-                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
-                                                        }
-                                                }
-                                        } else {
-                                                if (cartResponse.coupon.used == false) {
-                                                        if (cartResponse.coupon.per == "Percentage") {
-                                                                couponDiscount = ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                                orderObjPaidAmount = orderObjPaidAmount - ((orderObjPaidAmount * cartResponse.coupon.discount) / 100);
-                                                        } else {
-                                                                couponDiscount = cartResponse.coupon.discount;
-                                                                orderObjPaidAmount = orderObjPaidAmount - cartResponse.coupon.discount;
-                                                        }
-                                                }
-                                        }
-                                }
-                                if (cartResponse.gifts.length > 0) {
-                                        let total = 0, subTotal = 0;
-                                        cartResponse.gifts.forEach(async (cartGift) => {
-                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
-                                                subTotal += cartGift.subTotal;
-                                                total += cartGift.total;
-                                                let obj = {
-                                                        senderUser: req.user._id,
-                                                        code: cartResponse.orderId,
-                                                        title: 'Buy a gift Card',
-                                                        email: cartGift.email,
-                                                        description: "Your friend Gift a gift card",
-                                                        price: cartGift.giftPriceId.price,
-                                                        discount: cartGift.giftPriceId.giftCardrewards,
-                                                        per: "Amount",
-                                                }
-                                                orderObjPaidAmount = orderObjPaidAmount + total;
-                                                let saveOrder = await coupanModel.create(obj);
-                                                if (saveOrder) {
-                                                        giftOrderId = saveOrder._id;
+                                                if (cartResponse.gifts.length > 0) {
+                                                        let total = 0, subTotal = 0;
+                                                        cartResponse.gifts.forEach(async (cartGift) => {
+                                                                cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                                subTotal += cartGift.subTotal;
+                                                                total += cartGift.total;
+                                                                let obj = {
+                                                                        senderUser: req.user._id,
+                                                                        code: cartResponse.orderId,
+                                                                        title: 'Buy a gift Card',
+                                                                        email: cartGift.email,
+                                                                        description: "Your friend Gift a gift card",
+                                                                        price: cartGift.giftPriceId.price,
+                                                                        discount: cartGift.giftPriceId.giftCardrewards,
+                                                                        per: "Amount",
+                                                                }
+                                                                orderObjPaidAmount = orderObjPaidAmount + total;
+                                                                let saveOrder = await coupanModel.create(obj);
+                                                                if (saveOrder) {
+                                                                        giftOrderId = saveOrder._id;
+                                                                        let orderObj = {
+                                                                                userId: req.user._id,
+                                                                                orderId: orderId,
+                                                                                giftOrder: giftOrderId,
+                                                                                productOrder: productOrderId,
+                                                                                serviceOrder: serviceOrderId,
+                                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                                couponDiscount: couponDiscount,
+                                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                        }
+                                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                                }
+                                                        });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
+                                                        orderObjTotalAmount = orderObjPaidAmount;
                                                         let orderObj = {
                                                                 userId: req.user._id,
                                                                 orderId: orderId,
-                                                                giftOrder: giftOrderId,
                                                                 productOrder: productOrderId,
                                                                 serviceOrder: serviceOrderId,
                                                                 orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
+                                                        orderObjTotalAmount = orderObjPaidAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
+                                                                couponDiscount: couponDiscount,
+                                                                orderStatus: "confirmed",
+                                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                        }
+                                                        let saveOrder1 = await userOrders.create(orderObj);
+                                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                } else {
+                                                        orderObjTotalAmount = orderObjPaidAmount;
+                                                        let orderObj = {
+                                                                userId: req.user._id,
+                                                                orderId: orderId,
+                                                                productOrder: productOrderId,
+                                                                serviceOrder: serviceOrderId,
+                                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                applyCoupan: cartResponse.coupon,
                                                                 couponDiscount: couponDiscount,
                                                                 orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
                                                         }
                                                         let saveOrder1 = await userOrders.create(orderObj);
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
-                                        });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length > 0) {
-                                        orderObjTotalAmount = orderObjPaidAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        } else {
+                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
-                                } else if (cartResponse.services.length > 0 && cartResponse.products.length == 0) {
-                                        orderObjTotalAmount = orderObjPaidAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderStatus: "confirmed",
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
-                                        }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                 } else {
-                                        orderObjTotalAmount = orderObjPaidAmount;
-                                        let orderObj = {
-                                                userId: req.user._id,
-                                                orderId: orderId,
-                                                productOrder: productOrderId,
-                                                serviceOrder: serviceOrderId,
-                                                orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
-                                                applyCoupan: cartResponse.coupon,
-                                                couponDiscount: couponDiscount,
-                                                orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                        if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
+                                                let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                for (const cartProduct of cartResponse.products) {
+                                                        if (cartProduct.productId.multipleSize == true) {
+                                                                for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
+                                                                        if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
+                                                                                if (data3.isSubscription === true) {
+                                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                                        if (findSubscription) {
+                                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                                        }
+                                                                                        let x = (parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                        membershipDiscount += x;
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2) - x);
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                } else {
+                                                                                        membershipDiscount += 0;
+                                                                                        cartProduct.membershipDiscount = membershipDiscount
+                                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.total = parseFloat((cartProduct.productId.sizePrice[i].price * cartProduct.quantity).toFixed(2));
+                                                                                        cartProduct.offerDiscount = 0.00;
+                                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                                        subTotal += cartProduct.subTotal;
+                                                                                        total += (cartProduct.total);
+                                                                                        productFBPTotal += cartProduct.total
+                                                                                        const newCartItem = {
+                                                                                                productId: cartProduct.productId._id,
+                                                                                                price: cartProduct.productId.sizePrice[i].price,
+                                                                                                size: cartProduct.size,
+                                                                                                quantity: cartProduct.quantity,
+                                                                                        };
+                                                                                        productArray.push(newCartItem);
+                                                                                }
+                                                                        }
+                                                                }
+                                                        } else {
+                                                                if (data3.isSubscription === true) {
+                                                                        const findSubscription = await Subscription.findById(data3.subscriptionId);
+                                                                        if (findSubscription) {
+                                                                                membershipDiscountPercentage = findSubscription.discount;
+                                                                        }
+                                                                        let x = (parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += (cartProduct.total - membershipDiscount);
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                } else {
+                                                                        let x = 0.00;
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.productId.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += cartProduct.total;
+                                                                        productFBPTotal += cartProduct.total
+                                                                        const newCartItem = {
+                                                                                productId: cartProduct.productId._id,
+                                                                                price: cartProduct.productId.price,
+                                                                                quantity: cartProduct.quantity,
+                                                                        };
+                                                                        productArray.push(newCartItem)
+                                                                }
+                                                        }
+                                                }
+                                                cartResponse.frequentlyBuyProductSchema.forEach((cartFBP) => {
+                                                        cartFBP.total = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        cartFBP.subTotal = parseFloat((cartFBP.frequentlyBuyProductId.price * cartFBP.quantity).toFixed(2));
+                                                        subTotal += cartFBP.subTotal;
+                                                        total += cartFBP.total;
+                                                        const newCartItem = {
+                                                                frequentlyBuyProductId: cartFBP.frequentlyBuyProductId._id,
+                                                                price: cartFBP.frequentlyBuyProductId.price,
+                                                                quantity: cartFBP.quantity,
+                                                        };
+                                                        frequentlyBuyProductArray.push(newCartItem);
+                                                });
+                                                cartResponse.subTotal = subTotal;
+                                                cartResponse.memberShipPer = Number(membershipDiscountPercentage);
+                                                cartResponse.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                cartResponse.offerDiscount = Number(offerDiscount);
+                                                if (cartResponse.pickupFromStore == true) {
+                                                        shipping = 0.00;
+                                                        cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        cartResponse.pickUp = data1;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.total = cartResponse.subTotal - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal - membershipDiscount;
+                                                } else {
+                                                        if (productFBPTotal <= 150) {
+                                                                shipping = 8.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        } else {
+                                                                shipping = 12.00;
+                                                                cartResponse.shipping = parseFloat(shipping.toFixed(2));
+                                                        }
+                                                        cartResponse.deliveryAddresss = data2;
+                                                        cartResponse.billingAddresss = data5;
+                                                        cartResponse.shipping = shipping;
+                                                        cartResponse.total = cartResponse.subTotal + shipping - membershipDiscount
+                                                        orderObjPaidAmount = orderObjPaidAmount + cartResponse.subTotal + shipping - membershipDiscount;
+                                                }
+                                                cartResponse.products = productArray;
+                                                cartResponse.frequentlyBuyProductSchema = frequentlyBuyProductArray;
+                                                cartResponse._id = new mongoose.Types.ObjectId();
+                                                let saveOrder = await productOrder.create(cartResponse);
+                                                productOrderId = saveOrder._id;
                                         }
-                                        let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        orderObjTotalAmount = orderObjPaidAmount;
+                                        if (cartResponse.gifts.length > 0) {
+                                                let total = 0, subTotal = 0;
+                                                cartResponse.gifts.forEach(async (cartGift) => {
+                                                        cartGift.total = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.subTotal = parseFloat((cartGift.giftPriceId.price * cartGift.quantity).toFixed(2));
+                                                        subTotal += cartGift.subTotal;
+                                                        total += cartGift.total;
+                                                        let obj = {
+                                                                senderUser: req.user._id,
+                                                                code: cartResponse.orderId,
+                                                                title: 'Buy a gift Card',
+                                                                email: cartGift.email,
+                                                                description: "Your friend Gift a gift card",
+                                                                price: cartGift.giftPriceId.price,
+                                                                discount: cartGift.giftPriceId.giftCardrewards,
+                                                                per: "Amount",
+                                                        }
+                                                        orderObjPaidAmount = orderObjPaidAmount + total;
+                                                        let saveOrder = await coupanModel.create(obj);
+                                                        if (saveOrder) {
+                                                                giftOrderId = saveOrder._id;
+                                                                let orderObj = {
+                                                                        userId: req.user._id,
+                                                                        orderId: orderId,
+                                                                        giftOrder: giftOrderId,
+                                                                        productOrder: productOrderId,
+                                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                                }
+                                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                                        }
+                                                });
+                                        } else {
+                                                orderObjTotalAmount = orderObjPaidAmount;
+                                                let orderObj = {
+                                                        userId: req.user._id,
+                                                        orderId: orderId,
+                                                        productOrder: productOrderId,
+                                                        orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
+                                                        orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
+                                                }
+                                                let saveOrder1 = await userOrders.create(orderObj);
+                                                return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
+                                        }
                                 }
                         } else {
                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
