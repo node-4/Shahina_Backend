@@ -1362,7 +1362,7 @@ const calculateCartResponse = async (cart, userId) => {
                         const hours = parseInt(hours1);
                         const minutes = parseInt(minutes1);
                         const providedTimeInMinutes = hours * 60 + minutes;
-                        let fromTimeInMinutes = providedTimeInMinutes + totalTime + 30;
+                        let fromTimeInMinutes = providedTimeInMinutes + totalTime;
                         const fromTime = new Date(d);
                         fromTime.setMinutes(fromTimeInMinutes);
                         cart.fromTime = fromTime;
