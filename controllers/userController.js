@@ -41,6 +41,8 @@ const slot = require("../models/slot");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
+
+
 const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // shahina test
 // const stripe = require("stripe")('sk_test_51J0NhySIdiNJWVEcYKjXhXets6lbhBeYQm9aY9r6sXw8whvRamiUKQFly1k0pQjy8zaeYkxopVCdUVWmPo4Nqeex0030Zxmibo'); // varun test
 //  Publish key:- pk_live_51Kr67EJsxpRH9smizUjNERPVsq1hlJBnnJsfCOqNTPL6HKgsG9YTOOcA5yYk38O7Wz2NILGPvIKkxe3rU90iix610049htYt1w
@@ -1564,7 +1566,7 @@ const calculateCartResponse = async (cart, userId) => {
                 cartResponse.billingAddresss = data5;
                 var hours2 = Math.floor(totalTime / 60);
                 var minutes2 = totalTime % 60;
-                let timeInMin = hours2 + "hr"+" " + minutes2 + "min"
+                let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
                 cartResponse.timeInMin = timeInMin;
                 return cartResponse;
         } catch (error) {
