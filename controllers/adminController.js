@@ -3572,9 +3572,8 @@ exports.addToCart = async (req, res, next) => {
                                         toTime: x,
                                         fromTime: fromTime,
                                         services: services,
-                                        orderStatus: "adminUnconfirmed"
                                 };
-                                let saveCart1 = await serviceOrder.create(obj);
+                                let saveCart1 = await Cart.create(obj);
                                 if (saveCart1) {
                                         return res.status(200).json({ status: 200, message: 'Service added to cart', data: saveCart });
                                 }
@@ -3612,9 +3611,6 @@ exports.addToCart = async (req, res, next) => {
                                 cart.date = text;
                                 await cart.save();
                                 let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
-                                const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
-                                const data2 = await Address.findOne({ user: req.body.userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
-                                const data5 = await Address.findOne({ user: req.body.userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                                 const data3 = await User.findOne({ _id: req.body.userId });
                                 let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                 if (saveCart.services.length > 0) {
@@ -3689,7 +3685,6 @@ exports.addToCart = async (req, res, next) => {
                                 saveCart.offerDiscount = Number(offerDiscount);
                                 saveCart.subTotal = subTotal;
                                 saveCart.total = total;
-                                saveCart.serviceAddresss = data1;
                                 await saveCart.save();
                         } else {
                                 let findService = await services.findById({ _id: req.params.id });
@@ -3702,10 +3697,7 @@ exports.addToCart = async (req, res, next) => {
                                         return total + serviceObj.totalMin * service.quantity;
                                 }, 0);
                                 await cart.save();
-                                let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
-                                const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
-                                const data2 = await Address.findOne({ user: req.body.userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
-                                const data5 = await Address.findOne({ user: req.body.userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
+                                let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
                                 const data3 = await User.findOne({ _id: req.body.userId });
                                 let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                 if (saveCart.services.length > 0) {
@@ -3780,7 +3772,6 @@ exports.addToCart = async (req, res, next) => {
                                 saveCart.offerDiscount = Number(offerDiscount);
                                 saveCart.subTotal = subTotal;
                                 saveCart.total = total;
-                                saveCart.serviceAddresss = data1;
                                 await saveCart.save();
                         }
                         return res.status(200).json({ msg: `added to cart`, data: cart });
