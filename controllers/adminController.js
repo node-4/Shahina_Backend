@@ -3575,7 +3575,7 @@ exports.addToCart = async (req, res, next) => {
                                 };
                                 let saveCart1 = await Cart.create(obj);
                                 if (saveCart1) {
-                                        return res.status(200).json({ status: 200, message: 'Service added to cart', data: saveCart });
+                                        return res.status(200).json({ status: 200, message: 'Service added to cart', data: saveCart1 });
                                 }
                         }
                 } else {
@@ -3686,6 +3686,7 @@ exports.addToCart = async (req, res, next) => {
                                 saveCart.subTotal = subTotal;
                                 saveCart.total = total;
                                 await saveCart.save();
+                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
                         } else {
                                 let findService = await services.findById({ _id: req.params.id });
                                 if (!findService) {
@@ -3773,8 +3774,8 @@ exports.addToCart = async (req, res, next) => {
                                 saveCart.subTotal = subTotal;
                                 saveCart.total = total;
                                 await saveCart.save();
+                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
                         }
-                        return res.status(200).json({ msg: `added to cart`, data: cart });
                 }
         } catch (error) {
                 next(error);
