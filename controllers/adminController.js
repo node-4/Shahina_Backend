@@ -3236,7 +3236,7 @@ exports.getSlot = async (req, res) => {
 exports.getAvailableSlotOnwhichDate = async (req, res) => {
         try {
                 const { year, month } = req.query;
-                if((year == (null || undefined )) && (month == (null || undefined )) ){
+                if ((year == (null || undefined)) && (month == (null || undefined))) {
                         const currentDate = new Date();
                         const year = currentDate.getFullYear();
                         const month = currentDate.getMonth() + 1;
@@ -3251,17 +3251,19 @@ exports.getAvailableSlotOnwhichDate = async (req, res) => {
                         for (let i = 0; i < slots.length; i++) {
                                 if (!uniqueDates.has(slots[i].date.toString())) {
                                         const categories = await slot.find({ date: slots[i].date, slotBlocked: false }).count();
+                                        const categories1 = await slot.find({ date: slots[i].date, slotBlocked: false });
                                         const allBooked = categories === 0 ? 'yes' : 'no';
                                         let obj = {
                                                 date: slots[i].date,
                                                 allBooked: allBooked,
+                                                data: categories1
                                         };
                                         allSlot.push(obj);
                                         uniqueDates.add(slots[i].date.toString());
                                 }
                         }
                         return res.json({ allSlot });
-                }else{
+                } else {
                         const startDate = moment(`${year}-${month}-01`).startOf('month');
                         const endDate = moment(startDate).endOf('month');
                         const slots = await slot.find({ date: { $gte: startDate, $lte: endDate } }).sort({ date: 1 });
@@ -3273,10 +3275,12 @@ exports.getAvailableSlotOnwhichDate = async (req, res) => {
                         for (let i = 0; i < slots.length; i++) {
                                 if (!uniqueDates.has(slots[i].date.toString())) {
                                         const categories = await slot.find({ date: slots[i].date, slotBlocked: false }).count();
+                                        const categories1 = await slot.find({ date: slots[i].date, slotBlocked: false });
                                         const allBooked = categories === 0 ? 'yes' : 'no';
                                         let obj = {
                                                 date: slots[i].date,
                                                 allBooked: allBooked,
+                                                data: categories1
                                         };
                                         allSlot.push(obj);
                                         uniqueDates.add(slots[i].date.toString());
