@@ -2080,7 +2080,7 @@ exports.getServiceOrders = async (req, res) => {
         try {
                 console.log("------------------------");
                 const { search, fromDate, toDate, page, limit } = req.query;
-                let query = { orderStatus: "confirmed" };
+                let query = { orderStatus: ["confirmed", "adminUnconfirmed"] };
                 if (search) {
                         query.$or = [
                                 { "orderId": { $regex: req.query.search, $options: "i" }, },
@@ -3445,11 +3445,11 @@ exports.deleteCartItem = async (req, res, next) => {
                 const itemId = req.params.id;
                 let cart = await Cart.findOne({ user: req.params.userId });
                 if (!cart) {
-                        return res.status(200).json({ success: false, msg: "ServiceOrder is empty", cart: {} });
+                        return res.status(404).json({ status: 404, msg: `ServiceOrder is empty`, cart: {} });
                 }
                 const itemIndex = cart.services.findIndex((cartItem) => cartItem.serviceId.toString() === itemId);
                 if (itemIndex === -1) {
-                        return res.status(404).json({ success: false, msg: `service not found in order`, cart: {} });
+                        return res.status(404).json({ status: 404, msg: `service not found in cart`, cart: {} });
                 }
                 cart.services.splice(itemIndex, 1);
                 await cart.save();
@@ -3534,13 +3534,13 @@ exports.deleteCartItem = async (req, res, next) => {
                         saveCart.total = total;
                         saveCart.serviceAddresss = data1;
                         await saveCart.save();
-                        return res.status(200).json({ success: true, msg: `removed from cart`, cart: saveCart });
+                        return res.status(200).json({ status: 200, msg: `removed from cart`, cart: saveCart });
                 } else {
-                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                        return res.status(200).json({ status: 200, msg: "Cart is empty", cart: {} });
                 }
         } catch (error) {
                 console.log(error);
-                next(error);
+                return res.status(500).json({ status: 500, msg: "internal server error", error: error });
         }
 };
 exports.addToCart = async (req, res, next) => {
@@ -4420,7 +4420,10 @@ exports.checkout = async (req, res) => {
                                                 orderObjPaidAmount: orderObjPaidAmount.toFixed(2),
                                         }
                                         let saveOrder1 = await userOrders.create(orderObj);
-                                        return res.status(200).json({ msg: "service order", data: saveOrder1 });
+                                        if (saveOrder1) {
+                                                let deleteCart = await Cart.findOneAndDelete({ user: req.params.userId });
+                                                return res.status(200).json({ msg: "service order", data: saveOrder1 });
+                                        }
                                 }
                         } else {
                                 return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
@@ -5574,3 +5577,101 @@ async function generateSlots() {
 }
 // generateSlots()
 
+
+// async function updateService() {
+//         try {
+//                 let array = [
+//                         { "_id": "651e845a22e4351620f8bafc", "categoryId": "64eda8398600a80edcc6e478" },
+//                         { "_id": "651e8956e0e13fdf9ce01d4b", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "651e91c7e0e13fdf9ce01d83", "categoryId": "64eda8238600a80edcc6e473" },
+//                         { "_id": "651eb85f159a9bc116e5549a", "categoryId": "64eda8398600a80edcc6e478" },
+//                         { "_id": "651fd658f86b35a8278756eb", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fd7a1f86b35a8278756f7", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "651fd861f86b35a8278756fd", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "651fda46f776a09d2b9f78a9", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fdb24f776a09d2b9f78af", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fe1abf776a09d2b9f78c0", "categoryId": "64eda8238600a80edcc6e473" },
+//                         { "_id": "651fe273f776a09d2b9f78c6", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fe2bff776a09d2b9f78cc", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fe2d9f776a09d2b9f78d2", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "651fe6b43937b7a12010a383", "categoryId": "64eda87c8600a80edcc6e487" },
+//                         { "_id": "651fe6e63937b7a12010a389", "categoryId": "64eda87c8600a80edcc6e487" },
+//                         { "_id": "651fe70e3937b7a12010a38f", "categoryId": "64eda87c8600a80edcc6e487" },
+//                         { "_id": "651fea123937b7a12010a395", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fea323937b7a12010a39b", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fea413937b7a12010a3a1", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fea603937b7a12010a3a7", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "651fea6b3937b7a12010a3ad", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "651fea7e3937b7a12010a3b3", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "651feaf73937b7a12010a3b9", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "651feb003937b7a12010a3bf", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "651feb093937b7a12010a3c5", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "651fec723937b7a12010a3cb", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "651fecc43937b7a12010a3d1", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "652d1ce83d80315dba5ba14d", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "6537563efca6f94a77de7207", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "653758682f0687131d028548", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "6549f943fdc29c0f9ba44ecc", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "6549fbe2b4b5b9ed13da6181", "categoryId": "64eda8398600a80edcc6e478" },
+//                         { "_id": "6549fecc626b3dcdcf4ed558", "categoryId": "64eda8398600a80edcc6e478" },
+//                         { "_id": "654a00860645064084c8aba0", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654a020f0645064084c8ac0a", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "654a041f0645064084c8ad12", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654a0625626b3dcdcf4ed85a", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654a076e0645064084c8ae93", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "654a1ca0cd067d9a581e59ea", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "654a1d5a12f66a23b4cf6db0", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654a20b481151536685c6a44", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654a2158f6152121a1b3e478", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "654a228512f66a23b4cf6fe8", "categoryId": "64eda8398600a80edcc6e478" },
+//                         { "_id": "654a2a18bfbc43eedc7b7d8b", "categoryId": "64eda8398600a80edcc6e478" },
+//                         { "_id": "654a2aff82e27a60b230be5c", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "654a2bc782e27a60b230beb7", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654a2cc3bfbc43eedc7b7f14", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654a2e6394eec01695e7b0bf", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "654a2fd1650a02dd15579ddd", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654a31414272c5c2011f28b9", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654a32c0f1739508df4ae321", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654a3488052d2cb7ce32b50e", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654a3b33ba0a2cc9d924577c", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "654a3c1aba0a2cc9d9245783", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654a3e0dba0a2cc9d9245791", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654a401dba0a2cc9d92457a7", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654b30d9c5d68d1a8b7da56a", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "654b3157c5d68d1a8b7da592", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "654b31fa542d97286801ea03", "categoryId": "64eda87c8600a80edcc6e487" },
+//                         { "_id": "654b32b905a9c751730a2561", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654b335756cc7f000422611a", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654b33f1c5d68d1a8b7da604", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "654b360813b92aa67e37dba4", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "654b36a313b92aa67e37dbab", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654b371213b92aa67e37dbb2", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654b37d613b92aa67e37dbbf", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654b38825d1113dac9b90cca", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654b390a5d1113dac9b90d0d", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654b399b5d1113dac9b90d61", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654b3a315d1113dac9b90d7f", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "654b3aba5d1113dac9b90dc8", "categoryId": "64eda85e8600a80edcc6e482" },
+//                         { "_id": "654b3cf0bc6d03142ed67b65", "categoryId": "64eda8018600a80edcc6e469" },
+//                         { "_id": "654b3d9fbc6d03142ed67c4d", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "65532af8be1c2e5beded62f0", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "6555c69e87ce68783aaab1ae", "categoryId": "64eda8148600a80edcc6e46e" },
+//                         { "_id": "6576bf47af3201732adcc0c8", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "6576bfb08b66b3c0b8556695", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "6576c0437005f6ea194445a7", "categoryId": "64eda84d8600a80edcc6e47d" },
+//                         { "_id": "6576c0517005f6ea194445ac", "categoryId": "64eda84d8600a80edcc6e47d" }
+//                 ]
+//                 for (let i = 0; i < array.length; i++) {
+//                         const data = await services.findById(array[i]._id);
+//                         if (!data) {
+//                                 console.log("Slots updae.", array[i]._id);
+//                         } else {
+//                                 const data1 = await services.findByIdAndUpdate({ _id: data._id }, { $set: { categoryId: array[i].categoryId } }, { new: true });
+//                         }
+//                 }
+//                 console.log("Slots updae.", "");
+//         } catch (error) {
+//                 console.log("Slots error.", error);
+//         }
+// }
+// updateService()
