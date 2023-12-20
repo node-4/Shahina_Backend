@@ -3486,29 +3486,31 @@ const calculateCartResponse5 = async (cart, userId) => {
                 const data4 = await contact.findOne().select('name image phone email numOfReviews google mapLink map ratings -_id');
                 let offerDiscount = 0, productFBPTotal = 0, onProductDiscount = 0, membershipDiscount = 0, shipping = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                 let totalTime = 0;
-                if (cart.services.length > 0) {
-                        for (let i = 0; i < cart.services.length; i++) {
-                                totalTime = totalTime + cart.services[i].serviceId.totalMin;
+                if (cart.toTime != (null || undefined)) {
+                        if (cart.services.length > 0) {
+                                for (let i = 0; i < cart.services.length; i++) {
+                                        totalTime = totalTime + cart.services[i].serviceId.totalMin;
+                                }
                         }
-                }
-                if (cart.AddOnservicesSchema.length > 0) {
-                        for (let i = 0; i < cart.AddOnservicesSchema.length; i++) {
-                                totalTime = totalTime + cart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                        if (cart.AddOnservicesSchema.length > 0) {
+                                for (let i = 0; i < cart.AddOnservicesSchema.length; i++) {
+                                        totalTime = totalTime + cart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                }
                         }
+                        var dateTimeString = cart.toTime;
+                        var dateTimeObject = new Date(dateTimeString);
+                        let d = dateTimeObject.toISOString().split('T')[0];
+                        var hours1 = dateTimeObject.getUTCHours();
+                        var minutes1 = dateTimeObject.getUTCMinutes();
+                        const hours = parseInt(hours1);
+                        const minutes = parseInt(minutes1);
+                        const providedTimeInMinutes = hours * 60 + minutes;
+                        let fromTimeInMinutes = providedTimeInMinutes + totalTime + 30;
+                        const fromTime = new Date(d);
+                        fromTime.setMinutes(fromTimeInMinutes);
+                        cart.fromTime = fromTime;
+                        cart.save();
                 }
-                var dateTimeString = cart.toTime;
-                var dateTimeObject = new Date(dateTimeString);
-                let d = dateTimeObject.toISOString().split('T')[0];
-                var hours1 = dateTimeObject.getUTCHours();
-                var minutes1 = dateTimeObject.getUTCMinutes();
-                const hours = parseInt(hours1);
-                const minutes = parseInt(minutes1);
-                const providedTimeInMinutes = hours * 60 + minutes;
-                let fromTimeInMinutes = providedTimeInMinutes + totalTime + 30;
-                const fromTime = new Date(d);
-                fromTime.setMinutes(fromTimeInMinutes);
-                cart.fromTime = fromTime;
-                cart.save();
                 const cartResponse = cart.toObject();
                 if (cartResponse.services.length > 0) {
                         for (const cartProduct of cartResponse.services) {
