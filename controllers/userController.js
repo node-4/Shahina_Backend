@@ -37,12 +37,9 @@ const recentlyView = require("../models/recentlyView");
 const moment = require("moment")
 const commonFunction = require("../middlewares/commonFunction");
 const slot = require("../models/slot");
-
 const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
-
-
 const stripe = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // shahina test
 // const stripe = require("stripe")('sk_test_51J0NhySIdiNJWVEcYKjXhXets6lbhBeYQm9aY9r6sXw8whvRamiUKQFly1k0pQjy8zaeYkxopVCdUVWmPo4Nqeex0030Zxmibo'); // varun test
 //  Publish key:- pk_live_51Kr67EJsxpRH9smizUjNERPVsq1hlJBnnJsfCOqNTPL6HKgsG9YTOOcA5yYk38O7Wz2NILGPvIKkxe3rU90iix610049htYt1w
@@ -905,12 +902,26 @@ exports.applyCoupan = async (req, res) => {
 };
 exports.cancelBooking = async (req, res, next) => {
         try {
-                const orders = await serviceOrder.findOne({ _id: req.params.id, orderStatus: "confirmed", user: req.user._id });
+                const orders = await serviceOrder.findOne({ _id: req.params.id, }).populate('user');
                 if (!orders) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
-                let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { orderStatus: "cancel" } }, { new: true })
-                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { orderStatus: "cancel", cancelReason: req.body.cancelReason } }, { new: true })
+                if (update) {
+                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                        let mailOptions = {
+                                from: 'info@shahinahoja.com',
+                                to: orders.user.email,
+                                subject: 'Your booking has been cancelled.',
+                                text: `Your booking has been cancelled and booking id ${orders.orderId}`,
+                        };
+                        let info1 = await transporter.sendMail(mailOptions);
+                        if (info1) {
+                                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                        } else {
+                                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                        }
+                }
         } catch (error) {
                 console.log(error);
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
@@ -1403,20 +1414,6 @@ const calculateCartResponse = async (cart, userId) => {
                                                         total += cartProduct.total;
                                                         subTotal += cartProduct.subTotal;
                                                 }
-                                                // console.log(data3.isSubscription);
-                                                // const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                // if (findSubscription) {
-                                                //         membershipDiscountPercentage = findSubscription.discount;
-                                                // }
-                                                // let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                // cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                // membershipDiscount += x;
-                                                // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                // cartProduct.offerDiscount = 0.00;
-                                                // offerDiscount += cartProduct.offerDiscount;
-                                                // total += cartProduct.total;
-                                                // subTotal += cartProduct.subTotal;
                                         } else {
                                                 if (cartProduct.serviceId.multipleSize == true) {
                                                         let x = 0
@@ -1439,15 +1436,6 @@ const calculateCartResponse = async (cart, userId) => {
                                                         total += cartProduct.total;
                                                         subTotal += cartProduct.subTotal;
                                                 }
-                                                // let x = 0;
-                                                // cartProduct.membershipDiscount = x
-                                                // membershipDiscount += x;
-                                                // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                // cartProduct.offerDiscount = 0.00;
-                                                // offerDiscount += cartProduct.offerDiscount;
-                                                // subTotal += cartProduct.subTotal;
-                                                // total += cartProduct.total;
                                         }
                                 }
                         }
@@ -2341,20 +2329,6 @@ exports.checkout = async (req, res) => {
                                                                                                 total += cartProduct.total;
                                                                                                 subTotal += cartProduct.subTotal;
                                                                                         }
-                                                                                        // console.log(data3.isSubscription);
-                                                                                        // const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                                                        // if (findSubscription) {
-                                                                                        //         membershipDiscountPercentage = findSubscription.discount;
-                                                                                        // }
-                                                                                        // let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                                        // cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                                        // membershipDiscount += x;
-                                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                                        // cartProduct.offerDiscount = 0.00;
-                                                                                        // offerDiscount += cartProduct.offerDiscount;
-                                                                                        // total += cartProduct.total;
-                                                                                        // subTotal += cartProduct.subTotal;
                                                                                 } else {
                                                                                         if (cartProduct.serviceId.multipleSize == true) {
                                                                                                 let x = 0
@@ -2377,15 +2351,6 @@ exports.checkout = async (req, res) => {
                                                                                                 total += cartProduct.total;
                                                                                                 subTotal += cartProduct.subTotal;
                                                                                         }
-                                                                                        // let x = 0;
-                                                                                        // cartProduct.membershipDiscount = x
-                                                                                        // membershipDiscount += x;
-                                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                        // cartProduct.offerDiscount = 0.00;
-                                                                                        // offerDiscount += cartProduct.offerDiscount;
-                                                                                        // subTotal += cartProduct.subTotal;
-                                                                                        // total += cartProduct.total;
                                                                                 }
                                                                         }
                                                                 }
@@ -4401,20 +4366,6 @@ const calculateCartResponse5 = async (cart, userId) => {
                                                         total += cartProduct.total;
                                                         subTotal += cartProduct.subTotal;
                                                 }
-                                                // console.log(data3.isSubscription);
-                                                // const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                // if (findSubscription) {
-                                                //         membershipDiscountPercentage = findSubscription.discount;
-                                                // }
-                                                // let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                // cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                // membershipDiscount += x;
-                                                // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                // cartProduct.offerDiscount = 0.00;
-                                                // offerDiscount += cartProduct.offerDiscount;
-                                                // total += cartProduct.total;
-                                                // subTotal += cartProduct.subTotal;
                                         } else {
                                                 if (cartProduct.serviceId.multipleSize == true) {
                                                         let x = 0
@@ -4437,15 +4388,6 @@ const calculateCartResponse5 = async (cart, userId) => {
                                                         total += cartProduct.total;
                                                         subTotal += cartProduct.subTotal;
                                                 }
-                                                // let x = 0;
-                                                // cartProduct.membershipDiscount = x
-                                                // membershipDiscount += x;
-                                                // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                // cartProduct.offerDiscount = 0.00;
-                                                // offerDiscount += cartProduct.offerDiscount;
-                                                // subTotal += cartProduct.subTotal;
-                                                // total += cartProduct.total;
                                         }
                                 }
                         }
@@ -4705,52 +4647,3 @@ exports.savecard = async (req, res, next) => {
                 return res.status(500).json({ message: 'Error saving card' });
         }
 };
-// exports.updateTimeService = async (req, res) => {
-//         try {
-//                 const data = await services.find();
-
-//                 if (data.length === 0) {
-//                         return res.status(400).send({ msg: "not found" });
-//                 }
-
-//                 for (let i = 0; i < data.length; i++) {
-//                         function convertTimeToMinutes(timeString) {
-//                                 const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
-//                                 const match = timeString.match(regex);
-//                                 if (!match) {
-//                                         throw new Error("Invalid time format");
-//                                 }
-//                                 const hours = parseInt(match[1]) || 0;
-//                                 const minutes = parseInt(match[2]) || 0;
-//                                 return hours * 60 + minutes;
-//                         }
-
-//                         // Generate a random time less than 1 hour
-//                         const randomHours = Math.floor(Math.random() * 2)
-//                         const randomMinutes = Math.floor(Math.random() * 60); // Random minutes between 0 and 59
-//                         const randomTotalTime = `${randomHours}hr ${randomMinutes}min`;
-
-//                         const totalMin = convertTimeToMinutes(randomTotalTime);
-
-//                         // Determine how to display totalTime based on totalMin
-//                         let displayTotalTime;
-//                         if (totalMin < 60) {
-//                                 displayTotalTime = `${randomMinutes}min`;
-//                         } else {
-//                                 displayTotalTime = randomTotalTime;
-//                         }
-
-//                         // Update the services with the new time
-//                         const update = await services.findByIdAndUpdate(
-//                                 { _id: data[i]._id },
-//                                 { $set: { totalTime: displayTotalTime, totalMin: totalMin } },
-//                                 { new: true }
-//                         );
-//                 }
-
-//                 return res.status(200).json({ status: 200, message: "Service data updated.", data: data });
-//         } catch (err) {
-//                 return res.status(500).send({ msg: "internal server error", error: err.message });
-//         }
-// };
-

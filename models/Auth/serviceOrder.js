@@ -54,6 +54,9 @@ const DocumentSchema = schema({
         suggesstion: {
                 type: String,
         },
+        cancelReason: {
+                type: String,
+        },
         services: {
                 type: [cartServiceSchema]
         },
