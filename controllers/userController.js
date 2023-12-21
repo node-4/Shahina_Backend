@@ -908,19 +908,38 @@ exports.cancelBooking = async (req, res, next) => {
                 }
                 let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { orderStatus: "cancel", cancelReason: req.body.cancelReason } }, { new: true })
                 if (update) {
-                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                        let mailOptions = {
-                                from: 'info@shahinahoja.com',
-                                to: orders.user.email,
-                                subject: 'Your booking has been cancelled.',
-                                text: `Your booking has been cancelled and booking id ${orders.orderId}`,
-                        };
-                        let info1 = await transporter.sendMail(mailOptions);
-                        if (info1) {
-                                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
-                        } else {
-                                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
-                        }
+                        if(req.body.mailSend != (null || undefined)){
+                                if (req.body.mailSend == "yes") {
+                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                        let mailOptions = {
+                                                from: 'info@shahinahoja.com',
+                                                to: orders.user.email,
+                                                subject: 'Your booking has been cancelled.',
+                                                text: `Your booking has been cancelled and booking id ${orders.orderId}`,
+                                        };
+                                        let info1 = await transporter.sendMail(mailOptions);
+                                        if (info1) {
+                                                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                                        } else {
+                                                return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                                        }
+                                } else {
+                                        return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                                }
+                        }else{
+                                var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                let mailOptions = {
+                                        from: 'info@shahinahoja.com',
+                                        to: orders.user.email,
+                                        subject: 'Your booking has been cancelled.',
+                                        text: `Your booking has been cancelled and booking id ${orders.orderId}`,
+                                };
+                                let info1 = await transporter.sendMail(mailOptions);
+                                if (info1) {
+                                        return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                                } else {
+                                        return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
+                                }                        }
                 }
         } catch (error) {
                 console.log(error);
