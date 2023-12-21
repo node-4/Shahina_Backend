@@ -2137,7 +2137,7 @@ exports.getServiceOrderswithDate = async (req, res) => {
 
                 const totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
                 const datewiseOrders = await serviceOrder
-                        .find({ orderStatus: "adminUnconfirmed" })
+                        .find({ orderStatus: ["adminUnconfirmed" || "confirmed" || "cancel"] })
                         .populate([
                                 { path: "services.serviceId", select: { reviews: 0 } },
                                 { path: "coupon", select: "couponCode discount expirationDate" },
