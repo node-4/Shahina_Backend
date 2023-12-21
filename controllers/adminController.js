@@ -1122,7 +1122,7 @@ exports.paginateServiceSearch = async (req, res) => {
                 }
                 let options = {
                         page: Number(page) || 1,
-                        limit: Number(limit) || 15,
+                        limit: Number(limit) || 100,
                         sort: { createdAt: -1 },
                         populate: ('categoryId')
                 };
