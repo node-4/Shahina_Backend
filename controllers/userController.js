@@ -1613,8 +1613,8 @@ exports.checkout = async (req, res) => {
                                 let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId, couponDiscount = 0, orderObjTotalAmount = 0;
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
-                                cartResponse.orderId = orderId;
                                 let orderId = await reffralCode();
+                                cartResponse.orderId = orderId;
                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
@@ -1759,6 +1759,7 @@ exports.checkout = async (req, res) => {
                                                         productOrderId = saveOrder._id;
                                                 }
                                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let totalTime = 0;
                                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                                         if (cartResponse.services.length > 0) {
                                                                 for (const cartProduct of cartResponse.services) {
@@ -1827,6 +1828,18 @@ exports.checkout = async (req, res) => {
                                                                         total += cartGift.total;
                                                                 });
                                                         }
+                                                        if (findCart.toTime != (null || undefined)) {
+                                                                if (findCart.services.length > 0) {
+                                                                        for (let i = 0; i < findCart.services.length; i++) {
+                                                                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                                                        }
+                                                                }
+                                                                if (findCart.AddOnservicesSchema.length > 0) {
+                                                                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                                                                totalTime = totalTime + findCart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                                                        }
+                                                                }
+                                                        }
                                                         cartResponse.date = findCart.date;
                                                         cartResponse.toTime = findCart.toTime;
                                                         cartResponse.fromTime = findCart.fromTime;
@@ -1841,6 +1854,12 @@ exports.checkout = async (req, res) => {
                                                         orderObjTotalAmount = orderObjTotalAmount + total;
                                                         cartResponse._id = new mongoose.Types.ObjectId();
                                                         cartResponse.orderStatus = "confirmed";
+                                                        if (totalTime > 0) {
+                                                                var hours2 = Math.floor(totalTime / 60);
+                                                                var minutes2 = totalTime % 60;
+                                                                let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                                cartResponse.timeInMin = timeInMin;
+                                                        }
                                                         let saveOrder = await serviceOrder.create(cartResponse);
                                                         const dateObject = new Date(findCart.date);
                                                         const dateString = dateObject.toISOString().split('T')[0];
@@ -2287,6 +2306,7 @@ exports.checkout = async (req, res) => {
                                                         productOrderId = saveOrder._id;
                                                 }
                                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let totalTime = 0;
                                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                                         if (cartResponse.services.length > 0) {
                                                                 for (const cartProduct of cartResponse.services) {
@@ -2378,6 +2398,18 @@ exports.checkout = async (req, res) => {
                                                                         total += cartGift.total;
                                                                 });
                                                         }
+                                                        if (findCart.toTime != (null || undefined)) {
+                                                                if (findCart.services.length > 0) {
+                                                                        for (let i = 0; i < findCart.services.length; i++) {
+                                                                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                                                        }
+                                                                }
+                                                                if (findCart.AddOnservicesSchema.length > 0) {
+                                                                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                                                                totalTime = totalTime + findCart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                                                        }
+                                                                }
+                                                        }
                                                         cartResponse.date = findCart.date;
                                                         cartResponse.toTime = findCart.toTime;
                                                         cartResponse.fromTime = findCart.fromTime;
@@ -2392,6 +2424,12 @@ exports.checkout = async (req, res) => {
                                                         orderObjTotalAmount = orderObjTotalAmount + total;
                                                         cartResponse._id = new mongoose.Types.ObjectId();
                                                         cartResponse.orderStatus = "confirmed";
+                                                        if (totalTime > 0) {
+                                                                var hours2 = Math.floor(totalTime / 60);
+                                                                var minutes2 = totalTime % 60;
+                                                                let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                                cartResponse.timeInMin = timeInMin;
+                                                        }
                                                         let saveOrder = await serviceOrder.create(cartResponse);
                                                         const dateObject = new Date(findCart.date);
                                                         const dateString = dateObject.toISOString().split('T')[0];
@@ -3118,6 +3156,7 @@ exports.checkoutApp = async (req, res) => {
                                                         productOrderId = saveOrder._id;
                                                 }
                                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let totalTime = 0;
                                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                                         if (cartResponse.services.length > 0) {
                                                                 for (const cartProduct of cartResponse.services) {
@@ -3186,6 +3225,18 @@ exports.checkoutApp = async (req, res) => {
                                                                         total += cartGift.total;
                                                                 });
                                                         }
+                                                        if (findCart.toTime != (null || undefined)) {
+                                                                if (findCart.services.length > 0) {
+                                                                        for (let i = 0; i < findCart.services.length; i++) {
+                                                                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                                                        }
+                                                                }
+                                                                if (findCart.AddOnservicesSchema.length > 0) {
+                                                                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                                                                totalTime = totalTime + findCart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                                                        }
+                                                                }
+                                                        }
                                                         cartResponse.date = findCart.date;
                                                         cartResponse.time = findCart.time;
                                                         cartResponse.suggesstion = findCart.suggesstion;
@@ -3197,6 +3248,12 @@ exports.checkoutApp = async (req, res) => {
                                                         cartResponse.serviceAddresss = data1;
                                                         orderObjPaidAmount = orderObjPaidAmount + total;
                                                         cartResponse._id = new mongoose.Types.ObjectId();
+                                                        if (totalTime > 0) {
+                                                                var hours2 = Math.floor(totalTime / 60);
+                                                                var minutes2 = totalTime % 60;
+                                                                let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                                cartResponse.timeInMin = timeInMin;
+                                                        }
                                                         let saveOrder = await serviceOrder.create(cartResponse);
                                                         serviceOrderId = saveOrder._id;
                                                 }
@@ -3643,6 +3700,7 @@ exports.checkoutApp = async (req, res) => {
                                                         productOrderId = saveOrder._id;
                                                 }
                                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                                        let totalTime = 0;
                                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                                         if (cartResponse.services.length > 0) {
                                                                 for (const cartProduct of cartResponse.services) {
@@ -3711,6 +3769,18 @@ exports.checkoutApp = async (req, res) => {
                                                                         total += cartGift.total;
                                                                 });
                                                         }
+                                                        if (findCart.toTime != (null || undefined)) {
+                                                                if (findCart.services.length > 0) {
+                                                                        for (let i = 0; i < findCart.services.length; i++) {
+                                                                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                                                        }
+                                                                }
+                                                                if (findCart.AddOnservicesSchema.length > 0) {
+                                                                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                                                                totalTime = totalTime + findCart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                                                        }
+                                                                }
+                                                        }
                                                         cartResponse.date = findCart.date;
                                                         cartResponse.time = findCart.time;
                                                         cartResponse.suggesstion = findCart.suggesstion;
@@ -3722,6 +3792,12 @@ exports.checkoutApp = async (req, res) => {
                                                         cartResponse.serviceAddresss = data1;
                                                         orderObjPaidAmount = orderObjPaidAmount + total;
                                                         cartResponse._id = new mongoose.Types.ObjectId();
+                                                        if (totalTime > 0) {
+                                                                var hours2 = Math.floor(totalTime / 60);
+                                                                var minutes2 = totalTime % 60;
+                                                                let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                                cartResponse.timeInMin = timeInMin;
+                                                        }
                                                         let saveOrder = await serviceOrder.create(cartResponse);
                                                         serviceOrderId = saveOrder._id;
                                                 }

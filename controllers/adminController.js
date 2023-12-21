@@ -4006,6 +4006,7 @@ exports.checkout = async (req, res) => {
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                        let totalTime = 0;
                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                         if (cartResponse.services.length > 0) {
                                                 for (const cartProduct of cartResponse.services) {
@@ -4085,6 +4086,18 @@ exports.checkout = async (req, res) => {
                                         cartResponse.subTotal = subTotal;
                                         cartResponse.total = total;
                                         cartResponse.serviceAddresss = data1;
+                                        if (findCart.toTime != (null || undefined)) {
+                                                if (findCart.services.length > 0) {
+                                                        for (let i = 0; i < findCart.services.length; i++) {
+                                                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                                        }
+                                                }
+                                                if (findCart.AddOnservicesSchema.length > 0) {
+                                                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                                                totalTime = totalTime + findCart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                                        }
+                                                }
+                                        }
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
@@ -4095,6 +4108,12 @@ exports.checkout = async (req, res) => {
                                                 orderObjTotalAmount = orderObjTotalAmount + total;
                                                 cartResponse._id = new mongoose.Types.ObjectId();
                                                 cartResponse.orderStatus = "adminUnconfirmed";
+                                                if (totalTime > 0) {
+                                                        var hours2 = Math.floor(totalTime / 60);
+                                                        var minutes2 = totalTime % 60;
+                                                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                        cartResponse.timeInMin = timeInMin;
+                                                }
                                                 let saveOrder = await serviceOrder.create(cartResponse);
                                                 if (saveOrder) {
                                                         let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
@@ -4106,7 +4125,7 @@ exports.checkout = async (req, res) => {
                                                 }
                                                 serviceOrderId = saveOrder._id;
                                         } else {
-                                                return res.status(400).json({status: 400, msg: "This Slot already booked. ", data: {} });
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 }
                                 if (cartResponse.services.length > 0) {
@@ -4141,6 +4160,7 @@ exports.checkout = async (req, res) => {
                                 let orderId = await reffralCode();
                                 cartResponse.orderId = orderId;
                                 if (cartResponse.services.length > 0 || cartResponse.AddOnservicesSchema.length > 0) {
+                                        let totalTime = 0;
                                         let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                                         if (cartResponse.services.length > 0) {
                                                 for (const cartProduct of cartResponse.services) {
@@ -4175,20 +4195,6 @@ exports.checkout = async (req, res) => {
                                                                                 total += cartProduct.total;
                                                                                 subTotal += cartProduct.subTotal;
                                                                         }
-                                                                        // console.log(data3.isSubscription);
-                                                                        // const findSubscription = await Subscription.findById(data3.subscriptionId);
-                                                                        // if (findSubscription) {
-                                                                        //         membershipDiscountPercentage = findSubscription.discount;
-                                                                        // }
-                                                                        // let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) * parseFloat((membershipDiscountPercentage / 100).toFixed(2)));
-                                                                        // cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                        // membershipDiscount += x;
-                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                        // cartProduct.offerDiscount = 0.00;
-                                                                        // offerDiscount += cartProduct.offerDiscount;
-                                                                        // total += cartProduct.total;
-                                                                        // subTotal += cartProduct.subTotal;
                                                                 } else {
                                                                         if (cartProduct.serviceId.multipleSize == true) {
                                                                                 let x = 0
@@ -4211,15 +4217,6 @@ exports.checkout = async (req, res) => {
                                                                                 total += cartProduct.total;
                                                                                 subTotal += cartProduct.subTotal;
                                                                         }
-                                                                        // let x = 0;
-                                                                        // cartProduct.membershipDiscount = x
-                                                                        // membershipDiscount += x;
-                                                                        // cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        // cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        // cartProduct.offerDiscount = 0.00;
-                                                                        // offerDiscount += cartProduct.offerDiscount;
-                                                                        // subTotal += cartProduct.subTotal;
-                                                                        // total += cartProduct.total;
                                                                 }
                                                         }
                                                 }
@@ -4243,6 +4240,18 @@ exports.checkout = async (req, res) => {
                                         cartResponse.subTotal = subTotal;
                                         cartResponse.total = total;
                                         cartResponse.serviceAddresss = data1;
+                                        if (findCart.toTime != (null || undefined)) {
+                                                if (findCart.services.length > 0) {
+                                                        for (let i = 0; i < findCart.services.length; i++) {
+                                                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                                        }
+                                                }
+                                                if (findCart.AddOnservicesSchema.length > 0) {
+                                                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                                                totalTime = totalTime + findCart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                                        }
+                                                }
+                                        }
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
@@ -4253,6 +4262,12 @@ exports.checkout = async (req, res) => {
                                                 orderObjTotalAmount = orderObjTotalAmount + total;
                                                 cartResponse._id = new mongoose.Types.ObjectId();
                                                 cartResponse.orderStatus = "adminUnconfirmed";
+                                                if (totalTime > 0) {
+                                                        var hours2 = Math.floor(totalTime / 60);
+                                                        var minutes2 = totalTime % 60;
+                                                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                        cartResponse.timeInMin = timeInMin;
+                                                }
                                                 let saveOrder = await serviceOrder.create(cartResponse);
                                                 if (saveOrder) {
                                                         let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
@@ -4264,7 +4279,7 @@ exports.checkout = async (req, res) => {
                                                 }
                                                 serviceOrderId = saveOrder._id;
                                         } else {
-                                                return res.status(400).json({status: 400, msg: "This Slot already booked. ", data: {} });
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 }
                                 if (cartResponse.services.length > 0) {
@@ -4294,13 +4309,35 @@ exports.checkout = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+exports.addSuggestionToServiceOrder = async (req, res) => {
+        try {
+                let findCart = await serviceOrder.findOne({ _id: req.params.id });
+                if (findCart) {
+                        let update1 = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $set: { suggesstion: req.body.suggestion }, }, { new: true });
+                        return res.status(200).json({ status: 200, message: "suggestion add to serviceOrder Successfully.", data: update1 })
+                } else {
+                        return res.status(404).json({ status: 404, message: "serviceOrder is not found.", data: {} });
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
 exports.getServiceOrdersByuserId = async (req, res, next) => {
         try {
-                const orders = await serviceOrder.find({ user: req.params.userId, orderStatus: "confirmed" }).sort({ createdAt: -1 }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
-                if (orders.length == 0) {
-                        return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                if (req.query.serviceStatus != (null || undefined)) {
+                        const orders = await serviceOrder.find({ user: req.params.userId, serviceStatus: req.query.serviceStatus, orderStatus: ["confirmed" || "adminUnconfirmed"] }).sort({ createdAt: -1 }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (orders.length == 0) {
+                                return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                        }
+                        return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
+                } else {
+                        const orders = await serviceOrder.find({ user: req.params.userId, orderStatus: ["confirmed" || "adminUnconfirmed"] }).sort({ createdAt: -1 }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                        if (orders.length == 0) {
+                                return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
+                        }
+                        return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
                 }
-                return res.status(200).json({ status: 200, msg: "orders of user", data: orders })
         } catch (error) {
                 console.log(error);
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });

@@ -85,6 +85,9 @@ const DocumentSchema = schema({
                 type: Number,
                 default: 0
         },
+        timeInMin: {
+                type: String,
+        },
         noShow: {
                 type: Boolean,
                 default: false,
