@@ -1939,7 +1939,7 @@ exports.checkout = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         } else {
-                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 } else {
                                         if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
@@ -2490,7 +2490,7 @@ exports.checkout = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         } else {
-                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 } else {
                                         if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
@@ -3304,7 +3304,7 @@ exports.checkoutApp = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         } else {
-                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 } else {
                                         if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
@@ -3829,7 +3829,7 @@ exports.checkoutApp = async (req, res) => {
                                                         return res.status(200).json({ msg: "product added to cart", data: saveOrder1 });
                                                 }
                                         } else {
-                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 } else {
                                         if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {

@@ -4106,7 +4106,7 @@ exports.checkout = async (req, res) => {
                                                 }
                                                 serviceOrderId = saveOrder._id;
                                         } else {
-                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
+                                                return res.status(400).json({status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 }
                                 if (cartResponse.services.length > 0) {
@@ -4264,7 +4264,7 @@ exports.checkout = async (req, res) => {
                                                 }
                                                 serviceOrderId = saveOrder._id;
                                         } else {
-                                                return res.status(200).json({status: 200, msg: "This Slot already booke. ", data: {} });
+                                                return res.status(400).json({status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
                                 }
                                 if (cartResponse.services.length > 0) {
