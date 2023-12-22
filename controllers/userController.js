@@ -908,7 +908,7 @@ exports.cancelBooking = async (req, res, next) => {
                 }
                 let update = await serviceOrder.findByIdAndUpdate({ _id: orders._id }, { $set: { orderStatus: "cancel", cancelReason: req.body.cancelReason } }, { new: true })
                 if (update) {
-                        if(req.body.mailSend != (null || undefined)){
+                        if (req.body.mailSend != (null || undefined)) {
                                 if (req.body.mailSend == "yes") {
                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                         let mailOptions = {
@@ -926,7 +926,7 @@ exports.cancelBooking = async (req, res, next) => {
                                 } else {
                                         return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
                                 }
-                        }else{
+                        } else {
                                 var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                 let mailOptions = {
                                         from: 'info@shahinahoja.com',
@@ -939,7 +939,8 @@ exports.cancelBooking = async (req, res, next) => {
                                         return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
                                 } else {
                                         return res.status(200).json({ status: 200, msg: "Booking cancel successfully.", data: update })
-                                }                        }
+                                }
+                        }
                 }
         } catch (error) {
                 console.log(error);
@@ -4345,7 +4346,7 @@ const calculateCartResponse5 = async (cart, userId) => {
                         const hours = parseInt(hours1);
                         const minutes = parseInt(minutes1);
                         const providedTimeInMinutes = hours * 60 + minutes;
-                        let fromTimeInMinutes = providedTimeInMinutes + totalTime + 30;
+                        let fromTimeInMinutes = providedTimeInMinutes + totalTime;
                         const fromTime = new Date(d);
                         fromTime.setMinutes(fromTimeInMinutes);
                         cart.fromTime = fromTime;
@@ -4550,6 +4551,12 @@ const calculateCartResponse5 = async (cart, userId) => {
                 cartResponse.deliveryAddresss = data2;
                 cartResponse.contactDetail = data4;
                 cartResponse.billingAddresss = data5;
+                if (totalTime > 0) {
+                        var hours2 = Math.floor(totalTime / 60);
+                        var minutes2 = totalTime % 60;
+                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                        cartResponse.timeInMin = timeInMin;
+                }
                 return cartResponse;
         } catch (error) {
                 throw error;
