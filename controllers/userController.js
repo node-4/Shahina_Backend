@@ -3864,7 +3864,6 @@ exports.checkoutApp = async (req, res) => {
                                                         let orderObj = {
                                                                 userId: req.user._id,
                                                                 orderId: orderId,
-                                                                productOrder: productOrderId,
                                                                 serviceOrder: serviceOrderId,
                                                                 orderObjTotalAmount: orderObjTotalAmount.toFixed(2),
                                                                 applyCoupan: cartResponse.coupon,
