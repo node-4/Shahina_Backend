@@ -1316,7 +1316,7 @@ exports.editService = async (req, res) => {
                                         return res.status(400).send({ status: 404, msg: "not found" });
                                 }
                         }
-                        let images = [], beforeAfterImage;
+                        let images = [], beforeAfterImage, sizePrice = [];
                         if (req.files['image'] != (null || undefined)) {
                                 let docs = req.files['image'];
                                 for (let i = 0; i < docs.length; i++) {
@@ -1349,19 +1349,23 @@ exports.editService = async (req, res) => {
                                 }
                         } else if (req.body.type != (null || undefined) && (req.body.type == 'Service')) {
                                 if (req.body.multipleSize == 'true') {
-                                        for (let i = 0; i < req.body.sizes.length; i++) {
-                                                let obj = {
-                                                        size: req.body.sizes[i],
-                                                        price: req.body.multiplePrice[i],
-                                                        mPrice: req.body.memberPrice[i],
+                                        if(req.body.sizes.length > 0){
+                                                for (let i = 0; i < req.body.sizes.length; i++) {
+                                                        let obj = {
+                                                                size: req.body.sizes[i],
+                                                                price: req.body.multiplePrice[i],
+                                                                mPrice: req.body.memberPrice[i],
+                                                        }
+                                                        sizePrice.push(obj)
                                                 }
-                                                sizePrice.push(obj)
+                                        }else{
+                                                sizePrice = data.sizePrice  
                                         }
                                 } else {
                                         if (req.body.price != (null || undefined)) {
                                                 price = req.body.price;
-                                                mPrice = req.body.mPrice,
-                                                        discountPrice = 0;
+                                                mPrice = req.body.mPrice;
+                                                discountPrice = 0;
                                                 discount = 0;
                                         } else {
                                                 price = data.price;
@@ -1371,9 +1375,21 @@ exports.editService = async (req, res) => {
                                         }
                                 }
                         } else {
-                                price = data.price;
-                                discountPrice = data.discountPrice;
-                                discount = data.discount;
+                                if (data.type == 'Service') {
+                                        if (data.multipleSize == 'true') {
+                                                sizePrice = data.sizePrice
+                                        } else {
+                                                price = data.price;
+                                                mPrice = data.mPrice;
+                                                discountPrice = data.discountPrice;
+                                                discount = data.discount;
+                                        }
+                                }
+                                if (data.type == 'offer') {
+                                        price = data.price;
+                                        discountPrice = data.discountPrice;
+                                        discount = data.discount;
+                                }
                         }
                         req.body.images = images;
                         let totalMin, totalTime;
@@ -1411,6 +1427,10 @@ exports.editService = async (req, res) => {
                                 name: req.body.name || data.name,
                                 images: images,
                                 beforeAfterImage: beforeAfterImage,
+                                benfit: req.body.benfit || data.benfit,
+                                session: req.body.session || data.session,
+                                sizePrice: sizePrice,
+                                area: req.body.area || data.area,
                                 price: price,
                                 mPrice: mPrice,
                                 description: req.body.description || data.description,
