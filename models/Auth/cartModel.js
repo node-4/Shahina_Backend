@@ -60,6 +60,14 @@ const cartServiceSchema = new Schema({
     priceId: {
         type: String,
     },
+    discountProvide: {
+        type: Boolean,
+        default: false,
+    },
+    discount: {
+        type: Number,
+        default: 0
+    },
     size: {
         type: String,
     },

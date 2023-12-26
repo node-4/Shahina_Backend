@@ -26,6 +26,9 @@ var userSchema = new schema(
                 dob: {
                         type: String,
                 },
+                bio: {
+                        type: String,
+                },
                 country: {
                         type: String,
                 },
@@ -75,6 +78,11 @@ var userSchema = new schema(
                 status: {
                         type: String,
                         enum: ["Approved", "Reject", "Pending"],
+                },
+                userStatus: {
+                        type: String,
+                        enum: ["Active", "Block"],
+                        default: "Active",
                 },
                 wallet: {
                         type: Number,

@@ -176,6 +176,33 @@ exports.viewUser = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error", error: err.message, });
         }
 };
+exports.updateClientProfile = async (req, res) => {
+        try {
+                const data = await User.findById(req.params.id);
+                if (data) {
+                        let obj = {
+                                firstName: req.body.firstName || data.firstName,
+                                lastName: req.body.lastName || data.lastName,
+                                fullName: req.body.fullName || data.fullName,
+                                email: req.body.email || data.email,
+                                countryCode: req.body.countryCode || data.countryCode,
+                                phone: req.body.phone || data.phone,
+                                gender: req.body.gender || data.gender,
+                                dob: req.body.dob || data.dob,
+                                bio: req.body.bio || data.bio,
+                        }
+                        let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: obj }, { new: true });
+                        if (update) {
+                                return res.status(200).json({ status: 200, message: "Update profile successfully.", data: update });
+                        }
+                } else {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
 exports.deleteUser = async (req, res) => {
         try {
                 const data = await User.findByIdAndDelete(req.params.id);
@@ -183,6 +210,29 @@ exports.deleteUser = async (req, res) => {
                         return res.status(400).send({ msg: "not found" });
                 }
                 return res.status(200).send({ msg: "deleted", data: data });
+        } catch (err) {
+                console.log(err.message);
+                return res.status(500).send({ msg: "internal server error", error: err.message, });
+        }
+};
+exports.activeBlockUser = async (req, res) => {
+        try {
+                const data = await User.findById(req.params.id);
+                if (!data) {
+                        return res.status(400).send({ msg: "not found" });
+                }
+                if (data.userStatus == "Block") {
+                        const data1 = await User.findByIdAndUpdate({ _id: data._id }, { $set: { userStatus: "Active" } }, { new: true });
+                        if (data1) {
+                                return res.status(200).send({ msg: "Client block successfully", data: data1 });
+                        }
+                }
+                if (data.userStatus == "Active") {
+                        const data1 = await User.findByIdAndUpdate({ _id: data._id }, { $set: { userStatus: "Block" } }, { new: true });
+                        if (data1) {
+                                return res.status(200).send({ msg: "Client unblock successfully", data: data1 });
+                        }
+                }
         } catch (err) {
                 console.log(err.message);
                 return res.status(500).send({ msg: "internal server error", error: err.message, });
@@ -3584,8 +3634,16 @@ exports.addToCart = async (req, res, next) => {
                                 const fromTime = new Date(d);
                                 fromTime.setMinutes(fromTimeInMinutes);
                                 let x = `${req.body.date}T${req.body.time}:00.000Z`;
+                                let discountProvide;
+                                if (req.body.discount > 0) {
+                                        discountProvide = true
+                                } else {
+                                        discountProvide = false
+                                }
                                 let ser = {
-                                        serviceId: findService._id
+                                        serviceId: findService._id,
+                                        discount: req.body.discount,
+                                        discountProvide: discountProvide
                                 };
                                 let services = [ser];
                                 let obj = {
@@ -3607,9 +3665,17 @@ exports.addToCart = async (req, res, next) => {
                                 if (!findService) {
                                         return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
                                 }
+                                let discountProvide;
+                                if (req.body.discount > 0) {
+                                        discountProvide = true
+                                } else {
+                                        discountProvide = false
+                                }
                                 let obj = {
                                         serviceId: req.params.id,
                                         quantity: req.body.quantity,
+                                        discount: req.body.discount,
+                                        discountProvide: discountProvide
                                 };
                                 cart.services.push(obj);
                                 const totalPromises = cart.services.map(async (service) => {
@@ -3715,6 +3781,14 @@ exports.addToCart = async (req, res, next) => {
                                         return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
                                 }
                                 cart.services[itemIndex].quantity = req.body.quantity;
+                                let discountProvide;
+                                if (req.body.discount > 0) {
+                                        discountProvide = true
+                                } else {
+                                        discountProvide = false
+                                }
+                                cart.services[itemIndex].discount = req.body.discount;
+                                cart.services[itemIndex].discountProvide = discountProvide;
                                 cart.totalTime = cart.services.reduce((total, service) => {
                                         const serviceObj = findService;
                                         return total + serviceObj.totalMin * service.quantity;

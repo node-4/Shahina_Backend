@@ -12,6 +12,8 @@ module.exports = (app) => {
         app.post("/api/v1/admin/login", auth.signin);
         app.get("/api/v1/admin/getAllUser", auth.getAllUser);
         app.get("/api/v1/admin/viewUser/:id", auth.viewUser);
+        app.put("/api/v1/admin/activeBlockUser/:id", [authJwt.verifyToken], auth.activeBlockUser);
+        app.put("/api/v1/admin/updateClientProfile/:id", [authJwt.verifyToken], auth.updateClientProfile);
         app.delete("/api/v1/admin/deleteUser/:id", [authJwt.verifyToken], auth.deleteUser);
         app.put("/api/v1/admin/update", [authJwt.verifyToken], auth.update);
         app.post("/api/v1/admin/Brand/addBrand", [authJwt.verifyToken], BrandUpload.single('image'), auth.createBrands);
