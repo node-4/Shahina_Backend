@@ -190,6 +190,7 @@ exports.updateClientProfile = async (req, res) => {
                                 gender: req.body.gender || data.gender,
                                 dob: req.body.dob || data.dob,
                                 bio: req.body.bio || data.bio,
+                                showOnAllBooking: req.body.showOnAllBooking || data.showOnAllBooking
                         }
                         let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: obj }, { new: true });
                         if (update) {

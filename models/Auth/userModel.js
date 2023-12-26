@@ -112,6 +112,10 @@ var userSchema = new schema(
                         type: Number,
                         default: 0,
                 },
+                showOnAllBooking: {
+                        type: Boolean,
+                        default: false,
+                },
         },
         { timestamps: true }
 );
