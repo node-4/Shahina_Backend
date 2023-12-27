@@ -901,19 +901,30 @@ exports.editProduct = async (req, res) => {
                                         }
                                         productImages.push(obj)
                                 }
+                        } else {
+                                productImages = data.productImages
                         }
                         if (req.files['result'] != (null || undefined)) {
                                 let docs = req.files['result'];
                                 for (let i = 0; i < docs.length; i++) {
                                         result.push(docs[i].path)
                                 }
+                        } else {
+                                result = data.result
                         }
-                        for (let i = 0; i < req.body.step.length; i++) {
-                                let obj = {
-                                        step: req.body.step[i],
-                                        description: req.body.stepDescription[i]
+                        if (req.body.step != (null || undefined)) {
+                                if (req.body.step.length > 0) {
+                                        for (let i = 0; i < req.body.step.length; i++) {
+                                                let obj = {
+                                                        step: req.body.step[i],
+                                                        description: req.body.stepDescription[i]
+                                                }
+                                                howTouse.push(obj)
+                                        }
                                 }
-                                howTouse.push(obj)
+
+                        } else {
+                                howTouse = data.howTouse;
                         }
                         if (req.body.title != undefined) {
                                 for (let i = 0; i < req.body.title.length; i++) {
@@ -951,13 +962,13 @@ exports.editProduct = async (req, res) => {
                                 name: req.body.name || data.name,
                                 description: req.body.description || data.description,
                                 additionalInfo: additionalInfo || data.additionalInfo,
-                                howTouse: howTouse || data.howTouse,
+                                howTouse: howTouse,
                                 ingredients: req.body.ingredients || data.ingredients,
                                 price: req.body.price || data.price,
                                 quantity: req.body.quantity || data.quantity,
                                 ratings: data.ratings,
-                                productImages: productImages || data.productImages,
-                                result: result || data.result,
+                                productImages: productImages,
+                                result: result,
                                 numOfReviews: data.numOfReviews,
                                 reviews: data.reviews,
                                 status: data.status,
@@ -966,6 +977,7 @@ exports.editProduct = async (req, res) => {
                         return res.status(200).json({ status: 200, message: "Product update successfully.", data: data5 });
                 }
         } catch (err) {
+                console.log(err);
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
