@@ -3515,19 +3515,7 @@ exports.reSechduleOrder = async (req, res) => {
                                                 return res.status(200).send({ status: 200, message: "Resechdule successfully.", data: update });
                                         }
                                 } else {
-                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                                        let mailOptions = {
-                                                from: 'info@shahinahoja.com',
-                                                to: findCart.user.email,
-                                                subject: 'Your booking has been reSechdule.',
-                                                text: `Your booking has been reSechdule and booking id ${findCart.orderId} and date: ${req.params.date} time: ${req.body.time}`,
-                                        };
-                                        let info1 = await transporter.sendMail(mailOptions);
-                                        if (info1) {
-                                                return res.status(200).send({ status: 200, message: "Resechdule successfully.", data: update });
-                                        } else {
-                                                return res.status(200).send({ status: 200, message: "Resechdule successfully.", data: update });
-                                        }
+                                        return res.status(200).send({ status: 200, message: "Resechdule successfully.", data: update });
                                 }
                         }
                 } else {
