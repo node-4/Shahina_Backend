@@ -162,4 +162,7 @@ module.exports = (app) => {
         app.get("/api/v1/getShipmentBy/productOrderId/:productOrderId", auth.getShipmentByproductOrderId);
         app.put("/api/v1/admin/updateServiceStatus/:id", [authJwt.verifyToken], auth.updateServiceStatus);
         app.put("/api/v1/admin/updateDeliveryStatus/:id", [authJwt.verifyToken], auth.updateDeliveryStatus);
+        app.post("/api/v1/admin/addSubAdmin", [authJwt.verifyToken], auth.addSubAdmin);
+        app.put("/api/v1/admin/updateSubAdminProfile/:id", [authJwt.verifyToken], auth.updateSubAdminProfile);
+        app.get("/api/v1/admin/getAllSubAdmin", auth.getAllSubAdmin);
 }

@@ -100,9 +100,9 @@ const CartSchema = new Schema({
     fromTime: {
         type: Date,
     },
-    suggesstion: {
+    suggesstion: [{
         type: String,
-    },
+    }],
     products: {
         type: [cartProductsSchema]
     },

@@ -73,7 +73,7 @@ var userSchema = new schema(
                 },
                 userType: {
                         type: String,
-                        enum: ["USER", "GUEST", "ADMIN"],
+                        enum: ["USER", "GUEST", "ADMIN", "SUBADMIN"],
                 },
                 status: {
                         type: String,
@@ -115,6 +115,29 @@ var userSchema = new schema(
                 showOnAllBooking: {
                         type: Boolean,
                         default: false,
+                },
+                sendEmailNotification: {
+                        type: Boolean,
+                        default: false,
+                },
+                sendTextNotification: {
+                        type: Boolean,
+                        default: false,
+                },
+                sendEmailMarketingNotification: {
+                        type: Boolean,
+                        default: false,
+                },
+                sendTextMarketingNotification: {
+                        type: Boolean,
+                        default: false,
+                },
+                preferredLAnguage: {
+                        type: String
+                },
+                permissions: {
+                        type: [String],
+                        enum: ["dashboard", "Product", "service", "gallery", "getblog", "privacy-policy", "terms", "brand", "nutrition", "Product-type", "skin-condition", "skinType", "Category", "subscription", "reviews", "about-us", "faq", "contact", "query", "ingredients", "giftCard", "acne", "acne-suggestion", "add-on-service", "banner", "Orders", "service-order", "user", "frequently", "transaction", "rewards", "scheduler", "shipping", "slot", "shipping-privacy", "return -privacy", "chat", "another", "notification", "member_terms"]
                 },
         },
         { timestamps: true }

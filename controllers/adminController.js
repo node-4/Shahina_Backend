@@ -190,7 +190,12 @@ exports.updateClientProfile = async (req, res) => {
                                 gender: req.body.gender || data.gender,
                                 dob: req.body.dob || data.dob,
                                 bio: req.body.bio || data.bio,
-                                showOnAllBooking: req.body.showOnAllBooking || data.showOnAllBooking
+                                showOnAllBooking: req.body.showOnAllBooking || data.showOnAllBooking,
+                                sendEmailNotification: req.body.sendEmailNotification || data.sendEmailNotification,
+                                sendTextNotification: req.body.sendTextNotification || data.sendTextNotification,
+                                sendEmailMarketingNotification: req.body.sendEmailMarketingNotification || data.sendEmailMarketingNotification,
+                                sendTextMarketingNotification: req.body.sendTextMarketingNotification || data.sendTextMarketingNotification,
+                                preferredLAnguage: req.body.preferredLAnguage || data.preferredLAnguage,
                         }
                         let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: obj }, { new: true });
                         if (update) {
@@ -1349,7 +1354,7 @@ exports.editService = async (req, res) => {
                                 }
                         } else if (req.body.type != (null || undefined) && (req.body.type == 'Service')) {
                                 if (req.body.multipleSize == 'true') {
-                                        if(req.body.sizes.length > 0){
+                                        if (req.body.sizes.length > 0) {
                                                 for (let i = 0; i < req.body.sizes.length; i++) {
                                                         let obj = {
                                                                 size: req.body.sizes[i],
@@ -1358,8 +1363,8 @@ exports.editService = async (req, res) => {
                                                         }
                                                         sizePrice.push(obj)
                                                 }
-                                        }else{
-                                                sizePrice = data.sizePrice  
+                                        } else {
+                                                sizePrice = data.sizePrice
                                         }
                                 } else {
                                         if (req.body.price != (null || undefined)) {
@@ -3445,7 +3450,7 @@ exports.addSuggestionToServiceCart = async (req, res) => {
         try {
                 let findCart = await Cart.findOne({ user: req.params.userId });
                 if (findCart) {
-                        let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $set: { suggesstion: req.body.suggestion }, }, { new: true });
+                        let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: req.body.suggestion }, }, { new: true });
                         return res.status(200).json({ status: 200, message: "suggestion add to cart Successfully.", data: update1 })
                 } else {
                         return res.status(404).json({ status: 404, message: "Cart is empty.", data: {} });
@@ -4372,7 +4377,7 @@ exports.addSuggestionToServiceOrder = async (req, res) => {
         try {
                 let findCart = await serviceOrder.findOne({ _id: req.params.id });
                 if (findCart) {
-                        let update1 = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $set: { suggesstion: req.body.suggestion }, }, { new: true });
+                        let update1 = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: req.body.suggestion }, }, { new: true });
                         return res.status(200).json({ status: 200, message: "suggestion add to serviceOrder Successfully.", data: update1 })
                 } else {
                         return res.status(404).json({ status: 404, message: "serviceOrder is not found.", data: {} });
@@ -4493,6 +4498,68 @@ exports.cancelOrder = async (req, res) => {
         } catch (error) {
                 console.log(error);
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.addSubAdmin = async (req, res) => {
+        try {
+                let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }, { userType: "SUBADMIN" }] });
+                if (findUser) {
+                        return res.status(409).send({ status: 409, message: "Subadmin already with these details. ", data: {}, });
+                } else {
+                        req.body.otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
+                        req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
+                        req.body.accountVerification = false;
+                        req.body.refferalCode = await reffralCode();
+                        req.body.password = bcrypt.hashSync(req.body.password, 8);
+                        req.body.userType = "SUBADMIN";
+                        const userCreate = await User.create(req.body);
+                        return res.status(200).send({ status: 200, message: "Subadmin create successfully ", data: userCreate, });
+                }
+        } catch (error) {
+                console.error(error);
+                return res.status(500).json({ message: "Server error" });
+        }
+};
+exports.updateSubAdminProfile = async (req, res) => {
+        try {
+                const data = await User.findOne({ _id: req.params.id });
+                if (data) {
+                        let obj = {
+                                firstName: req.body.firstName || data.firstName,
+                                lastName: req.body.lastName || data.lastName,
+                                fullName: req.body.fullName || data.fullName,
+                                email: req.body.email || data.email,
+                                countryCode: req.body.countryCode || data.countryCode,
+                                phone: req.body.phone || data.phone,
+                                gender: req.body.gender || data.gender,
+                                dob: req.body.dob || data.dob,
+                                bio: req.body.bio || data.bio,
+                                permissions: req.body.permissions || data.permissions,
+                        }
+                        let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: obj }, { new: true });
+                        if (update) {
+                                return res.status(200).json({ status: 200, message: "Update profile successfully.", data: update });
+                        }
+                } else {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.getAllSubAdmin = async (req, res) => {
+        try {
+                const user = await User.find({ userType: "SUBADMIN" });
+                if (user.length == 0) {
+                        return res.status(404).send({ message: "not found" });
+                }
+                return res.status(200).send({ message: "Get SubAdmin details.", data: user });
+        } catch (err) {
+                console.log(err);
+                return res.status(500).send({
+                        message: "internal server error " + err.message,
+                });
         }
 };
 async function generateSlots() {

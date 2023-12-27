@@ -51,9 +51,9 @@ const DocumentSchema = schema({
         fromTime: {
                 type: Date,
         },
-        suggesstion: {
+        suggesstion: [{
                 type: String,
-        },
+        }],
         cancelReason: {
                 type: String,
         },
