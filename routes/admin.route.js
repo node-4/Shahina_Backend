@@ -145,7 +145,7 @@ module.exports = (app) => {
         app.post('/api/v1/admin/addtoCart/addOnservices/:id', [authJwt.verifyToken], auth.addToCartAddOnservices);
         app.put("/api/v1/admin/addSuggestionToServiceCart/:userId", [authJwt.verifyToken], auth.addSuggestionToServiceCart);
         app.put("/api/v1/admin/deleteSuggestionfromCart/:userId/:suggesstionId", [authJwt.verifyToken], auth.deleteSuggestionfromCart);
-        app.put("/api/v1/admin/addSuggestionToServiceOrder/:userId", [authJwt.verifyToken], auth.addSuggestionToServiceOrder);
+        app.put("/api/v1/admin/addSuggestionToServiceOrder/:id", [authJwt.verifyToken], auth.addSuggestionToServiceOrder);
         app.put("/api/v1/admin/deleteSuggestionfromOrder/:id/:suggesstionId", [authJwt.verifyToken], auth.deleteSuggestionfromOrder);
         app.put("/api/v1/admin/noShowUpdate/:userId/:date", [authJwt.verifyToken], auth.noShowUpdate);
         app.put("/api/v1/admin/reSechduleOrder/:orderId/:date", [authJwt.verifyToken], auth.reSechduleOrder);
