@@ -45,9 +45,11 @@ const DocumentSchema = schema({
         time: {
                 type: String,
         },
-        suggesstion: {
-                type: String,
-        },
+        suggesstion: [{
+                suggesstion: {
+                        type: String,
+                },
+        }],
         products: {
                 type: [cartProductsSchema]
         },

@@ -3462,7 +3462,10 @@ exports.addSuggestionToServiceCart = async (req, res) => {
         try {
                 let findCart = await Cart.findOne({ user: req.params.userId });
                 if (findCart) {
-                        let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: req.body.suggestion }, }, { new: true });
+                        let obj = {
+                                suggesstion: req.body.suggestion
+                        };
+                        let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: obj }, }, { new: true });
                         return res.status(200).json({ status: 200, message: "suggestion add to cart Successfully.", data: update1 })
                 } else {
                         return res.status(404).json({ status: 404, message: "Cart is empty.", data: {} });
@@ -3470,6 +3473,38 @@ exports.addSuggestionToServiceCart = async (req, res) => {
         } catch (error) {
                 console.error(error);
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.deleteSuggestionfromCart = async (req, res) => {
+        try {
+                let findCart = await Cart.findOne({ user: req.params.userId });
+                if (findCart) {
+                        for (let i = 0; i < findCart.suggesstion.length; i++) {
+                                if (findCart.suggesstion.length > 1) {
+                                        if (((findCart.suggesstion[i]._id).toString() == req.params.suggesstionId) == true) {
+                                                let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'suggesstion._id': req.params.suggesstionId }, {
+                                                        $pull: {
+                                                                'suggesstion':
+                                                                {
+                                                                        _id: req.params.suggesstionId,
+                                                                        suggesstion: findCart.suggesstion[i].suggesstion,
+                                                                }
+                                                        }
+                                                }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "suggesstion delete from Cart.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+                                        return res.status(200).send({ status: 200, message: "No Data Found ", data: [] });
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, message: "No Data Found ", cart: [] });
+                }
+        } catch (error) {
+                console.log("353====================>", error)
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 exports.noShowUpdate = async (req, res) => {
@@ -3552,87 +3587,7 @@ exports.deleteCartItem = async (req, res, next) => {
                 cart.services.splice(itemIndex, 1);
                 await cart.save();
                 if (cart.services.length > 0) {
-                        let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
-                        const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
-                        const data2 = await Address.findOne({ user: req.body.userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
-                        const data5 = await Address.findOne({ user: req.body.userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
-                        const data3 = await User.findOne({ _id: req.body.userId });
-                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
-                        if (saveCart.services.length > 0) {
-                                for (const cartProduct of saveCart.services) {
-                                        if (cartProduct.serviceId.type === "offer") {
-                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
-                                                offerDiscount += cartProduct.offerDiscount;
-                                                subTotal += cartProduct.subTotal;
-                                                total += cartProduct.total;
-                                        }
-                                        if (cartProduct.serviceId.type === "Service") {
-                                                if (data3.isSubscription === true) {
-                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                total += cartProduct.total;
-                                                                subTotal += cartProduct.subTotal;
-                                                        } else {
-                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                total += cartProduct.total;
-                                                                subTotal += cartProduct.subTotal;
-                                                        }
-                                                } else {
-                                                        if (cartProduct.serviceId.multipleSize == true) {
-                                                                let x = 0
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                total += cartProduct.total;
-                                                                subTotal += cartProduct.subTotal;
-                                                        } else {
-                                                                let x = 0
-                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
-                                                                membershipDiscount += x;
-                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
-                                                                cartProduct.offerDiscount = 0.00;
-                                                                offerDiscount += cartProduct.offerDiscount;
-                                                                total += cartProduct.total;
-                                                                subTotal += cartProduct.subTotal;
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
-                        if (saveCart.AddOnservicesSchema.length > 0) {
-                                saveCart.AddOnservicesSchema.forEach((cartGift) => {
-                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                        subTotal += cartGift.subTotal;
-                                        total += cartGift.total;
-                                });
-                        }
-                        saveCart.memberShipPer = Number(membershipDiscountPercentage);
-                        saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
-                        saveCart.offerDiscount = Number(offerDiscount);
-                        saveCart.subTotal = subTotal;
-                        saveCart.total = total;
-                        saveCart.serviceAddresss = data1;
-                        await saveCart.save();
-                        return res.status(200).json({ status: 200, msg: `removed from cart`, cart: saveCart });
+                        return res.status(200).json({ status: 200, msg: `removed from cart`, cart: cart });
                 } else {
                         return res.status(200).json({ status: 200, msg: "Cart is empty", cart: {} });
                 }
@@ -4103,6 +4058,29 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                 next(error);
         }
 }
+exports.deleteAddOnservicesFromCart = async (req, res, next) => {
+        try {
+                const itemId = req.params.id;
+                let cart = await Cart.findOne({ user: req.params.userId });
+                if (!cart) {
+                        return res.status(404).json({ status: 404, msg: `ServiceOrder is empty`, cart: {} });
+                }
+                const itemIndex = cart.AddOnservicesSchema.findIndex((cartItem) => cartItem.addOnservicesId.toString() === itemId);
+                if (itemIndex === -1) {
+                        return res.status(404).json({ status: 404, msg: `service not found in cart`, cart: {} });
+                }
+                cart.AddOnservicesSchema.splice(itemIndex, 1);
+                await cart.save();
+                if (cart.AddOnservicesSchema.length > 0) {
+                        return res.status(200).json({ status: 200, msg: `removed from cart`, cart: cart });
+                } else {
+                        return res.status(200).json({ status: 200, msg: "Cart is empty", cart: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(500).json({ status: 500, msg: "internal server error", error: error });
+        }
+};
 exports.getCart = async (req, res, next) => {
         try {
                 const cart = await Cart.findOne({ user: req.params.userId });
@@ -4128,6 +4106,7 @@ const calculateCartResponse = async (cart, userId) => {
                 const data2 = await Address.findOne({ user: userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                 const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                 const data3 = await User.findOne({ _id: userId });
+                console.log(data3);
                 const data4 = await contact.findOne().select('name image phone email numOfReviews google mapLink map ratings -_id');
                 let totalTime = 0;
                 if (cart.toTime != (null || undefined)) {
@@ -4577,7 +4556,10 @@ exports.addSuggestionToServiceOrder = async (req, res) => {
         try {
                 let findCart = await serviceOrder.findOne({ _id: req.params.id });
                 if (findCart) {
-                        let update1 = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: req.body.suggestion }, }, { new: true });
+                        let obj = {
+                                suggesstion: req.body.suggestion
+                        };
+                        let update1 = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: obj }, }, { new: true });
                         return res.status(200).json({ status: 200, message: "suggestion add to serviceOrder Successfully.", data: update1 })
                 } else {
                         return res.status(404).json({ status: 404, message: "serviceOrder is not found.", data: {} });
@@ -4585,6 +4567,38 @@ exports.addSuggestionToServiceOrder = async (req, res) => {
         } catch (error) {
                 console.error(error);
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
+        }
+};
+exports.deleteSuggestionfromOrder = async (req, res) => {
+        try {
+                let findCart = await serviceOrder.findOne({ _id: req.params.id });
+                if (findCart) {
+                        for (let i = 0; i < findCart.suggesstion.length; i++) {
+                                if (findCart.suggesstion.length > 1) {
+                                        if (((findCart.suggesstion[i]._id).toString() == req.params.suggesstionId) == true) {
+                                                let updateCart = await serviceOrder.findByIdAndUpdate({ _id: findCart._id, 'suggesstion._id': req.params.suggesstionId }, {
+                                                        $pull: {
+                                                                'suggesstion':
+                                                                {
+                                                                        _id: req.params.suggesstionId,
+                                                                        suggesstion: findCart.suggesstion[i].suggesstion,
+                                                                }
+                                                        }
+                                                }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "suggesstion delete from order.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+                                        return res.status(200).send({ status: 200, message: "No Data Found ", data: [] });
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, message: "No Data Found ", cart: [] });
+                }
+        } catch (error) {
+                console.log("353====================>", error)
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
 exports.getServiceOrdersByuserId = async (req, res, next) => {

@@ -52,7 +52,9 @@ const DocumentSchema = schema({
                 type: Date,
         },
         suggesstion: [{
-                type: String,
+                suggesstion: {
+                        type: String,
+                },
         }],
         cancelReason: {
                 type: String,

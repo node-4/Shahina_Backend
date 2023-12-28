@@ -1198,7 +1198,10 @@ exports.addSuggestionToServiceCart = async (req, res) => {
         try {
                 let findCart = await Cart.findOne({ user: req.user._id });
                 if (findCart) {
-                        let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: req.body.suggestion }, }, { new: true });
+                        let obj = {
+                                suggesstion: req.body.suggestion
+                        };
+                        let update1 = await Cart.findByIdAndUpdate({ _id: findCart._id }, { $push: { suggesstion: obj }, }, { new: true });
                         return res.status(200).json({ status: 200, message: "suggestion add to cart Successfully.", data: update1 })
                 } else {
                         return res.status(404).json({ status: 404, message: "Cart is empty.", data: {} });
