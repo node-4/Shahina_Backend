@@ -2897,7 +2897,7 @@ exports.successOrder = async (req, res) => {
                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
                         }
                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-                        let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
+                        let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (find1) {
                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         }
@@ -2911,16 +2911,47 @@ exports.successOrder = async (req, res) => {
                                 }
                         }
                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                        let mailOption1 = { from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `, };
+                        let mailOption1 = {
+                                from: '<do_not_reply@gmail.com>',
+                                to: 'info@shahinahoja.com',
+                                subject: 'Order Received',
+                                text: `You have received a new order`,
+                                html: `
+                                  <p>You have received a new order:</p>
+                                  <p>Name: ${user.firstName} ${user.lastName}</p>
+                                  <p>Email: ${user.email}</p>
+                                  <p>Contact Number: ${user.phone}</p>
+                                  <p>Order Id: ${findUserOrder.orderId}</p>
+                                  <p>Order Amount: ${findUserOrder.orderObjPaidAmount}</p>
+                                  <p>Product Details:</p>
+                                  <ul>
+                                    ${find1.products.map((product, index) => `
+                                      <li>
+                                        Product ${index + 1}:
+                                        <ul>
+                                          <li>Name: ${product.productId.name}</li>
+                                          <li>Description: ${product.productId.description}</li>
+                                          <li>Price: ${product.price}</li>
+                                          <li>Quantity: ${product.quantity}</li>
+                                        </ul>
+                                      </li>
+                                    `).join('')}
+                                  </ul>
+                                `,
+                        };
                         let info1 = await transporter.sendMail(mailOption1);
                         if (info1) {
                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
                                 if (deleteCart) {
                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+                                } else {
+                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
                                 }
                         } else {
                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
                                 if (deleteCart) {
+                                        return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
+                                } else {
                                         return res.status(200).json({ message: "Payment success.", status: 200, data: update2 });
                                 }
                         }
@@ -4268,7 +4299,7 @@ exports.successOrderApp = async (req, res) => {
                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
                         }
                         let update2 = await userOrders.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
-                        let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId });
+                        let find1 = await productOrder.findOne({ orderId: findUserOrder.orderId }).populate([{ path: "products.productId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                         if (find1) {
                                 let update = await productOrder.findOneAndUpdate({ orderId: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                         }
@@ -4284,7 +4315,32 @@ exports.successOrderApp = async (req, res) => {
                         await User.findOneAndUpdate({ _id: user._id }, { $set: { appOrder: user.appOrder + 1 } }, { new: true });
                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                         let mailOption1 = {
-                                from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `,
+                                from: '<do_not_reply@gmail.com>',
+                                to: 'info@shahinahoja.com',
+                                subject: 'Order Received',
+                                text: `You have received a new order`,
+                                html: `
+                                  <p>You have received a new order:</p>
+                                  <p>Name: ${user.firstName} ${user.lastName}</p>
+                                  <p>Email: ${user.email}</p>
+                                  <p>Contact Number: ${user.phone}</p>
+                                  <p>Order Id: ${findUserOrder.orderId}</p>
+                                  <p>Order Amount: ${findUserOrder.orderObjPaidAmount}</p>
+                                  <p>Product Details:</p>
+                                  <ul>
+                                    ${find1.products.map((product, index) => `
+                                      <li>
+                                        Product ${index + 1}:
+                                        <ul>
+                                          <li>Name: ${product.productId.name}</li>
+                                          <li>Description: ${product.productId.description}</li>
+                                          <li>Price: ${product.price}</li>
+                                          <li>Quantity: ${product.quantity}</li>
+                                        </ul>
+                                      </li>
+                                    `).join('')}
+                                  </ul>
+                                `,
                         };
                         let info1 = await transporter.sendMail(mailOption1);
                         if (info1) {
