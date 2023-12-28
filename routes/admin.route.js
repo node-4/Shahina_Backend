@@ -50,6 +50,7 @@ module.exports = (app) => {
         app.put("/api/v1/product/deleteProductReview", [authJwt.verifyToken], auth.deleteProductReview);
         app.get("/api/v1/product/getProductReviews/:id", auth.getProductReviews);
         app.post("/api/v1/admin/Service/addService", [authJwt.verifyToken], upload24, auth.createService);
+        app.get("/api/v1/Service/all/getAllServices", auth.getAllServices);
         app.get("/api/v1/Service/all/paginateServiceSearch", auth.paginateServiceSearch);
         app.get("/api/v1/Service/all/getServiceByToken", [authJwt.verifyToken], auth.getServiceByToken);
         app.get("/api/v1/Service/:id", auth.getIdService);

@@ -1201,6 +1201,18 @@ exports.paginateServiceSearch = async (req, res) => {
                 return res.status(500).send({ msg: "internal server error ", error: err.message, });
         }
 };
+exports.getAllServices = async (req, res) => {
+        try {
+                const findSubscription = await services.find({ type: 'Service' }).lean();
+                if (findSubscription.length == 0) {
+                        return res.status(404).send({ status: 404, message: "Services Not found", data: {} });
+                } else {
+                        return res.status(200).send({ status: 200, message: "Services found successfully.", data: findSubscription });
+                }
+        } catch (error) {
+                return res.status(500).json({ status: 500, error: "Internal Server Error" });
+        }
+};
 exports.getServiceByToken = async (req, res, next) => {
         try {
                 if (req.query.categoryId != (null || undefined)) {
