@@ -2930,7 +2930,6 @@ exports.successOrder = async (req, res) => {
                                         Product ${index + 1}:
                                         <ul>
                                           <li>Name: ${product.productId.name}</li>
-                                          <li>Description: ${product.productId.description}</li>
                                           <li>Price: ${product.price}</li>
                                           <li>Quantity: ${product.quantity}</li>
                                         </ul>
@@ -4333,7 +4332,6 @@ exports.successOrderApp = async (req, res) => {
                                         Product ${index + 1}:
                                         <ul>
                                           <li>Name: ${product.productId.name}</li>
-                                          <li>Description: ${product.productId.description}</li>
                                           <li>Price: ${product.price}</li>
                                           <li>Quantity: ${product.quantity}</li>
                                         </ul>
