@@ -1872,21 +1872,23 @@ exports.checkout = async (req, res) => {
                                                                 cartResponse.timeInMin = timeInMin;
                                                         }
                                                         let saveOrder = await serviceOrder.create(cartResponse);
-                                                        const dateObject = new Date(findCart.date);
-                                                        const dateString = dateObject.toISOString().split('T')[0];
-                                                        const newTime = "00:00:00.000+00:00";
-                                                        const replacedDateString = `${dateString}T${newTime}`;
-                                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                                         if (saveOrder) {
-                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
-                                                                if (findSlot.length > 0) {
-                                                                        for (let i = 0; i < findSlot.length; i++) {
-                                                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
-                                                                                console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                const dateObject = new Date(findCart.date);
+                                                                const dateString = dateObject.toISOString().split('T')[0];
+                                                                const newTime = "00:00:00.000+00:00";
+                                                                const replacedDateString = `${dateString}T${newTime}`;
+                                                                console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
+                                                                if (saveOrder) {
+                                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                        if (findSlot.length > 0) {
+                                                                                for (let i = 0; i < findSlot.length; i++) {
+                                                                                        let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
+                                                                                        console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                                }
                                                                         }
                                                                 }
+                                                                serviceOrderId = saveOrder._id;
                                                         }
-                                                        serviceOrderId = saveOrder._id;
                                                 }
                                                 if (cartResponse.gifts.length > 0) {
                                                         let total = 0, subTotal = 0;
@@ -2419,21 +2421,23 @@ exports.checkout = async (req, res) => {
                                                                 cartResponse.timeInMin = timeInMin;
                                                         }
                                                         let saveOrder = await serviceOrder.create(cartResponse);
-                                                        const dateObject = new Date(findCart.date);
-                                                        const dateString = dateObject.toISOString().split('T')[0];
-                                                        const newTime = "00:00:00.000+00:00";
-                                                        const replacedDateString = `${dateString}T${newTime}`;
-                                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                                         if (saveOrder) {
-                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
-                                                                if (findSlot.length > 0) {
-                                                                        for (let i = 0; i < findSlot.length; i++) {
-                                                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
-                                                                                console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                const dateObject = new Date(findCart.date);
+                                                                const dateString = dateObject.toISOString().split('T')[0];
+                                                                const newTime = "00:00:00.000+00:00";
+                                                                const replacedDateString = `${dateString}T${newTime}`;
+                                                                console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
+                                                                if (saveOrder) {
+                                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                        if (findSlot.length > 0) {
+                                                                                for (let i = 0; i < findSlot.length; i++) {
+                                                                                        let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
+                                                                                        console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                                }
                                                                         }
                                                                 }
+                                                                serviceOrderId = saveOrder._id;
                                                         }
-                                                        serviceOrderId = saveOrder._id;
                                                 }
                                                 if (cartResponse.gifts.length > 0) {
                                                         let total = 0, subTotal = 0;
@@ -3272,8 +3276,11 @@ exports.checkoutApp = async (req, res) => {
                                                                 let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
                                                                 cartResponse.timeInMin = timeInMin;
                                                         }
+                                                        cartResponse.orderStatus = "confirmed";
                                                         let saveOrder = await serviceOrder.create(cartResponse);
-                                                        serviceOrderId = saveOrder._id;
+                                                        if (saveOrder) {
+                                                                serviceOrderId = saveOrder._id;
+                                                        }
                                                 }
                                                 orderObjTotalAmount = orderObjPaidAmount;
                                                 if (cartResponse.coupon != (null || undefined)) {
@@ -3810,6 +3817,7 @@ exports.checkoutApp = async (req, res) => {
                                                         cartResponse.serviceAddresss = data1;
                                                         orderObjPaidAmount = orderObjPaidAmount + total;
                                                         cartResponse._id = new mongoose.Types.ObjectId();
+                                                        cartResponse.orderStatus = "confirmed";
                                                         if (totalTime > 0) {
                                                                 var hours2 = Math.floor(totalTime / 60);
                                                                 var minutes2 = totalTime % 60;
