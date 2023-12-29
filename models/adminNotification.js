@@ -9,6 +9,9 @@ var notificationModel = new Schema({
                 type: Mongoose.Schema.Types.ObjectId,
                 ref: "user"
         },
+        title: {
+                type: String
+        },
         body: {
                 type: String
         },
