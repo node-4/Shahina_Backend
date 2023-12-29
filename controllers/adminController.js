@@ -92,15 +92,7 @@ exports.signin = async (req, res) => {
                 const accessToken = jwt.sign({ id: user._id }, authConfig.secret, {
                         expiresIn: authConfig.accessTokenTime,
                 });
-                let obj = {
-                        fullName: user.fullName,
-                        firstName: user.fullName,
-                        lastName: user.lastName,
-                        phone: user.phone,
-                        email: user.email,
-                        userType: user.userType,
-                }
-                return res.status(201).send({ data: obj, accessToken: accessToken });
+                return res.status(201).send({ data: user, accessToken: accessToken });
         } catch (error) {
                 console.error(error);
                 return res.status(500).send({ message: "Server error" + error.message });
