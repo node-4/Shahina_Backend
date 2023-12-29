@@ -1901,7 +1901,7 @@ exports.checkout = async (req, res) => {
                                                                                 subject: 'Order Received',
                                                                                 text: `You have received a new order`,
                                                                                 html: `
-                                                                                  < p > You have received a new order:</p >
+                                                                                  <p> You have received a new order:</p>
                                                                                   <p>Order Id: ${saveOrder.orderId}</p>
                                                                                   <p>Order Amount: ${saveOrder.total}</p>
                                                                                   <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
@@ -2498,7 +2498,7 @@ exports.checkout = async (req, res) => {
                                                                         subject: 'Order Received',
                                                                         text: `You have received a new order`,
                                                                         html: `
-                                                                          < p > You have received a new order:</p >
+                                                                          <p> You have received a new order:</p>
                                                                           <p>Order Id: ${saveOrder.orderId}</p>
                                                                           <p>Order Amount: ${saveOrder.total}</p>
                                                                           <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
@@ -3395,7 +3395,7 @@ exports.checkoutApp = async (req, res) => {
                                                                         subject: 'Order Received',
                                                                         text: `You have received a new order`,
                                                                         html: `
-                                                                          < p > You have received a new order:</p >
+                                                                          <p> You have received a new order:</p>
                                                                           <p>Order Id: ${saveOrder.orderId}</p>
                                                                           <p>Order Amount: ${saveOrder.total}</p>
                                                                           <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
@@ -3997,7 +3997,7 @@ exports.checkoutApp = async (req, res) => {
                                                                         subject: 'Order Received',
                                                                         text: `You have received a new order`,
                                                                         html: `
-                                                                          < p > You have received a new order:</p >
+                                                                          <p> You have received a new order:</p>
                                                                           <p>Order Id: ${saveOrder.orderId}</p>
                                                                           <p>Order Amount: ${saveOrder.total}</p>
                                                                           <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
