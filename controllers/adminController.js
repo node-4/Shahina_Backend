@@ -38,6 +38,7 @@ const Address = require("../models/Auth/addrees");
 const coupanModel = require("../models/Auth/coupan");
 const transactionModel = require("../models/transactionModel");
 const notification = require("../models/notification");
+const adminNotification = require("../models/adminNotification");
 const commonFunction = require("../middlewares/commonFunction");
 const XLSX = require("xlsx");
 const fs = require("fs");
@@ -3042,6 +3043,15 @@ exports.sendNotification = async (req, res) => {
                                 if (userData.length == 0) {
                                         return res.status(404).json({ status: 404, message: "User not found" });
                                 } else {
+                                        let obj1 = {
+                                                userId: admin._id,
+                                                title: req.body.title,
+                                                body: req.body.body,
+                                                date: req.body.date,
+                                                image: req.body.image,
+                                                time: req.body.time,
+                                        }
+                                        await notification.create(obj1)
                                         for (let i = 0; i < userData.length; i++) {
                                                 if (userData.deviceToken != null || userData.deviceToken != undefined) {
                                                         let result = await commonFunction.pushNotificationforUser(userData[i].deviceToken, req.body.title, req.body.body);
@@ -3054,15 +3064,6 @@ exports.sendNotification = async (req, res) => {
                                                                 time: req.body.time,
                                                         }
                                                         await notification.create(obj)
-                                                        let obj1 = {
-                                                                userId: admin._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj1)
                                                         return res.status(200).json({ status: 200, message: "Notification send successfully." });
                                                 } else {
                                                         let obj = {
@@ -3074,15 +3075,6 @@ exports.sendNotification = async (req, res) => {
                                                                 time: req.body.time,
                                                         }
                                                         await notification.create(obj)
-                                                        let obj1 = {
-                                                                userId: admin._id,
-                                                                title: req.body.title,
-                                                                body: req.body.body,
-                                                                date: req.body.date,
-                                                                image: req.body.image,
-                                                                time: req.body.time,
-                                                        }
-                                                        await notification.create(obj1)
                                                         return res.status(200).json({ status: 200, message: "Notification send successfully." });
                                                 }
                                         }
@@ -3140,6 +3132,24 @@ exports.sendNotification = async (req, res) => {
                                                 }
                                         }
                                 }
+                        }
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+}
+exports.allAdminNotification = async (req, res) => {
+        try {
+                const admin = await User.findById({ _id: req.user._id });
+                if (!admin) {
+                        return res.status(404).json({ status: 404, message: "Admin not found" });
+                } else {
+                        let findNotification = await adminNotification.find({ userId: admin._id }).populate('orderUserId');
+                        if (findNotification.length == 0) {
+                                return res.status(404).json({ status: 404, message: "Notification data not found successfully.", data: {} })
+                        } else {
+                                return res.status(200).json({ status: 200, message: "Notification data found successfully.", data: findNotification })
                         }
                 }
         } catch (error) {
@@ -3511,10 +3521,57 @@ exports.noShowUpdate = async (req, res) => {
         try {
                 const d = new Date(req.params.date);
                 let text = d.toISOString();
-                let findCart = await serviceOrder.findOne({ user: req.params.userId, date: text });
+                let findCart = await serviceOrder.findOne({ user: req.params.userId, date: text }).populate([{ path: "user", }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (findCart) {
+                        const user = await User.findById({ _id: findCart.user });
+                        if (!user) {
+                                return res.status(404).send({ status: 404, message: "User not found or token expired." });
+                        }
                         let update1 = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $set: { noShow: true }, }, { new: true });
-                        return res.status(200).json({ status: 200, message: "No show update Successfully.", data: update1 })
+                        if (update1) {
+                                var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                let mailOption1 = {
+                                        from: '<do_not_reply@gmail.com>',
+                                        to: `${user.email}`,
+                                        subject: 'Order Received',
+                                        text: `You have received a new order`,
+                                        html: `
+                                          <p>You have received a new order:</p>
+                                          <p>Name: ${user.firstName} ${user.lastName}</p>
+                                          <p>Email: ${user.email}</p>
+                                          <p>Contact Number: ${user.phone}</p>
+                                          <p>Order Id: ${findCart.orderId}</p>
+                                          <p>Order Amount: ${findCart.total}</p>
+                                          <p>Service Details:</p>
+                                          <ul>
+                                            ${findCart.services.map((service, index) => `
+                                              <li>
+                                                Service ${index + 1}:
+                                                <ul>
+                                                  <li>Name: ${service.serviceId.name}</li>
+                                                  <li>Price: ${service.price}</li>
+                                                  <li>Quantity: ${service.quantity}</li>
+                                                </ul>
+                                              </li>
+                                            `).join('')
+                                                }
+                                          </ul >
+                                          <p>Location</p>
+                                          <p>Shahina Hoja Aesthetics</p>
+                                          <p>905 Watters Creek Boulevard, 141,</p>
+                                          <p> Allen, 75013, Texas, US</p>
+                                          <p>Cancellation policy</p>
+                                          <p>Please avoid cancelling within 48 hours of your appointment.</p>
+                                          <p>sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
+                        `,
+                                };
+                                let info1 = await transporter.sendMail(mailOption1);
+                                if (info1) {
+                                        return res.status(200).json({ status: 200, message: "No show update Successfully.", data: update1 })
+                                } else {
+                                        return res.status(200).json({ status: 200, message: "No show update Successfully.", data: update1 })
+                                }
+                        }
                 } else {
                         return res.status(404).json({ status: 404, message: "Cart is empty.", data: {} });
                 }
@@ -3547,10 +3604,37 @@ exports.reSechduleOrder = async (req, res) => {
                                         if (req.body.mailSend == "yes") {
                                                 var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                 let mailOptions = {
-                                                        from: 'info@shahinahoja.com',
+                                                        from: '<do_not_reply@gmail.com>',
                                                         to: findCart.user.email,
-                                                        subject: 'Your booking has been reSechdule.',
-                                                        text: `Your booking has been reSechdule and booking id ${findCart.orderId} and date: ${req.params.date} time: ${req.body.time}`,
+                                                        subject: 'Order Received',
+                                                        text: `You have received a new order`,
+                                                        html: `
+                                                          < p > You have received a new order:</p >
+                                                          <p>Order Id: ${findCart.orderId}</p>
+                                                          <p>Order Amount: ${findCart.total}</p>
+                                                          <p>Hi ${findCart.user.firstName} ${findCart.user.lastName}, your appointment has been rescheduled</p>
+                                                          <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${req.params.date}  at ${req.body.time}.</p>
+                                                          <p>Appointment details:</p>
+                                                          <ul>
+                                                            ${findCart.services.map((service, index) => `
+                                                              <li>
+                                                                Service ${index + 1}:
+                                                                <ul>
+                                                                  <li>Name: ${service.serviceId.name}</li>
+                                                                  <li>Price: ${service.price}</li>
+                                                                  <li>Quantity: ${service.quantity}</li>
+                                                                </ul>
+                                                              </li>
+                                                            `).join('')}
+                                                          </ul>
+                                                          <p>Location</p>
+                                                          <p>Shahina Hoja Aesthetics</p>
+                                                          <p>905 Watters Creek Boulevard, 141,</p>
+                                                          <p> Allen, 75013, Texas, US</p>
+                                                          <p>Cancellation policy</p>
+                                                          <p>Please avoid cancelling within 48 hours of your appointment.</p>
+                                                          <p>sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
+                        `,
                                                 };
                                                 let info1 = await transporter.sendMail(mailOptions);
                                                 if (info1) {
@@ -4344,7 +4428,7 @@ exports.checkout = async (req, res) => {
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
-                                        const replacedDateString = `${dateString}T${newTime}`;
+                                        const replacedDateString = `${dateString}T${newTime} `;
                                         console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                         let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
                                         if (findSlot1.length > 0) {
@@ -4365,8 +4449,47 @@ exports.checkout = async (req, res) => {
                                                                         let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
                                                                 }
                                                         }
+                                                        serviceOrderId = saveOrder._id;
+                                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                                        let mailOptions = {
+                                                                from: '<do_not_reply@gmail.com>',
+                                                                to: findCart.user.email,
+                                                                subject: 'Order Received',
+                                                                text: `You have received a new order`,
+                                                                html: `
+                                                                  < p > You have received a new order:</p >
+                                                                  <p>Order Id: ${saveOrder.orderId}</p>
+                                                                  <p>Order Amount: ${saveOrder.total}</p>
+                                                                  <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
+                                                                  <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
+                                                                  <p>Appointment details:</p>
+                                                                  <ul>
+                                                                    ${findCart.services.map((service, index) => `
+                                                                      <li>
+                                                                        Service ${index + 1}:
+                                                                        <ul>
+                                                                          <li>Name: ${service.serviceId.name}</li>
+                                                                          <li>Price: ${service.price}</li>
+                                                                          <li>Quantity: ${service.quantity}</li>
+                                                                        </ul>
+                                                                      </li>
+                                                                    `).join('')}
+                                                                  </ul>
+                                                                  <p>Location</p>
+                                                                  <p>Shahina Hoja Aesthetics</p>
+                                                                  <p>905 Watters Creek Boulevard, 141,</p>
+                                                                  <p> Allen, 75013, Texas, US</p>
+                                                                  <p>Cancellation policy</p>
+                                                                  <p>Please avoid cancelling within 48 hours of your appointment.</p>
+                                                                  <p>Important info.</p>
+                                                                  <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
+                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
+                                                                  <p>Powered by</p>
+                                                                  <p>fresha</p>
+                                `,
+                                                        };
+                                                        let info1 = await transporter.sendMail(mailOptions);
                                                 }
-                                                serviceOrderId = saveOrder._id;
                                         } else {
                                                 return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
@@ -4498,7 +4621,7 @@ exports.checkout = async (req, res) => {
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
-                                        const replacedDateString = `${dateString}T${newTime}`;
+                                        const replacedDateString = `${dateString}T${newTime} `;
                                         console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                         let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
                                         if (findSlot1.length > 0) {
@@ -4519,8 +4642,47 @@ exports.checkout = async (req, res) => {
                                                                         let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
                                                                 }
                                                         }
+                                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                                        let mailOptions = {
+                                                                from: '<do_not_reply@gmail.com>',
+                                                                to: findCart.user.email,
+                                                                subject: 'Order Received',
+                                                                text: `You have received a new order`,
+                                                                html: `
+                                                                  < p > You have received a new order:</p >
+                                                                  <p>Order Id: ${saveOrder.orderId}</p>
+                                                                  <p>Order Amount: ${saveOrder.total}</p>
+                                                                  <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
+                                                                  <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
+                                                                  <p>Appointment details:</p>
+                                                                  <ul>
+                                                                    ${findCart.services.map((service, index) => `
+                                                                      <li>
+                                                                        Service ${index + 1}:
+                                                                        <ul>
+                                                                          <li>Name: ${service.serviceId.name}</li>
+                                                                          <li>Price: ${service.price}</li>
+                                                                          <li>Quantity: ${service.quantity}</li>
+                                                                        </ul>
+                                                                      </li>
+                                                                    `).join('')}
+                                                                  </ul>
+                                                                  <p>Location</p>
+                                                                  <p>Shahina Hoja Aesthetics</p>
+                                                                  <p>905 Watters Creek Boulevard, 141,</p>
+                                                                  <p> Allen, 75013, Texas, US</p>
+                                                                  <p>Cancellation policy</p>
+                                                                  <p>Please avoid cancelling within 48 hours of your appointment.</p>
+                                                                  <p>Important info.</p>
+                                                                  <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
+                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
+                                                                  <p>Powered by</p>
+                                                                  <p>fresha</p>
+                                `,
+                                                        };
+                                                        let info1 = await transporter.sendMail(mailOptions);
+                                                        serviceOrderId = saveOrder._id;
                                                 }
-                                                serviceOrderId = saveOrder._id;
                                         } else {
                                                 return res.status(400).json({ status: 400, msg: "This Slot already booked. ", data: {} });
                                         }
@@ -4675,7 +4837,7 @@ exports.successOrder = async (req, res) => {
                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                                 if (findOrder3) {
                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code}`, };
+                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code} `, };
                                         let info = await transporter.sendMail(mailOptions);
                                 }
                         }

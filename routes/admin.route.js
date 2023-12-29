@@ -162,6 +162,7 @@ module.exports = (app) => {
         app.delete("/api/v1/admin/Coupan/:id", [authJwt.verifyToken], auth.deleteCoupan);
         app.get("/api/v1/admin/getAllTransaction", [authJwt.verifyToken], auth.getAllTransaction);
         app.post("/api/v1/admin/notification/sendNotification", authJwt.verifyToken, auth.sendNotification);
+        app.get("/api/v1/admin/notification/allAdminNotification", authJwt.verifyToken, auth.allAdminNotification);
         app.get("/api/v1/admin/notification/allNotification", authJwt.verifyToken, auth.allNotification);
         app.post("/api/v1/admin/uploadClient", authJwt.verifyToken, upload100.single('file'), auth.uploadClient);
         app.get("/api/v1/getShipmentBy/productOrderId/:productOrderId", auth.getShipmentByproductOrderId);
