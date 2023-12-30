@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const compression = require("compression");
 const serverless = require("serverless-http");
+const User = require("./models/Auth/userModel");
+const coupanModel = require("./models/Auth/coupan");
 const app = express();
 const path = require("path");
 app.use(compression({ threshold: 500 }));
@@ -21,8 +23,44 @@ app.get("/", (req, res) => {
 require('./routes/admin.route')(app);
 require('./routes/user.route')(app);
 require('./routes/static.route')(app);
-
-
+const createBirthdayRewards = async () => {
+        let findUser = await User.find({ userType: "USER" });
+        if (findUser.length > 0) {
+                for (let i = 0; i < findUser.length; i++) {
+                        let date = new Date();
+                        let currentMonth = date.getMonth() + 1;
+                        let currentDay = date.getDate();
+                        let userMonth = findUser[i].dob.getMonth() + 1;
+                        let userDay = findUser[i].dob.getDate();
+                        if (userMonth === currentMonth && userDay === currentDay - 1) {
+                                let obj = {
+                                        user: findUser[i]._id,
+                                        code: await reffralCode(),
+                                        title: "BirthDay Reward",
+                                        description: "Get a discount coupon of worth $50. Your birthday rewards.",
+                                        discount: 50,
+                                        per: "Amount",
+                                        completeVisit: 0,
+                                }
+                                console.log(obj);
+                                return
+                                const userCreatea = await coupanModel.create(obj);
+                        }
+                }
+        }
+};
+const reffralCode = async () => {
+        var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let OTP = '';
+        for (let i = 0; i < 9; i++) {
+                OTP += digits[Math.floor(Math.random() * 36)];
+        }
+        return OTP;
+}
+setInterval(async () => {
+        console.log("-----------call out function---------");
+        // await createBirthdayRewards();
+}, 10000);
 mongoose.Promise = global.Promise;
 mongoose.set("strictQuery", true);
 mongoose.connect(process.env.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true, }).then((data) => {

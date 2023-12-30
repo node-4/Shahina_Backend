@@ -24,7 +24,7 @@ var userSchema = new schema(
                         type: String,
                 },
                 dob: {
-                        type: String,
+                        type: Date,
                 },
                 bio: {
                         type: String,

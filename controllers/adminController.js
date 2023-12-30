@@ -3554,7 +3554,7 @@ exports.deleteSuggestionfromCart = async (req, res) => {
                 let findCart = await Cart.findOne({ user: req.params.userId });
                 if (findCart) {
                         for (let i = 0; i < findCart.suggesstion.length; i++) {
-                                if (findCart.suggesstion.length > 1) {
+                                if (findCart.suggesstion.length > 0) {
                                         if (((findCart.suggesstion[i]._id).toString() == req.params.suggesstionId) == true) {
                                                 let updateCart = await Cart.findByIdAndUpdate({ _id: findCart._id, 'suggesstion._id': req.params.suggesstionId }, {
                                                         $pull: {
@@ -4795,12 +4795,36 @@ exports.addSuggestionToServiceOrder = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
+exports.editSuggestionfromOrder = async (req, res) => {
+        try {
+                let findCart = await serviceOrder.findOne({ _id: req.params.id });
+                if (findCart) {
+                        for (let i = 0; i < findCart.suggesstion.length; i++) {
+                                if (findCart.suggesstion.length > 0) {
+                                        if (((findCart.suggesstion[i]._id).toString() == req.params.suggesstionId) == true) {
+                                                let updateCart = await serviceOrder.findByIdAndUpdate({ _id: findCart._id, 'suggesstion._id': req.params.suggesstionId }, { $set: { 'suggesstion': { _id: req.params.suggesstionId, suggesstion: req.body.suggestion, } } }, { new: true })
+                                                if (updateCart) {
+                                                        return res.status(200).send({ message: "suggesstion delete from order.", data: updateCart, });
+                                                }
+                                        }
+                                } else {
+                                        return res.status(200).send({ status: 200, message: "No Data Found ", data: [] });
+                                }
+                        }
+                } else {
+                        return res.status(200).send({ status: 200, message: "No Data Found ", cart: [] });
+                }
+        } catch (error) {
+                console.log("353====================>", error)
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
 exports.deleteSuggestionfromOrder = async (req, res) => {
         try {
                 let findCart = await serviceOrder.findOne({ _id: req.params.id });
                 if (findCart) {
                         for (let i = 0; i < findCart.suggesstion.length; i++) {
-                                if (findCart.suggesstion.length > 1) {
+                                if (findCart.suggesstion.length > 0) {
                                         if (((findCart.suggesstion[i]._id).toString() == req.params.suggesstionId) == true) {
                                                 let updateCart = await serviceOrder.findByIdAndUpdate({ _id: findCart._id, 'suggesstion._id': req.params.suggesstionId }, {
                                                         $pull: {
