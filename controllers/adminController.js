@@ -1078,72 +1078,88 @@ exports.deleteProductReview = async (req, res, next) => {
 };
 exports.createService = async (req, res) => {
         try {
-                const data = await Category.findById(req.body.categoryId);
-                if (!data || data.length === 0) {
-                        return res.status(400).send({ status: 404, msg: "not found" });
-                }
-                let images = [], beforeAfterImage, sizePrice = [];
-                if (req.files['image'] != (null || undefined)) {
-                        let docs = req.files['image'];
-                        for (let i = 0; i < docs.length; i++) {
-                                let obj = {
-                                        img: docs[i].path
+                const categoryIds = req.body.categoryId;
+                if (categoryIds || categoryIds.length > 0) {
+                        const productPromises = [];
+                        for (const categoryId of categoryIds) {
+                                const data5 = await Category.findById({ _id: categoryId });
+                                if (!data5 || data5.length === 0) {
+                                        return res.status(400).send({ status: 404, msg: `category with ID ${categoryId} not found` });
                                 }
-                                images.push(obj)
-                        }
-                }
-                if (req.files['beforeAfterImage'] != (null || undefined)) {
-                        let docs = req.files['beforeAfterImage'];
-                        beforeAfterImage = docs[0].path
-                }
-                if (req.body.type == 'offer') {
-                        const price = req.body.price;
-                        const discountPrice = req.body.discountPrice;
-                        const discountDifference = price - discountPrice;
-                        req.body.discount = Number((discountDifference / price) * 100).toFixed();
-                } else {
-                        if (req.body.multipleSize == 'true') {
-                                for (let i = 0; i < req.body.sizes.length; i++) {
-                                        let obj = {
-                                                size: req.body.sizes[i],
-                                                price: req.body.multiplePrice[i],
-                                                mPrice: req.body.memberPrice[i],
+                                let images = [], beforeAfterImage, sizePrice = [];
+                                if (req.files['image'] != (null || undefined)) {
+                                        let docs = req.files['image'];
+                                        for (let i = 0; i < docs.length; i++) {
+                                                let obj = {
+                                                        img: docs[i].path
+                                                }
+                                                images.push(obj)
                                         }
-                                        sizePrice.push(obj)
                                 }
-                        } else {
-                                req.body.size = req.body.size;
-                        }
-                }
-                req.body.sizePrice = sizePrice;
-                req.body.images = images;
-                req.body.beforeAfterImage = beforeAfterImage;
-                function convertTimeToMinutes(timeString) {
-                        const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
-                        const regex1 = /(\d+)\s*(?:min)?/;
-                        const match = timeString.match(regex);
-                        const match1 = timeString.match(regex1);
-                        if (!match) {
-                                if (!match1) {
-                                        throw new Error("Invalid time format");
+                                if (req.files['beforeAfterImage'] != (null || undefined)) {
+                                        let docs = req.files['beforeAfterImage'];
+                                        beforeAfterImage = docs[0].path
                                 }
+                                if (req.body.type == 'offer') {
+                                        const price = req.body.price;
+                                        const discountPrice = req.body.discountPrice;
+                                        const discountDifference = price - discountPrice;
+                                        req.body.discount = Number((discountDifference / price) * 100).toFixed();
+                                } else {
+                                        if (req.body.multipleSize == 'true') {
+                                                for (let i = 0; i < req.body.sizes.length; i++) {
+                                                        let obj = {
+                                                                size: req.body.sizes[i],
+                                                                price: req.body.multiplePrice[i],
+                                                                mPrice: req.body.memberPrice[i],
+                                                        }
+                                                        sizePrice.push(obj)
+                                                }
+                                        } else {
+                                                req.body.size = req.body.size;
+                                        }
+                                }
+                                req.body.sizePrice = sizePrice;
+                                req.body.images = images;
+                                req.body.beforeAfterImage = beforeAfterImage;
+                                req.body.categoryId = categoryId;
+                                function convertTimeToMinutes(timeString) {
+                                        const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
+                                        const regex1 = /(\d+)\s*(?:min)?/;
+                                        const match = timeString.match(regex);
+                                        const match1 = timeString.match(regex1);
+                                        if (!match) {
+                                                if (!match1) {
+                                                        throw new Error("Invalid time format");
+                                                }
+                                        }
+                                        let hours, minutes;
+                                        if (match) {
+                                                hours = parseInt(match[1]) || 0;
+                                                minutes = parseInt(match[2]) || 0;
+                                        }
+                                        if (match1) {
+                                                hours = 0;
+                                                minutes = parseInt(match1[1]) || 0;
+                                        }
+                                        return hours * 60 + minutes;
+                                }
+                                req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
+                                const productCreated = await services.create(req.body);
+                                productPromises.push(productCreated);
                         }
-                        let hours, minutes;
-                        if (match) {
-                                hours = parseInt(match[1]) || 0;
-                                minutes = parseInt(match[2]) || 0;
-                        }
-                        if (match1) {
-                                hours = 0;
-                                minutes = parseInt(match1[1]) || 0;
-                        }
-                        return hours * 60 + minutes;
+                        const ProductCreated = await Promise.all(productPromises);
+                        return res.status(201).send({ status: 200, message: "Service added successfully", data: ProductCreated });
                 }
-                req.body.totalMin = convertTimeToMinutes(req.body.totalTime)
-                const ProductCreated = await services.create(req.body);
-                if (ProductCreated) {
-                        return res.status(201).send({ status: 200, message: "Service add successfully", data: ProductCreated, });
-                }
+                // const data = await Category.findById(req.body.categoryId);
+                // if (!data || data.length === 0) {
+                //         return res.status(400).send({ status: 404, msg: "not found" });
+                // }
+
+                // const ProductCreated = await services.create(req.body);
+                // if (ProductCreated) {
+                //         return res.status(201).send({ status: 200, message: "Service add successfully", data: ProductCreated, });
+                // }
         } catch (err) {
                 console.log(err);
                 return res.status(500).send({ message: "Internal server error while creating Service", });
