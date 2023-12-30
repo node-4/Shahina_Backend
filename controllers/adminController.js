@@ -204,17 +204,17 @@ exports.sendReminder = async (req, res) => {
         try {
                 const data = await User.findById(req.params.id);
                 if (data) {
-                        if(data.sendReminder == true){
+                        if (data.sendReminder == true) {
                                 let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendReminder: false } }, { new: true });
                                 if (update) {
                                         return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
                                 }
-                        }else{
-                        let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendReminder: true } }, { new: true });
-                        if (update) {
-                                return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                        } else {
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendReminder: true } }, { new: true });
+                                if (update) {
+                                        return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                                }
                         }
-                }
                 } else {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
@@ -227,17 +227,17 @@ exports.sendConfirmationAppointmentWithCard = async (req, res) => {
         try {
                 const data = await User.findById(req.params.id);
                 if (data) {
-                        if(data.sendConfirmationAppointmentWithCard == true){
+                        if (data.sendConfirmationAppointmentWithCard == true) {
                                 let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendConfirmationAppointmentWithCard: false } }, { new: true });
                                 if (update) {
                                         return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
                                 }
-                        }else{
-                        let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendConfirmationAppointmentWithCard: true } }, { new: true });
-                        if (update) {
-                                return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                        } else {
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendConfirmationAppointmentWithCard: true } }, { new: true });
+                                if (update) {
+                                        return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                                }
                         }
-                }
                 } else {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }
@@ -4517,7 +4517,7 @@ exports.checkout = async (req, res) => {
                                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                         let mailOptions = {
                                                                 from: '<do_not_reply@gmail.com>',
-                                                                to: findCart.user.email,
+                                                                to: data3.email,
                                                                 subject: 'Order Received',
                                                                 text: `You have received a new order`,
                                                                 html: `
@@ -4685,9 +4685,9 @@ exports.checkout = async (req, res) => {
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
-                                        const replacedDateString = `${dateString}T${newTime} `;
+                                        const replacedDateString = `${dateString}T${newTime}`;
                                         console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
-                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(replacedDateString), isBooked: false });
                                         if (findSlot1.length > 0) {
                                                 orderObjTotalAmount = orderObjTotalAmount + total;
                                                 cartResponse._id = new mongoose.Types.ObjectId();
@@ -4709,7 +4709,7 @@ exports.checkout = async (req, res) => {
                                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                         let mailOptions = {
                                                                 from: '<do_not_reply@gmail.com>',
-                                                                to: findCart.user.email,
+                                                                to: data3.email,
                                                                 subject: 'Order Received',
                                                                 text: `You have received a new order`,
                                                                 html: `
