@@ -4249,7 +4249,7 @@ exports.getCart = async (req, res, next) => {
 };
 const calculateCartResponse = async (cart, userId) => {
         try {
-                await cart.populate([{ path: 'user', select: 'fullName firstName lastName email phone ' }, { path: "gifts.giftPriceId", populate: { path: 'giftId', model: 'gift' }, select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" }]);
+                await cart.populate([{ path: 'user' }, { path: "gifts.giftPriceId", populate: { path: 'giftId', model: 'gift' }, select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" }]);
                 const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
                 const data2 = await Address.findOne({ user: userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                 const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
