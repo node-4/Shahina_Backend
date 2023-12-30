@@ -14,6 +14,8 @@ module.exports = (app) => {
         app.get("/api/v1/admin/viewUser/:id", auth.viewUser);
         app.put("/api/v1/admin/activeBlockUser/:id", [authJwt.verifyToken], auth.activeBlockUser);
         app.put("/api/v1/admin/updateClientProfile/:id", [authJwt.verifyToken], auth.updateClientProfile);
+        app.put("/api/v1/admin/sendReminder/:id", [authJwt.verifyToken], auth.sendReminder);
+        app.put("/api/v1/admin/sendConfirmationAppointmentWithCard/:id", [authJwt.verifyToken], auth.sendConfirmationAppointmentWithCard);
         app.delete("/api/v1/admin/deleteUser/:id", [authJwt.verifyToken], auth.deleteUser);
         app.put("/api/v1/admin/update", [authJwt.verifyToken], auth.update);
         app.post("/api/v1/admin/Brand/addBrand", [authJwt.verifyToken], BrandUpload.single('image'), auth.createBrands);

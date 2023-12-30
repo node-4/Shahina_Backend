@@ -9,7 +9,6 @@ const verifyToken = (req, res, next) => {
             message: "Please Login to Continue.",
         });
     }
-
     jwt.verify(token, authConfig.secret, async (err, decoded) => {
         if (err) {
             console.log(err);

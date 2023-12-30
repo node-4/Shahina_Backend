@@ -14,6 +14,7 @@ module.exports = (app) => {
         app.post("/api/v1/user/changePassword/:id", auth.changePassword);
         app.post("/api/v1/user/resendOtp/:id", auth.resendOTP);
         app.post("/api/v1/user/:id", auth.verifyOtp);
+        app.get("/api/v1/user/checkSession", auth.checkSession);
         app.get("/api/v1/user/getProfile", [authJwt.verifyToken], auth.getProfile);
         app.put("/api/v1/user/checkIn", [authJwt.verifyToken], auth.checkIn);
         app.put("/api/v1/user/updateProfile", [authJwt.verifyToken], userProfileUpload.single('image'), auth.updateProfile);

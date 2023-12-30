@@ -352,6 +352,30 @@ exports.getProfile = async (req, res) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+exports.checkSession = async (req, res) => {
+        try {
+                const token = req.get("Authorization")?.split("Bearer ")[1] || req.headers["x-access-token"];
+                if (!token) {
+                        return res.status(401).send({ status: 401, message: "Please Login to Continue.", data: false });
+                } else {
+                        jwt.verify(token, authConfig.secret, async (err, decoded) => {
+                                if (err) {
+                                        return res.status(401).send({ status: 401, message: "Please Login to Continue.", data: false });
+                                }
+                                const user = await User.findOne({ _id: decoded.id });
+                                const user1 = await User.findOne({ _id: decoded.id });
+                                if (!user && !user1) {
+                                        return res.status(401).send({ status: 401, message: "Please Login to Continue.", data: false });
+                                } else {
+                                        return res.status(200).send({ status: 200, message: "", data: true });
+                                }
+                        });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
 exports.updateProfile = async (req, res) => {
         try {
                 const data = await User.findOne({ _id: req.user._id, });

@@ -185,11 +185,59 @@ exports.updateClientProfile = async (req, res) => {
                                 sendEmailMarketingNotification: req.body.sendEmailMarketingNotification || data.sendEmailMarketingNotification,
                                 sendTextMarketingNotification: req.body.sendTextMarketingNotification || data.sendTextMarketingNotification,
                                 preferredLAnguage: req.body.preferredLAnguage || data.preferredLAnguage,
+                                sendConfirmationAppointmentWithCard: req.body.sendConfirmationAppointmentWithCard || data.sendConfirmationAppointmentWithCard,
+                                sendReminder: req.body.sendReminder || data.sendReminder,
                         }
                         let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: obj }, { new: true });
                         if (update) {
                                 return res.status(200).json({ status: 200, message: "Update profile successfully.", data: update });
                         }
+                } else {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.sendReminder = async (req, res) => {
+        try {
+                const data = await User.findById(req.params.id);
+                if (data) {
+                        if(data.sendReminder == true){
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendReminder: false } }, { new: true });
+                                if (update) {
+                                        return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                                }
+                        }else{
+                        let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendReminder: true } }, { new: true });
+                        if (update) {
+                                return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                        }
+                }
+                } else {
+                        return res.status(404).json({ status: 404, message: "No data found", data: {} });
+                }
+        } catch (error) {
+                console.log(error);
+                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+        }
+};
+exports.sendConfirmationAppointmentWithCard = async (req, res) => {
+        try {
+                const data = await User.findById(req.params.id);
+                if (data) {
+                        if(data.sendConfirmationAppointmentWithCard == true){
+                                let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendConfirmationAppointmentWithCard: false } }, { new: true });
+                                if (update) {
+                                        return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                                }
+                        }else{
+                        let update = await User.findByIdAndUpdate({ _id: data._id }, { $set: { sendConfirmationAppointmentWithCard: true } }, { new: true });
+                        if (update) {
+                                return res.status(200).json({ status: 200, message: "Send reminder update successfully.", data: update });
+                        }
+                }
                 } else {
                         return res.status(404).json({ status: 404, message: "No data found", data: {} });
                 }

@@ -132,6 +132,14 @@ var userSchema = new schema(
                         type: Boolean,
                         default: false,
                 },
+                sendReminder: {
+                        type: Boolean,
+                        default: false,
+                },
+                sendConfirmationAppointmentWithCard: {
+                        type: Boolean,
+                        default: false,
+                },
                 preferredLAnguage: {
                         type: String
                 },
