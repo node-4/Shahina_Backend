@@ -2287,12 +2287,12 @@ exports.getServiceOrderswithDate = async (req, res) => {
                                 $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 },
                         },
                 ];
-
                 const totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
                 const datewiseOrders = await serviceOrder
                         .find({ orderStatus: ["adminUnconfirmed" || "confirmed" || "cancel"] })
                         .populate([
                                 { path: "services.serviceId", select: { reviews: 0 } },
+                                { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
                                 { path: "coupon", select: "couponCode discount expirationDate" },
                                 { path: "user" },
                         ])

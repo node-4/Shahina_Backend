@@ -31,10 +31,9 @@ const createBirthdayRewards = async () => {
                         const currentMonth = currentDate.getMonth() + 1;
                         const currentDay = currentDate.getDate();
                         for (const user of findUser) {
-                                console.log(user);
                                 const userMonth = user.dob.getMonth() + 1;
                                 const userDay = user.dob.getDate();
-                                if (userMonth === currentMonth && userDay === currentDay - 1) {
+                                if (userMonth === currentMonth && userDay === currentDay + 1) {
                                         if (user.birthDayCreate < Date.now()) {
                                                 const rewardObject = {
                                                         user: user._id,
@@ -44,12 +43,13 @@ const createBirthdayRewards = async () => {
                                                         discount: 50,
                                                         per: "Amount",
                                                         completeVisit: 0,
+                                                        orderStatus: "confirmed",
+                                                        paymentStatus: "paid"
                                                 };
-                                                console.log(rewardObject);
                                                 const userCoupon = await coupanModel.create(rewardObject);
                                                 if (userCoupon) {
                                                         const nextBirthday = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-                                                        const updateResult = await userModel.updateOne({ _id: user._id }, { $set: { birthDayCreate: nextBirthday } }, { new: true });
+                                                        const updateResult = await User.findByIdAndUpdate({ _id: user._id }, { $set: { birthDayCreate: nextBirthday } }, { new: true });
                                                 }
                                         }
                                 }
@@ -59,7 +59,6 @@ const createBirthdayRewards = async () => {
                 console.error("Error in createBirthdayRewards:", error);
         }
 };
-createBirthdayRewards();
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let OTP = '';
