@@ -4797,26 +4797,22 @@ exports.addSuggestionToServiceOrder = async (req, res) => {
 };
 exports.editSuggestionfromOrder = async (req, res) => {
         try {
-                let findCart = await serviceOrder.findOne({ _id: req.params.id });
+                const findCart = await serviceOrder.findOne({ _id: req.params.id });
                 if (findCart) {
-                        for (let i = 0; i < findCart.suggesstion.length; i++) {
-                                if (findCart.suggesstion.length > 0) {
-                                        if (((findCart.suggesstion[i]._id).toString() == req.params.suggesstionId) == true) {
-                                                let updateCart = await serviceOrder.findByIdAndUpdate({ _id: findCart._id, 'suggesstion._id': req.params.suggesstionId }, { $set: { 'suggesstion': { _id: req.params.suggesstionId, suggesstion: req.body.suggestion, } } }, { new: true })
-                                                if (updateCart) {
-                                                        return res.status(200).send({ message: "suggesstion delete from order.", data: updateCart, });
-                                                }
-                                        }
-                                } else {
-                                        return res.status(200).send({ status: 200, message: "No Data Found ", data: [] });
-                                }
+                        const suggestionIndex = findCart.suggesstion.findIndex((suggestion) => suggestion._id.toString() === req.params.suggesstionId);
+                        if (suggestionIndex !== -1) {
+                                findCart.suggesstion[suggestionIndex].suggesstion = req.body.suggestion;
+                                const updateCart = await findCart.save();
+                                return res.status(200).send({ message: "Suggestion updated in order.", data: updateCart, });
+                        } else {
+                                return res.status(404).send({ status: 404, message: "Suggestion not found in the order.", data: [], });
                         }
                 } else {
-                        return res.status(200).send({ status: 200, message: "No Data Found ", cart: [] });
+                        return res.status(404).send({ status: 404, message: "Order not found.", data: [], });
                 }
         } catch (error) {
-                console.log("353====================>", error)
-                return res.status(501).send({ status: 501, message: "server error.", data: {}, });
+                console.error("Error in editSuggestionfromOrder:", error);
+                return res.status(500).send({ status: 500, message: "Server error.", data: {}, });
         }
 };
 exports.deleteSuggestionfromOrder = async (req, res) => {

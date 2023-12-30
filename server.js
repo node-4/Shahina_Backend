@@ -24,31 +24,42 @@ require('./routes/admin.route')(app);
 require('./routes/user.route')(app);
 require('./routes/static.route')(app);
 const createBirthdayRewards = async () => {
-        let findUser = await User.find({ userType: "USER" });
-        if (findUser.length > 0) {
-                for (let i = 0; i < findUser.length; i++) {
-                        let date = new Date();
-                        let currentMonth = date.getMonth() + 1;
-                        let currentDay = date.getDate();
-                        let userMonth = findUser[i].dob.getMonth() + 1;
-                        let userDay = findUser[i].dob.getDate();
-                        if (userMonth === currentMonth && userDay === currentDay - 1) {
-                                let obj = {
-                                        user: findUser[i]._id,
-                                        code: await reffralCode(),
-                                        title: "BirthDay Reward",
-                                        description: "Get a discount coupon of worth $50. Your birthday rewards.",
-                                        discount: 50,
-                                        per: "Amount",
-                                        completeVisit: 0,
+        try {
+                const findUser = await User.find({ userType: "USER" });
+                if (findUser.length > 0) {
+                        const currentDate = new Date();
+                        const currentMonth = currentDate.getMonth() + 1;
+                        const currentDay = currentDate.getDate();
+                        for (const user of findUser) {
+                                console.log(user);
+                                const userMonth = user.dob.getMonth() + 1;
+                                const userDay = user.dob.getDate();
+                                if (userMonth === currentMonth && userDay === currentDay - 1) {
+                                        if (user.birthDayCreate < Date.now()) {
+                                                const rewardObject = {
+                                                        user: user._id,
+                                                        code: await reffralCode(),
+                                                        title: "BirthDay Reward",
+                                                        description: "Get a discount coupon of worth $50. Your birthday rewards.",
+                                                        discount: 50,
+                                                        per: "Amount",
+                                                        completeVisit: 0,
+                                                };
+                                                console.log(rewardObject);
+                                                const userCoupon = await coupanModel.create(rewardObject);
+                                                if (userCoupon) {
+                                                        const nextBirthday = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+                                                        const updateResult = await userModel.updateOne({ _id: user._id }, { $set: { birthDayCreate: nextBirthday } }, { new: true });
+                                                }
+                                        }
                                 }
-                                console.log(obj);
-                                return
-                                const userCreatea = await coupanModel.create(obj);
                         }
                 }
+        } catch (error) {
+                console.error("Error in createBirthdayRewards:", error);
         }
 };
+createBirthdayRewards();
 const reffralCode = async () => {
         var digits = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let OTP = '';
@@ -59,7 +70,7 @@ const reffralCode = async () => {
 }
 setInterval(async () => {
         console.log("-----------call out function---------");
-        // await createBirthdayRewards();
+        await createBirthdayRewards();
 }, 10000);
 mongoose.Promise = global.Promise;
 mongoose.set("strictQuery", true);

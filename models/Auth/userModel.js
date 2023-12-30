@@ -51,6 +51,9 @@ var userSchema = new schema(
                 subscriptionExpiration: {
                         type: Date,
                 },
+                birthDayCreate: {
+                        type: Date,
+                },
                 isSubscription: {
                         type: Boolean,
                         default: false,
