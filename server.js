@@ -69,7 +69,7 @@ const reffralCode = async () => {
 }
 setInterval(async () => {
         console.log("-----------call out function---------");
-        await createBirthdayRewards();
+        // await createBirthdayRewards();
 }, 10000);
 mongoose.Promise = global.Promise;
 mongoose.set("strictQuery", true);

@@ -144,6 +144,7 @@ module.exports = (app) => {
         app.post("/api/v1/admin/createShipment", auth.createShipment);
         app.get("/api/v1/admin/getAllShipment", [authJwt.verifyToken], auth.getAllShipment);
         app.post('/api/v1/admin/addtoCart/:id', [authJwt.verifyToken], auth.addToCart);
+        app.post('/api/v1/admin/editServiceInCart/:id', [authJwt.verifyToken], auth.editServiceInCart);
         app.post('/api/v1/admin/addtoCart/addOnservices/:id', [authJwt.verifyToken], auth.addToCartAddOnservices);
         app.put("/api/v1/admin/addSuggestionToServiceCart/:userId", [authJwt.verifyToken], auth.addSuggestionToServiceCart);
         app.put("/api/v1/admin/deleteSuggestionfromCart/:userId/:suggesstionId", [authJwt.verifyToken], auth.deleteSuggestionfromCart);

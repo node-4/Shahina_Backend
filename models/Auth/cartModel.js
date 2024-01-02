@@ -47,6 +47,15 @@ const cartAddOnservicesSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "addOnservices"
     },
+    price: {
+        type: Number,
+    },
+    totalTime: {
+        type: String
+    },
+    totalMin: {
+        type: Number
+    },
     quantity: {
         type: Number,
         default: 1
@@ -70,6 +79,15 @@ const cartServiceSchema = new Schema({
     },
     size: {
         type: String,
+    },
+    price: {
+        type: Number,
+    },
+    totalTime: {
+        type: String
+    },
+    totalMin: {
+        type: Number
     },
     sizePrice: {
         type: Number,

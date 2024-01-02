@@ -1240,6 +1240,7 @@ exports.addToCart = async (req, res, next) => {
         try {
                 const itemType = req.params.type;
                 const itemId = req.params.id;
+                const data3 = await User.findOne({ _id: req.user._id });
                 const itemData = await getItemData(itemType, itemId);
                 if (!itemData) {
                         return res.status(400).send({ msg: `${itemType} not found` });
@@ -1260,6 +1261,12 @@ exports.addToCart = async (req, res, next) => {
                                         let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
                                         cart[cartField].push(obj);
                                 } else if (itemType == 'service') {
+                                        let price;
+                                        if (data3.isSubscription === true) {
+                                                price = req.body.memberprice
+                                        } else {
+                                                price = req.body.sizePrice
+                                        }
                                         let obj = {
                                                 [itemType + 'Id']: itemId,
                                                 quantity: req.body.quantity,
@@ -1267,6 +1274,9 @@ exports.addToCart = async (req, res, next) => {
                                                 size: req.body.size,
                                                 sizePrice: req.body.sizePrice,
                                                 memberprice: req.body.memberprice,
+                                                price: price,
+                                                totalTime: itemData.totalTime,
+                                                totalMin: itemData.totalMin,
                                         };
                                         cart[cartField].push(obj);
                                 } else {
@@ -1283,11 +1293,20 @@ exports.addToCart = async (req, res, next) => {
                                         cart[cartField][itemIndex].priceId = req.body.priceId;
                                         cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
                                 } else if (itemType == 'service') {
+                                        let price;
+                                        if (data3.isSubscription === true) {
+                                                price = req.body.memberprice
+                                        } else {
+                                                price = req.body.sizePrice
+                                        }
                                         cart[cartField][itemIndex].quantity = req.body.quantity;
                                         cart[cartField][itemIndex].size = req.body.size;
                                         cart[cartField][itemIndex].priceId = req.body.priceId;
                                         cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
                                         cart[cartField][itemIndex].memberprice = req.body.memberprice;
+                                        cart[cartField][itemIndex].price = price;
+                                        cart[cartField][itemIndex].totalTime = itemData.totalTime;
+                                        cart[cartField][itemIndex].totalMin = itemData.totalMin;
                                 } else {
                                         cart[cartField][itemIndex].quantity = req.body.quantity;
                                 }
@@ -1302,6 +1321,16 @@ exports.addToCart = async (req, res, next) => {
                                         let obj = { [itemType + 'Id']: itemId, quantity: req.body.quantity, size: req.body.size, priceId: req.body.priceId, sizePrice: req.body.sizePrice };
                                         cart[cartField].push(obj);
                                 } else if (itemType == 'service') {
+                                        let price;
+                                        if (itemData.type == "offer") {
+                                                price = itemData.discountPrice
+                                        } else {
+                                                if (data3.isSubscription === true) {
+                                                        price = itemData.mPrice
+                                                } else {
+                                                        price = itemData.price
+                                                }
+                                        }
                                         let obj = {
                                                 [itemType + 'Id']: itemId,
                                                 quantity: req.body.quantity,
@@ -1309,6 +1338,18 @@ exports.addToCart = async (req, res, next) => {
                                                 size: req.body.size,
                                                 sizePrice: req.body.sizePrice,
                                                 memberprice: req.body.memberprice,
+                                                price: price,
+                                                totalTime: itemData.totalTime,
+                                                totalMin: itemData.totalMin,
+                                        };
+                                        cart[cartField].push(obj);
+                                } else if (itemType == 'addOnservices') {
+                                        let obj = {
+                                                [itemType + 'Id']: itemId,
+                                                quantity: req.body.quantity,
+                                                price: itemData.price,
+                                                totalTime: itemData.totalTime,
+                                                totalMin: itemData.totalMin,
                                         };
                                         cart[cartField].push(obj);
                                 } else {
@@ -1325,11 +1366,29 @@ exports.addToCart = async (req, res, next) => {
                                         cart[cartField][itemIndex].priceId = req.body.priceId;
                                         cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
                                 } else if (itemType == 'service') {
+                                        let price;
+                                        if (itemData.type == "offer") {
+                                                price = itemData.discountPrice
+                                        } else {
+                                                if (data3.isSubscription === true) {
+                                                        price = itemData.mPrice
+                                                } else {
+                                                        price = itemData.price
+                                                }
+                                        }
                                         cart[cartField][itemIndex].quantity = req.body.quantity;
                                         cart[cartField][itemIndex].size = req.body.size;
                                         cart[cartField][itemIndex].priceId = req.body.priceId;
                                         cart[cartField][itemIndex].sizePrice = req.body.sizePrice;
                                         cart[cartField][itemIndex].memberprice = req.body.memberprice;
+                                        cart[cartField][itemIndex].price = price;
+                                        cart[cartField][itemIndex].totalTime = itemData.totalTime;
+                                        cart[cartField][itemIndex].totalMin = itemData.totalMin;
+                                } else if (itemType == 'addOnservices') {
+                                        cart[cartField][itemIndex].quantity = req.body.quantity;
+                                        cart[cartField][itemIndex].price = itemData.price;
+                                        cart[cartField][itemIndex].totalTime = itemData.totalTime;
+                                        cart[cartField][itemIndex].totalMin = itemData.totalMin;
                                 } else {
                                         cart[cartField][itemIndex].quantity = req.body.quantity;
                                 }
@@ -1405,12 +1464,12 @@ const calculateCartResponse = async (cart, userId) => {
                 if (cart.toTime != (null || undefined)) {
                         if (cart.services.length > 0) {
                                 for (let i = 0; i < cart.services.length; i++) {
-                                        totalTime = totalTime + cart.services[i].serviceId.totalMin;
+                                        totalTime = totalTime + cart.services[i].totalMin;
                                 }
                         }
                         if (cart.AddOnservicesSchema.length > 0) {
                                 for (let i = 0; i < cart.AddOnservicesSchema.length; i++) {
-                                        totalTime = totalTime + cart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                        totalTime = totalTime + cart.AddOnservicesSchema[i].totalMin;
                                 }
                         }
                         var dateTimeString = cart.toTime;
@@ -1433,8 +1492,8 @@ const calculateCartResponse = async (cart, userId) => {
                         for (const cartProduct of cartResponse.services) {
                                 if (cartProduct.serviceId.type === "offer") {
                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                        cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
                                         offerDiscount += cartProduct.offerDiscount;
                                         subTotal += cartProduct.subTotal;
                                         total += cartProduct.total;
@@ -1442,10 +1501,10 @@ const calculateCartResponse = async (cart, userId) => {
                                 if (cartProduct.serviceId.type === "Service") {
                                         if (data3.isSubscription === true) {
                                                 if (cartProduct.serviceId.multipleSize == true) {
-                                                        let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                         cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
@@ -1455,8 +1514,8 @@ const calculateCartResponse = async (cart, userId) => {
                                                         let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         total += cartProduct.total;
@@ -1467,8 +1526,8 @@ const calculateCartResponse = async (cart, userId) => {
                                                         let x = 0
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         total += cartProduct.total;
@@ -1477,8 +1536,8 @@ const calculateCartResponse = async (cart, userId) => {
                                                         let x = 0
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         total += cartProduct.total;
@@ -1490,8 +1549,8 @@ const calculateCartResponse = async (cart, userId) => {
                 }
                 if (cartResponse.AddOnservicesSchema.length > 0) {
                         cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
                                 subTotal += cartGift.subTotal;
                                 total += cartGift.total;
                         });
@@ -1801,8 +1860,8 @@ exports.checkout = async (req, res) => {
                                                                 for (const cartProduct of cartResponse.services) {
                                                                         if (cartProduct.serviceId.type === "offer") {
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
                                                                                 total += cartProduct.total;
@@ -1810,21 +1869,21 @@ exports.checkout = async (req, res) => {
                                                                         if (cartProduct.serviceId.type === "Service") {
                                                                                 if (data3.isSubscription === true) {
                                                                                         if (cartProduct.serviceId.multipleSize == true) {
-                                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                                                let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                                                                 cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
                                                                                                 subTotal += cartProduct.subTotal;
                                                                                         } else {
-                                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                                                let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
@@ -1835,8 +1894,8 @@ exports.checkout = async (req, res) => {
                                                                                                 let x = 0
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
@@ -1845,8 +1904,8 @@ exports.checkout = async (req, res) => {
                                                                                                 let x = 0
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
@@ -1858,8 +1917,8 @@ exports.checkout = async (req, res) => {
                                                         }
                                                         if (cartResponse.AddOnservicesSchema.length > 0) {
                                                                 cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
                                                                         subTotal += cartGift.subTotal;
                                                                         total += cartGift.total;
                                                                 });
@@ -2244,7 +2303,6 @@ exports.checkout = async (req, res) => {
                                 const data2 = await Address.findOne({ user: req.user._id, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                                 const data5 = await Address.findOne({ user: req.user._id, addressType: "Billing" }).select('address appartment city state zipCode -_id');
                                 const data3 = await User.findOne({ _id: req.user._id });
-                                const data4 = await User.findOne({ userType: "ADMIN" });
                                 let orderObjPaidAmount = 0, productOrderId, serviceOrderId, giftOrderId, couponDiscount = 0, orderObjTotalAmount = 0;
                                 if (findCart.coupon && moment().isAfter(findCart.coupon.expirationDate, "day")) { findCart.coupon = undefined; findCart.save(); }
                                 const cartResponse = findCart.toObject();
@@ -2400,8 +2458,8 @@ exports.checkout = async (req, res) => {
                                                                 for (const cartProduct of cartResponse.services) {
                                                                         if (cartProduct.serviceId.type === "offer") {
                                                                                 cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                 subTotal += cartProduct.subTotal;
                                                                                 total += cartProduct.total;
@@ -2409,21 +2467,21 @@ exports.checkout = async (req, res) => {
                                                                         if (cartProduct.serviceId.type === "Service") {
                                                                                 if (data3.isSubscription === true) {
                                                                                         if (cartProduct.serviceId.multipleSize == true) {
-                                                                                                let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                                                let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                                                                 cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
                                                                                                 subTotal += cartProduct.subTotal;
                                                                                         } else {
-                                                                                                let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                                                let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
-                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
@@ -2434,8 +2492,8 @@ exports.checkout = async (req, res) => {
                                                                                                 let x = 0
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                                                cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
@@ -2444,8 +2502,8 @@ exports.checkout = async (req, res) => {
                                                                                                 let x = 0
                                                                                                 cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                                                 membershipDiscount += x;
-                                                                                                cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                                                cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                                                 cartProduct.offerDiscount = 0.00;
                                                                                                 offerDiscount += cartProduct.offerDiscount;
                                                                                                 total += cartProduct.total;
@@ -2457,8 +2515,8 @@ exports.checkout = async (req, res) => {
                                                         }
                                                         if (cartResponse.AddOnservicesSchema.length > 0) {
                                                                 cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                                                        cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                                        cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                                        cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
                                                                         subTotal += cartGift.subTotal;
                                                                         total += cartGift.total;
                                                                 });
@@ -2502,61 +2560,64 @@ exports.checkout = async (req, res) => {
                                                                 const newTime = "00:00:00.000+00:00";
                                                                 const replacedDateString = `${dateString}T${newTime}`;
                                                                 console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
-                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
-                                                                if (findSlot.length > 0) {
-                                                                        for (let i = 0; i < findSlot.length; i++) {
-                                                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
-                                                                                console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                if (saveOrder) {
+                                                                        const data4 = await User.findOne({ userType: "ADMIN" });
+                                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                        if (findSlot.length > 0) {
+                                                                                for (let i = 0; i < findSlot.length; i++) {
+                                                                                        let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
+                                                                                        console.log(`Slot with ID ${findSlot[i]._id} is now booked.`);
+                                                                                }
                                                                         }
-                                                                }
-                                                                await adminNotification.create({
-                                                                        orderUserId: req.user._id,
-                                                                        userId: data4._id,
-                                                                        title: `${data3.firstName} ${data3.lastName}, book online ${saveOrder.total}`,
-                                                                        body: findCart.services[0].serviceId.description,
-                                                                })
-                                                                var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                                                                let mailOptions = {
-                                                                        from: '<do_not_reply@gmail.com>',
-                                                                        to: data3.email,
-                                                                        subject: 'Order Received',
-                                                                        text: `You have received a new order`,
-                                                                        html: `
-                                                                          <p> You have received a new order:</p>
-                                                                          <p>Order Id: ${saveOrder.orderId}</p>
-                                                                          <p>Order Amount: ${saveOrder.total}</p>
-                                                                          <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
-                                                                          <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
-                                                                          <p>Appointment details:</p>
-                                                                          <ul>
-                                                                            ${findCart.services.map((service, index) => `
-                                                                              <li>
-                                                                                Service ${index + 1}:
-                                                                                <ul>
-                                                                                  <li>Name: ${service.serviceId.name}</li>
-                                                                                  <li>Price: ${service.price}</li>
-                                                                                  <li>Quantity: ${service.quantity}</li>
-                                                                                </ul>
-                                                                              </li>
-                                                                            `).join('')}
-                                                                          </ul>
-                                                                          <p>Location</p>
-                                                                          <p>Shahina Hoja Aesthetics</p>
-                                                                          <p>905 Watters Creek Boulevard, 141,</p>
-                                                                          <p> Allen, 75013, Texas, US</p>
-                                                                          <p>Cancellation policy</p>
-                                                                          <p>Please avoid cancelling within 48 hours of your appointment.</p>
-                                                                          <p>Important info.</p>
-                                                                          <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
-                                                                          <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
-                                                                          <p>Powered by</p>
-                                                                          <p>fresha</p>`,
-                                                                };
-                                                                let info1 = await transporter.sendMail(mailOptions);
-                                                                if (info1) {
-                                                                        serviceOrderId = saveOrder._id;
-                                                                } else {
-                                                                        serviceOrderId = saveOrder._id;
+                                                                        await adminNotification.create({
+                                                                                orderUserId: req.user._id,
+                                                                                userId: data4._id,
+                                                                                title: `${data3.firstName} ${data3.lastName}, book online ${saveOrder.total}`,
+                                                                                body: findCart.services[0].serviceId.description,
+                                                                        })
+                                                                        var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                                                        let mailOptions = {
+                                                                                from: '<do_not_reply@gmail.com>',
+                                                                                to: data3.email,
+                                                                                subject: 'Order Received',
+                                                                                text: `You have received a new order`,
+                                                                                html: `
+                                                                                  <p> You have received a new order:</p>
+                                                                                  <p>Order Id: ${saveOrder.orderId}</p>
+                                                                                  <p>Order Amount: ${saveOrder.total}</p>
+                                                                                  <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
+                                                                                  <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
+                                                                                  <p>Appointment details:</p>
+                                                                                  <ul>
+                                                                                    ${findCart.services.map((service, index) => `
+                                                                                      <li>
+                                                                                        Service ${index + 1}:
+                                                                                        <ul>
+                                                                                          <li>Name: ${service.serviceId.name}</li>
+                                                                                          <li>Price: ${service.price}</li>
+                                                                                          <li>Quantity: ${service.quantity}</li>
+                                                                                        </ul>
+                                                                                      </li>
+                                                                                    `).join('')}
+                                                                                  </ul>
+                                                                                  <p>Location</p>
+                                                                                  <p>Shahina Hoja Aesthetics</p>
+                                                                                  <p>905 Watters Creek Boulevard, 141,</p>
+                                                                                  <p> Allen, 75013, Texas, US</p>
+                                                                                  <p>Cancellation policy</p>
+                                                                                  <p>Please avoid cancelling within 48 hours of your appointment.</p>
+                                                                                  <p>Important info.</p>
+                                                                                  <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
+                                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
+                                                                                  <p>Powered by</p>
+                                                                                  <p>fresha</p>`,
+                                                                        };
+                                                                        let info1 = await transporter.sendMail(mailOptions);
+                                                                        if (info1) {
+                                                                                serviceOrderId = saveOrder._id;
+                                                                        } else {
+                                                                                serviceOrderId = saveOrder._id;
+                                                                        }
                                                                 }
                                                         }
                                                 }
