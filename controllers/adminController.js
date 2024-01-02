@@ -834,6 +834,7 @@ exports.getIdProductByToken = async (req, res) => {
                                 const membershipDiscount = isSubscription ? size.price * (userData.subscriptionId.discount / 100) : 0;
                                 const membshipPrice = isSubscription ? size.price - membershipDiscount : 0;
                                 return {
+                                        _id: size._id,
                                         size: size.size,
                                         price: size.price,
                                         stock: size.stock,
