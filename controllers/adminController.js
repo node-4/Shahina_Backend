@@ -129,7 +129,9 @@ exports.clientRegistration = async (req, res) => {
                         req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
                         req.body.accountVerification = false;
                         req.body.refferalCode = await reffralCode();
-                        req.body.password = bcrypt.hashSync(req.body.password, 8);
+                        if (req.body.password != (null || undefined)) {
+                                req.body.password = bcrypt.hashSync(req.body.password, 8);
+                        }
                         req.body.userType = "USER";
                         const userCreate = await User.create(req.body);
                         return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
