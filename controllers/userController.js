@@ -4677,6 +4677,7 @@ exports.cancelOrderApp = async (req, res) => {
 const calculateCartResponse5 = async (cart, userId) => {
         try {
                 await cart.populate([{ path: "products.productId", select: { reviews: 0 } }, { path: "gifts.giftPriceId", populate: { path: 'giftId', model: 'gift' }, select: { reviews: 0 } }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: 'frequentlyBuyProductSchema.frequentlyBuyProductId', populate: { path: 'products', model: 'Product' }, select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" }]);
+                console.log(cart);
                 const data1 = await Address.findOne({ type: "Admin" }).select('address appartment landMark -_id');
                 const data2 = await Address.findOne({ user: userId, addressType: "Shipping" }).select('address appartment city state zipCode -_id');
                 const data5 = await Address.findOne({ user: userId, addressType: "Billing" }).select('address appartment city state zipCode -_id');
@@ -4779,6 +4780,7 @@ const calculateCartResponse5 = async (cart, userId) => {
                 }
                 if (cartResponse.products.length > 0) {
                         for (const cartProduct of cartResponse.products) {
+                                console.log(cartProduct);
                                 if (cartProduct.productId.multipleSize == true) {
                                         for (let i = 0; i < cartProduct.productId.sizePrice.length; i++) {
                                                 if ((cartProduct.productId.sizePrice[i]._id == cartProduct.priceId) == true) {
