@@ -3940,10 +3940,10 @@ exports.addToCart = async (req, res, next) => {
                                                 price = findService.price
                                         }
                                 }
-                                cart[cartField][itemIndex].quantity = req.body.quantity;
-                                cart[cartField][itemIndex].price = price;
-                                cart[cartField][itemIndex].totalTime = findService.totalTime;
-                                cart[cartField][itemIndex].totalMin = findService.totalMin;
+                                cart.services[itemIndex].quantity = req.body.quantity;
+                                cart.services[itemIndex].price = price;
+                                cart.services[itemIndex].totalTime = findService.totalTime;
+                                cart.services[itemIndex].totalMin = findService.totalMin;
                                 cart.services[itemIndex].discount = req.body.discount;
                                 cart.services[itemIndex].discountProvide = discountProvide;
                                 cart.totalTime = cart.services.reduce((total, service) => {
