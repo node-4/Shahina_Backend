@@ -18,7 +18,7 @@ const subscriptionSchema = mongoose.Schema(
                         default: 0
                 },
                 details: {
-                        type: Array,
+                        type: String,
                 },
         },
         {
