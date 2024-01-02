@@ -4078,6 +4078,8 @@ exports.editServiceInCart = async (req, res, next) => {
                                         const serviceObj = findService;
                                         return total + serviceObj.totalMin * service.quantity;
                                 }, 0);
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
+                                cart.toTime = x;
                                 await cart.save();
                                 let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
                                 let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
@@ -4208,8 +4210,8 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                         for (const cartProduct of saveCart.services) {
                                                 if (cartProduct.serviceId.type === "offer") {
                                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         subTotal += cartProduct.subTotal;
                                                         total += cartProduct.total;
@@ -4217,21 +4219,21 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                                 if (cartProduct.serviceId.type === "Service") {
                                                         if (data3.isSubscription === true) {
                                                                 if (cartProduct.serviceId.multipleSize == true) {
-                                                                        let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                                         cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
                                                                         subTotal += cartProduct.subTotal;
                                                                 } else {
-                                                                        let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
@@ -4242,8 +4244,8 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                                                         let x = 0
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
@@ -4252,8 +4254,8 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                                                         let x = 0
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
@@ -4265,8 +4267,8 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                 }
                                 if (saveCart.AddOnservicesSchema.length > 0) {
                                         saveCart.AddOnservicesSchema.forEach((cartGift) => {
-                                                cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
                                                 subTotal += cartGift.subTotal;
                                                 total += cartGift.total;
                                         });
@@ -4287,6 +4289,7 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                 cart.AddOnservicesSchema[itemIndex].totalMin = findService.totalMin;
                                 cart.AddOnservicesSchema[itemIndex].totalTime = findService.totalTime;
                                 cart.AddOnservicesSchema[itemIndex].quantity = req.body.quantity;
+                                await cart.save();
                                 let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
                                 const data3 = await User.findOne({ _id: req.body.userId });
                                 let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
@@ -4294,8 +4297,8 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                         for (const cartProduct of saveCart.services) {
                                                 if (cartProduct.serviceId.type === "offer") {
                                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         subTotal += cartProduct.subTotal;
                                                         total += cartProduct.total;
@@ -4303,21 +4306,21 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                                 if (cartProduct.serviceId.type === "Service") {
                                                         if (data3.isSubscription === true) {
                                                                 if (cartProduct.serviceId.multipleSize == true) {
-                                                                        let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                                         cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
                                                                         subTotal += cartProduct.subTotal;
                                                                 } else {
-                                                                        let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
+                                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
@@ -4328,8 +4331,8 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                                                         let x = 0
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
@@ -4338,8 +4341,8 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                                                         let x = 0
                                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                                         membershipDiscount += x;
-                                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                                        cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                                         cartProduct.offerDiscount = 0.00;
                                                                         offerDiscount += cartProduct.offerDiscount;
                                                                         total += cartProduct.total;
@@ -4351,8 +4354,113 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                 }
                                 if (saveCart.AddOnservicesSchema.length > 0) {
                                         saveCart.AddOnservicesSchema.forEach((cartGift) => {
-                                                cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                                cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                subTotal += cartGift.subTotal;
+                                                total += cartGift.total;
+                                        });
+                                }
+                                saveCart.memberShipPer = Number(membershipDiscountPercentage);
+                                saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                saveCart.offerDiscount = Number(offerDiscount);
+                                saveCart.subTotal = subTotal;
+                                saveCart.total = total;
+                                await saveCart.save();
+                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
+                        }
+                }
+        } catch (error) {
+                next(error);
+        }
+}
+exports.editAddOnservicesInCart = async (req, res, next) => {
+        try {
+                let cart = await Cart.findOne({ user: req.body.userId });
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                } else {
+                        const itemIndex = cart.AddOnservicesSchema.findIndex((cartItem) => cartItem.addOnservicesId.toString() === req.params.id);
+                        if (itemIndex === -1) {
+                                return res.status(404).json({ message: "Service Not Found in cart.", status: 404, data: {} });
+                        } else {
+                                let findService = await addOnservices.findById({ _id: req.params.id });
+                                if (!findService) {
+                                        return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
+                                }
+                                cart.AddOnservicesSchema[itemIndex].serviceId = req.params.id;
+                                cart.AddOnservicesSchema[itemIndex].price = findService.price;
+                                cart.AddOnservicesSchema[itemIndex].totalMin = findService.totalMin;
+                                cart.AddOnservicesSchema[itemIndex].totalTime = findService.totalTime;
+                                cart.AddOnservicesSchema[itemIndex].quantity = req.body.quantity;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
+                                cart.toTime = x;
+                                await cart.save();
+                                let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                                const data3 = await User.findOne({ _id: req.body.userId });
+                                let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                if (saveCart.services.length > 0) {
+                                        for (const cartProduct of saveCart.services) {
+                                                if (cartProduct.serviceId.type === "offer") {
+                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
+                                                        offerDiscount += cartProduct.offerDiscount;
+                                                        subTotal += cartProduct.subTotal;
+                                                        total += cartProduct.total;
+                                                }
+                                                if (cartProduct.serviceId.type === "Service") {
+                                                        if (data3.isSubscription === true) {
+                                                                if (cartProduct.serviceId.multipleSize == true) {
+                                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        total += cartProduct.total;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                } else {
+                                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        total += cartProduct.total;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                }
+                                                        } else {
+                                                                if (cartProduct.serviceId.multipleSize == true) {
+                                                                        let x = 0
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        total += cartProduct.total;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                } else {
+                                                                        let x = 0
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        total += cartProduct.total;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                                if (saveCart.AddOnservicesSchema.length > 0) {
+                                        saveCart.AddOnservicesSchema.forEach((cartGift) => {
+                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
                                                 subTotal += cartGift.subTotal;
                                                 total += cartGift.total;
                                         });
