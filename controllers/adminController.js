@@ -4388,7 +4388,7 @@ exports.editAddOnservicesInCart = async (req, res, next) => {
                                 if (!findService) {
                                         return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
                                 }
-                                cart.AddOnservicesSchema[itemIndex].serviceId = req.body.newServiceId;
+                                cart.AddOnservicesSchema[itemIndex].addOnservicesId = req.body.newServiceId;
                                 cart.AddOnservicesSchema[itemIndex].price = findService.price;
                                 cart.AddOnservicesSchema[itemIndex].totalMin = findService.totalMin;
                                 cart.AddOnservicesSchema[itemIndex].totalTime = findService.totalTime;
