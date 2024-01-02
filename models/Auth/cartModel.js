@@ -118,6 +118,9 @@ const CartSchema = new Schema({
     fromTime: {
         type: Date,
     },
+    teamMember: {
+        type: String,
+    },
     suggesstion: [{
         suggesstion: {
             type: String,

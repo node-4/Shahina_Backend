@@ -60,6 +60,9 @@ const DocumentSchema = schema({
                 type: schema.Types.ObjectId,
                 ref: "user"
         },
+        teamMember: {
+                type: String,
+        },
         date: {
                 type: Date,
         },

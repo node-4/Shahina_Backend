@@ -4080,6 +4080,7 @@ exports.editServiceInCart = async (req, res, next) => {
                                 }, 0);
                                 let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
+                                cart.teamMember = req.body.teamMember;
                                 await cart.save();
                                 let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
                                 let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
@@ -4394,6 +4395,7 @@ exports.editAddOnservicesInCart = async (req, res, next) => {
                                 cart.AddOnservicesSchema[itemIndex].quantity = req.body.quantity;
                                 let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
+                                cart.teamMember = req.body.teamMember;
                                 await cart.save();
                                 let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
                                 const data3 = await User.findOne({ _id: req.body.userId });
