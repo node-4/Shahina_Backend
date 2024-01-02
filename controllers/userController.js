@@ -4687,12 +4687,12 @@ const calculateCartResponse5 = async (cart, userId) => {
                 if (cart.toTime != (null || undefined)) {
                         if (cart.services.length > 0) {
                                 for (let i = 0; i < cart.services.length; i++) {
-                                        totalTime = totalTime + cart.services[i].serviceId.totalMin;
+                                        totalTime = totalTime + cart.services[i].totalMin;
                                 }
                         }
                         if (cart.AddOnservicesSchema.length > 0) {
                                 for (let i = 0; i < cart.AddOnservicesSchema.length; i++) {
-                                        totalTime = totalTime + cart.AddOnservicesSchema[i].addOnservicesId.totalMin;
+                                        totalTime = totalTime + cart.AddOnservicesSchema[i].totalMin;
                                 }
                         }
                         var dateTimeString = cart.toTime;
@@ -4714,8 +4714,8 @@ const calculateCartResponse5 = async (cart, userId) => {
                         for (const cartProduct of cartResponse.services) {
                                 if (cartProduct.serviceId.type === "offer") {
                                         cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                        cartProduct.total = parseFloat((cartProduct.serviceId.discountPrice * cartProduct.quantity).toFixed(2));
-                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.serviceId.discountPrice) * cartProduct.quantity).toFixed(2));
+                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
                                         offerDiscount += cartProduct.offerDiscount;
                                         subTotal += cartProduct.subTotal;
                                         total += cartProduct.total;
@@ -4723,10 +4723,10 @@ const calculateCartResponse5 = async (cart, userId) => {
                                 if (cartProduct.serviceId.type === "Service") {
                                         if (data3.isSubscription === true) {
                                                 if (cartProduct.serviceId.multipleSize == true) {
-                                                        let x = (parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
+                                                        let x = (parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2)));
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                         cartProduct.total = parseFloat((cartProduct.memberprice * cartProduct.quantity).toFixed(2));
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
@@ -4736,8 +4736,8 @@ const calculateCartResponse5 = async (cart, userId) => {
                                                         let x = (parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2)) - parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2)));
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.serviceId.mPrice * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         total += cartProduct.total;
@@ -4748,8 +4748,8 @@ const calculateCartResponse5 = async (cart, userId) => {
                                                         let x = 0
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.sizePrice * cartProduct.quantity).toFixed(2) - x);
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         total += cartProduct.total;
@@ -4758,8 +4758,8 @@ const calculateCartResponse5 = async (cart, userId) => {
                                                         let x = 0
                                                         cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
                                                         membershipDiscount += x;
-                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
-                                                        cartProduct.total = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2) - x);
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
                                                         cartProduct.offerDiscount = 0.00;
                                                         offerDiscount += cartProduct.offerDiscount;
                                                         total += cartProduct.total;
@@ -4771,8 +4771,8 @@ const calculateCartResponse5 = async (cart, userId) => {
                 }
                 if (cartResponse.AddOnservicesSchema.length > 0) {
                         cartResponse.AddOnservicesSchema.forEach((cartGift) => {
-                                cartGift.total = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
-                                cartGift.subTotal = parseFloat((cartGift.addOnservicesId.price * cartGift.quantity).toFixed(2));
+                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
                                 subTotal += cartGift.subTotal;
                                 total += cartGift.total;
                         });
