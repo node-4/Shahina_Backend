@@ -4071,7 +4071,7 @@ exports.editServiceInCart = async (req, res, next) => {
                                         cart.services[itemIndex].totalTime = cart.services[itemIndex].totalTime;
                                         cart.services[itemIndex].totalMin = cart.services[itemIndex].totalMin;
                                 }
-                                cart.services[itemIndex].serviceId = req.params.id;
+                                cart.services[itemIndex].serviceId = req.body.newServiceId;
                                 cart.services[itemIndex].discount = req.body.discount;
                                 cart.services[itemIndex].discountProvide = discountProvide;
                                 cart.totalTime = cart.services.reduce((total, service) => {
@@ -4387,7 +4387,7 @@ exports.editAddOnservicesInCart = async (req, res, next) => {
                                 if (!findService) {
                                         return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
                                 }
-                                cart.AddOnservicesSchema[itemIndex].serviceId = req.params.id;
+                                cart.AddOnservicesSchema[itemIndex].serviceId = req.body.newServiceId;
                                 cart.AddOnservicesSchema[itemIndex].price = findService.price;
                                 cart.AddOnservicesSchema[itemIndex].totalMin = findService.totalMin;
                                 cart.AddOnservicesSchema[itemIndex].totalTime = findService.totalTime;
