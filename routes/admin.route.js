@@ -181,4 +181,5 @@ module.exports = (app) => {
         app.put("/api/v1/addServiceIOrders/:id", auth.addServiceInOrders);
         app.put("/api/v1/addOnservicesInOrders/:id", auth.addOnservicesInOrders);
         app.put("/api/v1/deleteServicefromOrders/:id", auth.deleteServicefromOrders);
+        app.put("/api/v1/deleteAddOnServicefromOrders/:id", auth.deleteAddOnServicefromOrders);
 }
