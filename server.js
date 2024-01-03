@@ -67,10 +67,10 @@ const reffralCode = async () => {
         }
         return OTP;
 }
-setInterval(async () => {
-        console.log("-----------call out function---------");
-        // await createBirthdayRewards();
-}, 10000);
+// setInterval(async () => {
+//         console.log("-----------call out function---------");
+//         // await createBirthdayRewards();
+// }, 10000);
 mongoose.Promise = global.Promise;
 mongoose.set("strictQuery", true);
 mongoose.connect(process.env.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true, }).then((data) => {

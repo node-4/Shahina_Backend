@@ -121,21 +121,28 @@ exports.update = async (req, res) => {
 };
 exports.clientRegistration = async (req, res) => {
         try {
-                let findUser = await User.findOne({ $and: [{ $or: [{ email: req.body.email }, { phone: req.body.phone }] }] });
-                if (findUser) {
-                        return res.status(409).send({ status: 409, message: "User already registed with these details. ", data: {}, });
-                } else {
-                        req.body.otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
-                        req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
-                        req.body.accountVerification = false;
-                        req.body.refferalCode = await reffralCode();
-                        if (req.body.password != (null || undefined)) {
-                                req.body.password = bcrypt.hashSync(req.body.password, 8);
+                if (req.body.phone != (null || undefined)) {
+                        let findUser = await User.findOne({ phone: req.body.phone });
+                        if (findUser) {
+                                return res.status(409).send({ status: 409, message: "User already registered with these details. ", data: {}, });
                         }
-                        req.body.userType = "USER";
-                        const userCreate = await User.create(req.body);
-                        return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
                 }
+                if (req.body.email != (null || undefined)) {
+                        let findUser = await User.findOne({ email: req.body.email });
+                        if (findUser) {
+                                return res.status(409).send({ status: 409, message: "User already registered with these details. ", data: {}, });
+                        }
+                }
+                req.body.otp = newOTP.generate(4, { alphabets: false, upperCase: false, specialChar: false, });
+                req.body.otpExpiration = new Date(Date.now() + 5 * 60 * 1000);
+                req.body.accountVerification = false;
+                req.body.refferalCode = await reffralCode();
+                if (req.body.password != (null || undefined)) {
+                        req.body.password = bcrypt.hashSync(req.body.password, 8);
+                }
+                req.body.userType = "USER";
+                const userCreate = await User.create(req.body);
+                return res.status(200).send({ status: 200, message: "Registered successfully ", data: userCreate, });
         } catch (error) {
                 console.error(error);
                 return res.status(500).json({ message: "Server error" });
@@ -2292,7 +2299,7 @@ exports.getServiceOrderswithDate = async (req, res) => {
                 ];
                 const totalOrderCounts = await serviceOrder.aggregate(aggregationPipeline);
                 const datewiseOrders = await serviceOrder
-                        .find({ orderStatus: ["adminUnconfirmed" || "confirmed" || "cancel"] })
+                        .find({ orderStatus: { $in: ["adminUnconfirmed", "confirmed", "cancel"] } })
                         .populate([
                                 { path: "services.serviceId", select: { reviews: 0 } },
                                 { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } },
@@ -5144,6 +5151,145 @@ exports.getServiceOrdersByuserId = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
+exports.editServiceIOrders = async (req, res, next) => {
+        try {
+                const cart = await serviceOrder.findById({ _id: req.params.id })
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                } else {
+                        const data3 = await User.findOne({ _id: cart.user });
+                        const itemIndex = cart.services.findIndex((cartItem) => cartItem.serviceId.toString() === req.body.serviceId);
+                        if (itemIndex === -1) {
+                                return res.status(404).json({ message: "Service Not Found in cart.", status: 404, data: {} });
+                        } else {
+                                let findService = await services.findById({ _id: req.body.serviceId });
+                                if (!findService) {
+                                        return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
+                                }
+                                let discountProvide;
+                                if (req.body.discount > 0) {
+                                        discountProvide = true
+                                } else {
+                                        discountProvide = false
+                                }
+                                if (req.body.price != (null || undefined)) {
+                                        cart.services[itemIndex].price = req.body.price;
+                                } else {
+                                        cart.services[itemIndex].price = cart.services[itemIndex].price;
+                                }
+                                if (req.body.quantity != (null || undefined)) {
+                                        cart.services[itemIndex].quantity = req.body.quantity;
+                                } else {
+                                        cart.services[itemIndex].quantity = cart.services[itemIndex].quantity;
+                                }
+                                if (req.body.totalTime != (null || undefined)) {
+                                        cart.services[itemIndex].totalTime = req.body.totalTime;
+                                        cart.services[itemIndex].totalMin = req.body.totalMin;
+                                } else {
+                                        cart.services[itemIndex].totalTime = cart.services[itemIndex].totalTime;
+                                        cart.services[itemIndex].totalMin = cart.services[itemIndex].totalMin;
+                                }
+                                cart.services[itemIndex].serviceId = req.body.newServiceId;
+                                cart.services[itemIndex].discount = req.body.discount;
+                                cart.services[itemIndex].discountProvide = discountProvide;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
+                                const d = new Date(req.body.date);
+                                let text = d.toISOString();
+                                cart.date = text;
+                                cart.toTime = x;
+                                cart.teamMember = req.body.teamMember;
+                                await cart.save();
+                                let totalTime = 0;
+                                if (cart.toTime != (null || undefined)) {
+                                        if (cart.services.length > 0) {
+                                                for (let i = 0; i < cart.services.length; i++) {
+                                                        totalTime = totalTime + cart.services[i].totalMin;
+                                                }
+                                        }
+                                        if (cart.AddOnservicesSchema.length > 0) {
+                                                for (let i = 0; i < cart.AddOnservicesSchema.length; i++) {
+                                                        totalTime = totalTime + cart.AddOnservicesSchema[i].totalMin;
+                                                }
+                                        }
+                                        var dateTimeString = cart.toTime;
+                                        var dateTimeObject = new Date(dateTimeString);
+                                        let d = dateTimeObject.toISOString().split('T')[0];
+                                        var hours1 = dateTimeObject.getUTCHours();
+                                        var minutes1 = dateTimeObject.getUTCMinutes();
+                                        const hours = parseInt(hours1);
+                                        const minutes = parseInt(minutes1);
+                                        const providedTimeInMinutes = hours * 60 + minutes;
+                                        let fromTimeInMinutes = providedTimeInMinutes + totalTime;
+                                        const fromTime = new Date(d);
+                                        fromTime.setMinutes(fromTimeInMinutes);
+                                        cart.fromTime = fromTime;
+                                }
+                                if (totalTime > 0) {
+                                        var hours2 = Math.floor(totalTime / 60);
+                                        var minutes2 = totalTime % 60;
+                                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                        cart.timeInMin = timeInMin;
+                                        await cart.save();
+                                }
+                                let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                                let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                if (saveCart.services.length > 0) {
+                                        for (const cartProduct of saveCart.services) {
+                                                if (cartProduct.serviceId.type === "offer") {
+                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        subTotal += cartProduct.subTotal;
+                                                        total += cartProduct.total;
+                                                }
+                                                if (cartProduct.serviceId.type === "Service") {
+                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                let x = 0
+                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                membershipDiscount += x;
+                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                total += cartProduct.total;
+                                                                subTotal += cartProduct.subTotal;
+                                                        } else {
+                                                                let x = 0
+                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                membershipDiscount += x;
+                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                total += cartProduct.total;
+                                                                subTotal += cartProduct.subTotal;
+                                                        }
+                                                }
+                                        }
+                                }
+                                if (saveCart.AddOnservicesSchema.length > 0) {
+                                        saveCart.AddOnservicesSchema.forEach((cartGift) => {
+                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                subTotal += cartGift.subTotal;
+                                                total += cartGift.total;
+                                        });
+                                }
+                                if (isNaN(membershipDiscount)) {
+                                        membershipDiscount = 0;
+                                }
+                                saveCart.memberShipPer = Number(membershipDiscountPercentage);
+                                saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                saveCart.offerDiscount = Number(offerDiscount);
+                                saveCart.subTotal = subTotal;
+                                saveCart.total = total;
+                                await saveCart.save();
+                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
+                        }
+                }
+        } catch (error) {
+                next(error);
+        }
+}
 async function getItemData(itemType, itemId) {
         switch (itemType) {
                 case 'product':
