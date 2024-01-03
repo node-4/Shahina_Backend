@@ -4789,7 +4789,7 @@ exports.checkout = async (req, res) => {
                                         const newTime = "00:00:00.000+00:00";
                                         const replacedDateString = `${dateString}T${newTime} `;
                                         console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
-                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(replacedDateString), isBooked: false });
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(dateObject), isBooked: false });
                                         if (findSlot1.length > 0) {
                                                 orderObjTotalAmount = orderObjTotalAmount + total;
                                                 cartResponse._id = new mongoose.Types.ObjectId();
@@ -4978,8 +4978,8 @@ exports.checkout = async (req, res) => {
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
                                         const replacedDateString = `${dateString}T${newTime} `;
-                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
-                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(replacedDateString), isBooked: false });
+                                        console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(dateObject), isBooked: false });
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(dateObject), isBooked: false });
                                         if (findSlot1.length > 0) {
                                                 orderObjTotalAmount = orderObjTotalAmount + total;
                                                 cartResponse._id = new mongoose.Types.ObjectId();
