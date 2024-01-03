@@ -2042,7 +2042,7 @@ exports.checkout = async (req, res) => {
                                                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                                         let mailOptions = {
                                                                                 from: '<do_not_reply@gmail.com>',
-                                                                                to: data3.email,
+                                                                                to: 'info@shahinahoja.com',
                                                                                 subject: 'Order Received',
                                                                                 text: `You have received a new order`,
                                                                                 html: `
@@ -2072,9 +2072,8 @@ exports.checkout = async (req, res) => {
                                                                                   <p>Please avoid cancelling within 48 hours of your appointment.</p>
                                                                                   <p>Important info.</p>
                                                                                   <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
-                                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
-                                                                                  <p>Powered by</p>
-                                                                                  <p>fresha</p>`,
+                                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
+                                                                                 `,
                                                                         };
                                                                         let info1 = await transporter.sendMail(mailOptions);
                                                                         if (info1) {
@@ -2640,7 +2639,7 @@ exports.checkout = async (req, res) => {
                                                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                                         let mailOptions = {
                                                                                 from: '<do_not_reply@gmail.com>',
-                                                                                to: data3.email,
+                                                                                to: 'info@shahinahoja.com',
                                                                                 subject: 'Order Received',
                                                                                 text: `You have received a new order`,
                                                                                 html: `
@@ -2670,9 +2669,8 @@ exports.checkout = async (req, res) => {
                                                                                   <p>Please avoid cancelling within 48 hours of your appointment.</p>
                                                                                   <p>Important info.</p>
                                                                                   <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
-                                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
-                                                                                  <p>Powered by</p>
-                                                                                  <p>fresha</p>`,
+                                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
+                                                                                `,
                                                                         };
                                                                         let info1 = await transporter.sendMail(mailOptions);
                                                                         if (info1) {
@@ -3538,7 +3536,7 @@ exports.checkoutApp = async (req, res) => {
                                                                 var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                                 let mailOptions = {
                                                                         from: '<do_not_reply@gmail.com>',
-                                                                        to: data3.email,
+                                                                        to: 'info@shahinahoja.com',
                                                                         subject: 'Order Received',
                                                                         text: `You have received a new order`,
                                                                         html: `
@@ -3568,9 +3566,8 @@ exports.checkoutApp = async (req, res) => {
                                                                           <p>Please avoid cancelling within 48 hours of your appointment.</p>
                                                                           <p>Important info.</p>
                                                                           <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
-                                                                          <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
-                                                                          <p>Powered by</p>
-                                                                          <p>fresha</p>`,
+                                                                          <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
+                                                                          `,
                                                                 };
                                                                 let info1 = await transporter.sendMail(mailOptions);
                                                                 if (info1) {
@@ -4140,7 +4137,7 @@ exports.checkoutApp = async (req, res) => {
                                                                 var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                                 let mailOptions = {
                                                                         from: '<do_not_reply@gmail.com>',
-                                                                        to: data3.email,
+                                                                        to: 'info@shahinahoja.com',
                                                                         subject: 'Order Received',
                                                                         text: `You have received a new order`,
                                                                         html: `
@@ -4170,9 +4167,8 @@ exports.checkoutApp = async (req, res) => {
                                                                           <p>Please avoid cancelling within 48 hours of your appointment.</p>
                                                                           <p>Important info.</p>
                                                                           <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
-                                                                          <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with Fresha for appointments and payments.</p>
-                                                                          <p>Powered by</p>
-                                                                          <p>fresha</p>`,
+                                                                          <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
+                                                                          `,
                                                                 };
                                                                 let info1 = await transporter.sendMail(mailOptions);
                                                                 if (info1) {
