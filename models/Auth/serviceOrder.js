@@ -19,7 +19,10 @@ const cartAddOnservicesSchema = new schema({
         quantity: {
                 type: Number,
                 default: 1
-        }
+        },
+        teamMember: {
+                type: String,
+        },
 }, { _id: false })
 const cartServiceSchema = new schema({
         serviceId: {
@@ -51,6 +54,9 @@ const cartServiceSchema = new schema({
         totalMin: {
                 type: Number
         },
+        teamMember: {
+                type: String,
+        },
 }, { _id: false });
 const DocumentSchema = schema({
         orderId: {
@@ -59,9 +65,6 @@ const DocumentSchema = schema({
         user: {
                 type: schema.Types.ObjectId,
                 ref: "user"
-        },
-        teamMember: {
-                type: String,
         },
         date: {
                 type: Date,

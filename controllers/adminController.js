@@ -3662,7 +3662,10 @@ exports.reSechduleOrder = async (req, res) => {
                 if (findCart) {
                         let totalTime = 0;
                         for (let i = 0; i < findCart.services.length; i++) {
-                                totalTime = totalTime + findCart.services[i].serviceId.totalMin;
+                                totalTime = totalTime + findCart.services[i].totalMin;
+                        }
+                        for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
+                                totalTime = totalTime + findCart.addOnservicesId[i].totalMin;
                         }
                         const timeArray = req.body.time.split(':');
                         const hours = parseInt(timeArray[0]);
@@ -3792,6 +3795,7 @@ exports.addToCart = async (req, res, next) => {
                                         price: price,
                                         totalTime: findService.totalTime,
                                         totalMin: findService.totalMin,
+                                        teamMember: req.body.teamMember
                                 };
                                 let services = [ser];
                                 let obj = {
@@ -3832,6 +3836,7 @@ exports.addToCart = async (req, res, next) => {
                                         price: price,
                                         totalTime: findService.totalTime,
                                         totalMin: findService.totalMin,
+                                        teamMember: req.body.teamMembe
                                 };
                                 cart.services.push(obj);
                                 const totalPromises = cart.services.map(async (service) => {
@@ -3956,6 +3961,7 @@ exports.addToCart = async (req, res, next) => {
                                 cart.services[itemIndex].totalMin = findService.totalMin;
                                 cart.services[itemIndex].discount = req.body.discount;
                                 cart.services[itemIndex].discountProvide = discountProvide;
+                                cart.services[itemIndex].teamMember = req.body.teamMember;
                                 cart.totalTime = cart.services.reduce((total, service) => {
                                         const serviceObj = findService;
                                         return total + serviceObj.totalMin * service.quantity;
@@ -4084,6 +4090,7 @@ exports.editServiceInCart = async (req, res, next) => {
                                 cart.services[itemIndex].serviceId = req.body.newServiceId;
                                 cart.services[itemIndex].discount = req.body.discount;
                                 cart.services[itemIndex].discountProvide = discountProvide;
+                                cart.services[itemIndex].teamMember = req.body.teamMember;
                                 cart.totalTime = cart.services.reduce((total, service) => {
                                         const serviceObj = findService;
                                         return total + serviceObj.totalMin * service.quantity;
@@ -4187,6 +4194,7 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                         price: findService.price,
                                         totalTime: findService.totalTime,
                                         totalMin: findService.totalMin,
+                                        teamMember: req.body.teamMember
                                 };
                                 let AddOnservicesSchema = [ser];
                                 let obj = {
@@ -4211,6 +4219,7 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                         price: findService.price,
                                         totalTime: findService.totalTime,
                                         totalMin: findService.totalMin,
+                                        teamMember: req.body.teamMember
                                 };
                                 cart.AddOnservicesSchema.push(obj);
                                 await cart.save();
@@ -4300,6 +4309,7 @@ exports.addToCartAddOnservices = async (req, res, next) => {
                                 cart.AddOnservicesSchema[itemIndex].totalMin = findService.totalMin;
                                 cart.AddOnservicesSchema[itemIndex].totalTime = findService.totalTime;
                                 cart.AddOnservicesSchema[itemIndex].quantity = req.body.quantity;
+                                cart.AddOnservicesSchema[itemIndex].teamMember = req.body.teamMember;
                                 await cart.save();
                                 let saveCart = await Cart.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
                                 const data3 = await User.findOne({ _id: req.body.userId });
@@ -4403,6 +4413,7 @@ exports.editAddOnservicesInCart = async (req, res, next) => {
                                 cart.AddOnservicesSchema[itemIndex].totalMin = findService.totalMin;
                                 cart.AddOnservicesSchema[itemIndex].totalTime = findService.totalTime;
                                 cart.AddOnservicesSchema[itemIndex].quantity = req.body.quantity;
+                                cart.AddOnservicesSchema[itemIndex].teamMember = req.body.teamMember;
                                 let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
                                 cart.teamMember = req.body.teamMember;
@@ -5191,6 +5202,7 @@ exports.editServiceInOrders = async (req, res, next) => {
                                 cart.services[itemIndex].serviceId = req.body.newServiceId;
                                 cart.services[itemIndex].discount = req.body.discount;
                                 cart.services[itemIndex].discountProvide = discountProvide;
+                                cart.services[itemIndex].teamMember = req.body.teamMember;
                                 let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 const d = new Date(req.body.date);
                                 let text = d.toISOString();
@@ -5402,6 +5414,7 @@ exports.editAddOnservicesInOrders = async (req, res, next) => {
                                         cart.AddOnservicesSchema[itemIndex].totalTime = cart.AddOnservicesSchema[itemIndex].totalTime;
                                         cart.AddOnservicesSchema[itemIndex].totalMin = cart.AddOnservicesSchema[itemIndex].totalMin;
                                 }
+                                cart.AddOnservicesSchema[itemIndex].teamMember = req.body.teamMember;
                                 cart.AddOnservicesSchema[itemIndex].addOnservicesId = req.body.newAddOnservicesId;
                                 let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 const d = new Date(req.body.date);
@@ -5595,6 +5608,7 @@ exports.addServiceInOrders = async (req, res, next) => {
                                         price: findService.price,
                                         totalTime: findService.totalTime,
                                         totalMin: findService.totalMin,
+                                        teamMember:req.body.teamMember
                                 };
                                 cart.services.push(obj);
                                 const totalPromises = cart.services.map(async (service) => {
@@ -5705,6 +5719,7 @@ exports.addOnservicesInOrders = async (req, res, next) => {
                                         price: findService.price,
                                         totalTime: findService.totalTime,
                                         totalMin: findService.totalMin,
+                                        teamMember:req.body.teamMember
                                 };
                                 cart.AddOnservicesSchema.push(obj);
                                 const totalPromises = cart.services.map(async (service) => {

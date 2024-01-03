@@ -59,7 +59,10 @@ const cartAddOnservicesSchema = new Schema({
     quantity: {
         type: Number,
         default: 1
-    }
+    },
+    teamMember: {
+        type: String,
+    },
 }, { _id: false })
 const cartServiceSchema = new Schema({
     serviceId: {
@@ -98,7 +101,10 @@ const cartServiceSchema = new Schema({
     quantity: {
         type: Number,
         default: 1
-    }
+    },
+    teamMember: {
+        type: String,
+    },
 }, { _id: false })
 const CartSchema = new Schema({
     user: {
@@ -117,9 +123,6 @@ const CartSchema = new Schema({
     },
     fromTime: {
         type: Date,
-    },
-    teamMember: {
-        type: String,
     },
     suggesstion: [{
         suggesstion: {
