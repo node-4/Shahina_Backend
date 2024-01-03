@@ -3504,15 +3504,16 @@ exports.slotBlocked = async (req, res) => {
                 let x2 = `${req.body.date}T00:00:00.000Z`
                 let x = `${req.body.date}T${req.body.from}:00.000Z`
                 let x1 = `${req.body.date}T${req.body.to}:00.000Z`
-                console.log({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2) });
-                let findSlot = await slot.find({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2), isBooked: false });
+                console.log({ from: { $gte: new Date(x) } }, { to: { $lte: new Date(x1) } });
+                console.log({ from: { $gte: new Date(x) }, to: { $lte: new Date(x1) }, date: new Date(x2), isBooked: false });
+                let findSlot = await slot.find({ from: { $gte: new Date(x) }, to: { $lte: new Date(x1) }, date: new Date(x2), isBooked: false });
                 if (findSlot.length > 0) {
                         let data = [];
                         for (let i = 0; i < findSlot.length; i++) {
                                 let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { slotBlocked: true, title: req.body.title, description: req.body.description } }, { new: true });
                                 data.push(updateSlot)
                         }
-                        return res.status(200).json({ message: "Slots Blocked  found.", status: 200, data: data, });
+                        return res.status(200).json({ message: "Slots Blocked  found.", status: 200, data: data, length: findSlot.length, });
                 } else {
                         return res.status(404).json({ message: "Slots not  found.", status: 404, data: {}, });
                 }
@@ -3526,15 +3527,16 @@ exports.slotUnBlocked = async (req, res) => {
                 let x2 = `${req.body.date}T00:00:00.000Z`
                 let x = `${req.body.date}T${req.body.from}:00.000Z`
                 let x1 = `${req.body.date}T${req.body.to}:00.000Z`
-                console.log({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2) });
-                let findSlot = await slot.find({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2) });
+                console.log({ from: { $gte: new Date(x) } }, { to: { $lte: new Date(x1) } });
+                console.log({ from: { $gte: new Date(x) }, to: { $lte: new Date(x1) }, date: new Date(x2), isBooked: false });
+                let findSlot = await slot.find({ from: { $gte: new Date(x) },  to: { $lte: new Date(x1) }, date: new Date(x2) });
                 if (findSlot.length > 0) {
                         let data = [];
                         for (let i = 0; i < findSlot.length; i++) {
                                 let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { slotBlocked: false, } }, { new: true });
                                 data.push(updateSlot)
                         }
-                        return res.status(200).json({ message: "Slots Blocked  found.", status: 200, data: data, });
+                        return res.status(200).json({ message: "Slots Blocked  found.", status: 200, data: findSlot, length: findSlot.length});
                 } else {
                         return res.status(404).json({ message: "Slots not  found.", status: 404, data: {}, });
                 }
