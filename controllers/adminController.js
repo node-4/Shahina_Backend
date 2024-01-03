@@ -5155,7 +5155,7 @@ exports.editServiceInOrders = async (req, res, next) => {
         try {
                 const cart = await serviceOrder.findById({ _id: req.params.id })
                 if (!cart) {
-                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                        return res.status(200).json({ success: false, msg: "Order not found.", cart: {} });
                 } else {
                         const itemIndex = cart.services.findIndex((cartItem) => cartItem.serviceId.toString() === req.body.serviceId);
                         if (itemIndex === -1) {
@@ -5369,7 +5369,7 @@ exports.editAddOnservicesInOrders = async (req, res, next) => {
         try {
                 const cart = await serviceOrder.findById({ _id: req.params.id })
                 if (!cart) {
-                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                        return res.status(200).json({ success: false, msg: "Order not found", cart: {} });
                 } else {
                         const itemIndex = cart.AddOnservicesSchema.findIndex((cartItem) => cartItem.addOnservicesId.toString() === req.body.addOnservicesId);
                         if (itemIndex === -1) {
