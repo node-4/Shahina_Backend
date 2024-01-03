@@ -864,6 +864,16 @@ exports.getServiceOrderbyId = async (req, res, next) => {
                                 total += cartGift.total;
                         });
                 }
+                const totalPromises = saveCart.services.map(async (service) => {
+                        return service.totalMin * service.quantity;
+                });
+                const totalPromises1 = saveCart.AddOnservicesSchema.map(async (service) => {
+                        return service.totalMin * service.quantity;
+                });
+                const [totalArray, totalArray1] = await Promise.all([Promise.all(totalPromises), Promise.all(totalPromises1)]);
+                const totalTime = totalArray.concat(totalArray1).reduce((total, value) => {
+                        return total + value;
+                }, 0);
                 saveCart.memberShipPer = Number(membershipDiscountPercentage);
                 saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
                 saveCart.offerDiscount = Number(offerDiscount);
