@@ -3593,9 +3593,7 @@ exports.deleteSuggestionfromCart = async (req, res) => {
 };
 exports.noShowUpdate = async (req, res) => {
         try {
-                const d = new Date(req.params.date);
-                let text = d.toISOString();
-                let findCart = await serviceOrder.findOne({ user: req.params.userId, date: text }).populate([{ path: "user", }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
+                let findCart = await serviceOrder.findOne({ _id: req.params.id }).populate([{ path: "user", }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (findCart) {
                         const user = await User.findById({ _id: findCart.user });
                         if (!user) {
@@ -3660,12 +3658,13 @@ exports.reSechduleOrder = async (req, res) => {
                 let text = d.toISOString();
                 let findCart = await serviceOrder.findOne({ _id: req.params.orderId, }).populate([{ path: "user" }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } },]);
                 if (findCart) {
+                        console.log(findCart);
                         let totalTime = 0;
                         for (let i = 0; i < findCart.services.length; i++) {
                                 totalTime = totalTime + findCart.services[i].totalMin;
                         }
                         for (let i = 0; i < findCart.AddOnservicesSchema.length; i++) {
-                                totalTime = totalTime + findCart.addOnservicesId[i].totalMin;
+                                totalTime = totalTime + findCart.AddOnservicesSchema[i].totalMin;
                         }
                         const timeArray = req.body.time.split(':');
                         const hours = parseInt(timeArray[0]);

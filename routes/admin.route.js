@@ -152,7 +152,7 @@ module.exports = (app) => {
         app.put("/api/v1/admin/addSuggestionToServiceOrder/:id", [authJwt.verifyToken], auth.addSuggestionToServiceOrder);
         app.put("/api/v1/admin/editSuggestionfromOrder/:id/:suggesstionId", [authJwt.verifyToken], auth.editSuggestionfromOrder);
         app.put("/api/v1/admin/deleteSuggestionfromOrder/:id/:suggesstionId", [authJwt.verifyToken], auth.deleteSuggestionfromOrder);
-        app.put("/api/v1/admin/noShowUpdate/:userId/:date", [authJwt.verifyToken], auth.noShowUpdate);
+        app.put("/api/v1/admin/noShowUpdate/:id", [authJwt.verifyToken], auth.noShowUpdate);
         app.put("/api/v1/admin/reSechduleOrder/:orderId/:date", [authJwt.verifyToken], auth.reSechduleOrder);
         app.get('/api/v1/admin/getCart/:userId', [authJwt.verifyToken], auth.getCart);
         app.post('/api/v1/admin/checkout/:userId', [authJwt.verifyToken], auth.checkout);
