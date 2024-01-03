@@ -1273,6 +1273,7 @@ exports.getAllServices = async (req, res) => {
                         return res.status(200).send({ status: 200, message: "Services found successfully.", data: findSubscription });
                 }
         } catch (error) {
+                console.log(error);
                 return res.status(500).json({ status: 500, error: "Internal Server Error" });
         }
 };
