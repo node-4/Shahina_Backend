@@ -4802,7 +4802,7 @@ exports.checkout = async (req, res) => {
                                                 }
                                                 let saveOrder = await serviceOrder.create(cartResponse);
                                                 if (saveOrder) {
-                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: dateObject, isBooked: false });
                                                         if (findSlot.length > 0) {
                                                                 for (let i = 0; i < findSlot.length; i++) {
                                                                         let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
@@ -4992,7 +4992,7 @@ exports.checkout = async (req, res) => {
                                                 }
                                                 let saveOrder = await serviceOrder.create(cartResponse);
                                                 if (saveOrder) {
-                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: dateObject, isBooked: false });
                                                         if (findSlot.length > 0) {
                                                                 for (let i = 0; i < findSlot.length; i++) {
                                                                         let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
