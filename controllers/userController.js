@@ -1715,7 +1715,7 @@ exports.checkout = async (req, res) => {
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
                                         const replacedDateString = `${dateString}T${newTime}`;
-                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                         if (findSlot1.length > 0) {
                                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
                                                         let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
@@ -1964,7 +1964,7 @@ exports.checkout = async (req, res) => {
                                                                 console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                                                 if (saveOrder) {
                                                                         const data4 = await User.findOne({ userType: "ADMIN" });
-                                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                                                         if (findSlot.length > 0) {
                                                                                 for (let i = 0; i < findSlot.length; i++) {
                                                                                         let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
@@ -2313,7 +2313,7 @@ exports.checkout = async (req, res) => {
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
                                         const replacedDateString = `${dateString}T${newTime}`;
-                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                         if (findSlot1.length > 0) {
                                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
                                                         let shipping = 0, productFBPTotal = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
@@ -2562,7 +2562,7 @@ exports.checkout = async (req, res) => {
                                                                 console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                                                 if (saveOrder) {
                                                                         const data4 = await User.findOne({ userType: "ADMIN" });
-                                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                        let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                                                         if (findSlot.length > 0) {
                                                                                 for (let i = 0; i < findSlot.length; i++) {
                                                                                         let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
@@ -3223,7 +3223,7 @@ exports.checkoutApp = async (req, res) => {
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
                                         const replacedDateString = `${dateString}T${newTime}`;
-                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                         if (findSlot1.length > 0) {
                                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
                                                         let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
@@ -3460,7 +3460,7 @@ exports.checkoutApp = async (req, res) => {
                                                         cartResponse.orderStatus = "confirmed";
                                                         let saveOrder = await serviceOrder.create(cartResponse);
                                                         if (saveOrder) {
-                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                                                 if (findSlot.length > 0) {
                                                                         for (let i = 0; i < findSlot.length; i++) {
                                                                                 let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
@@ -3825,7 +3825,7 @@ exports.checkoutApp = async (req, res) => {
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
                                         const replacedDateString = `${dateString}T${newTime}`;
-                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                        let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                         if (findSlot1.length > 0) {
                                                 if (cartResponse.products.length > 0 || cartResponse.frequentlyBuyProductSchema.length > 0) {
                                                         let shipping = 0, productArray = [], frequentlyBuyProductArray = [], offerDiscount = 0, productFBPTotal = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
@@ -4062,7 +4062,7 @@ exports.checkoutApp = async (req, res) => {
                                                         }
                                                         let saveOrder = await serviceOrder.create(cartResponse);
                                                         if (saveOrder) {
-                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false });
+                                                                let findSlot = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
                                                                 if (findSlot.length > 0) {
                                                                         for (let i = 0; i < findSlot.length; i++) {
                                                                                 let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { isBooked: true } }, { new: true });
