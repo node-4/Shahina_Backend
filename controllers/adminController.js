@@ -3504,7 +3504,7 @@ exports.slotBlocked = async (req, res) => {
                 let x = `${req.body.date}T${req.body.from}:00.000Z`
                 let x1 = `${req.body.date}T${req.body.to}:00.000Z`
                 console.log({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2) });
-                let findSlot = await slot.find({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2) });
+                let findSlot = await slot.find({ $or: [{ from: { $gte: new Date(x1) } }, { to: { $lte: new Date(x) } }], date: new Date(x2), isBooked: false });
                 if (findSlot.length > 0) {
                         let data = [];
                         for (let i = 0; i < findSlot.length; i++) {
@@ -3702,7 +3702,7 @@ exports.reSechduleOrder = async (req, res) => {
                                                                 </ul>
                                                               </li>
                                                             `).join('')
-                                        }
+                                                                }
                                                           </ul >
                                                           <p>Location</p>
                                                           <p>Shahina Hoja Aesthetics</p>
@@ -3776,7 +3776,7 @@ exports.addToCart = async (req, res, next) => {
                                 let fromTimeInMinutes = providedTimeInMinutes + totalTime + 30;
                                 const fromTime = new Date(d);
                                 fromTime.setMinutes(fromTimeInMinutes);
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 let discountProvide, price;
                                 if (req.body.discount > 0) {
                                         discountProvide = true
@@ -3853,7 +3853,7 @@ exports.addToCart = async (req, res, next) => {
                                 let fromTimeInMinutes = providedTimeInMinutes + totalTime + 90;
                                 const fromTime = new Date(d);
                                 fromTime.setMinutes(fromTimeInMinutes);
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
                                 cart.fromTime = fromTime;
                                 cart.date = text;
@@ -4095,7 +4095,7 @@ exports.editServiceInCart = async (req, res, next) => {
                                         const serviceObj = findService;
                                         return total + serviceObj.totalMin * service.quantity;
                                 }, 0);
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
                                 cart.teamMember = req.body.teamMember;
                                 await cart.save();
@@ -4414,7 +4414,7 @@ exports.editAddOnservicesInCart = async (req, res, next) => {
                                 cart.AddOnservicesSchema[itemIndex].totalTime = findService.totalTime;
                                 cart.AddOnservicesSchema[itemIndex].quantity = req.body.quantity;
                                 cart.AddOnservicesSchema[itemIndex].teamMember = req.body.teamMember;
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
                                 cart.teamMember = req.body.teamMember;
                                 await cart.save();
@@ -4787,7 +4787,7 @@ exports.checkout = async (req, res) => {
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
-                                        const replacedDateString = `${ dateString }T${ newTime } `;
+                                        const replacedDateString = `${dateString}T${newTime} `;
                                         console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                         let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(replacedDateString), isBooked: false });
                                         if (findSlot1.length > 0) {
@@ -4977,7 +4977,7 @@ exports.checkout = async (req, res) => {
                                         const dateObject = new Date(findCart.date);
                                         const dateString = dateObject.toISOString().split('T')[0];
                                         const newTime = "00:00:00.000+00:00";
-                                        const replacedDateString = `${ dateString }T${ newTime } `;
+                                        const replacedDateString = `${dateString}T${newTime} `;
                                         console.log({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, isBooked: false });
                                         let findSlot1 = await slot.find({ from: { $lte: findCart.fromTime }, to: { $gte: findCart.toTime }, date: new Date(replacedDateString), isBooked: false });
                                         if (findSlot1.length > 0) {
@@ -5197,7 +5197,7 @@ exports.editServiceInOrders = async (req, res, next) => {
                                 cart.services[itemIndex].discount = req.body.discount;
                                 cart.services[itemIndex].discountProvide = discountProvide;
                                 cart.services[itemIndex].teamMember = req.body.teamMember;
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 const d = new Date(req.body.date);
                                 let text = d.toISOString();
                                 cart.date = text;
@@ -5231,7 +5231,7 @@ exports.editServiceInOrders = async (req, res, next) => {
                                 const dateObject = new Date(cart.date);
                                 const dateString = dateObject.toISOString().split('T')[0];
                                 const newTime = "00:00:00.000+00:00";
-                                const replacedDateString = `${ dateString }T${ newTime } `;
+                                const replacedDateString = `${dateString}T${newTime} `;
                                 let findOrderData = await serviceOrder.findOne({ _id: cart._id, to: cart.toTime, date: replacedDateString })
                                 if (findOrderData) {
                                         if (totalTime > 0) {
@@ -5410,7 +5410,7 @@ exports.editAddOnservicesInOrders = async (req, res, next) => {
                                 }
                                 cart.AddOnservicesSchema[itemIndex].teamMember = req.body.teamMember;
                                 cart.AddOnservicesSchema[itemIndex].addOnservicesId = req.body.newAddOnservicesId;
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 const d = new Date(req.body.date);
                                 let text = d.toISOString();
                                 cart.date = text;
@@ -5444,7 +5444,7 @@ exports.editAddOnservicesInOrders = async (req, res, next) => {
                                 const dateObject = new Date(cart.date);
                                 const dateString = dateObject.toISOString().split('T')[0];
                                 const newTime = "00:00:00.000+00:00";
-                                const replacedDateString = `${ dateString }T${ newTime } `;
+                                const replacedDateString = `${dateString}T${newTime} `;
                                 let findOrderData = await serviceOrder.findOne({ _id: cart._id, to: cart.toTime, date: replacedDateString })
                                 if (findOrderData) {
                                         if (totalTime > 0) {
@@ -5624,14 +5624,14 @@ exports.addServiceInOrders = async (req, res, next) => {
                                 let text = d.toISOString();
                                 const fromTime = new Date(d);
                                 fromTime.setMinutes(fromTimeInMinutes);
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
                                 cart.fromTime = fromTime;
                                 cart.date = text;
                                 const dateObject = new Date(cart.date);
                                 const dateString = dateObject.toISOString().split('T')[0];
                                 const newTime = "00:00:00.000+00:00";
-                                const replacedDateString = `${ dateString }T${ newTime } `;
+                                const replacedDateString = `${dateString}T${newTime} `;
                                 let findOrderData = await serviceOrder.findOne({ _id: cart._id, to: cart.toTime, date: replacedDateString })
                                 if (findOrderData) {
                                         await cart.save();
@@ -5811,14 +5811,14 @@ exports.addOnservicesInOrders = async (req, res, next) => {
                                 let text = d.toISOString();
                                 const fromTime = new Date(d);
                                 fromTime.setMinutes(fromTimeInMinutes);
-                                let x = `${ req.body.date }T${ req.body.time }:00.000Z`;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
                                 cart.toTime = x;
                                 cart.fromTime = fromTime;
                                 cart.date = text;
                                 const dateObject = new Date(cart.date);
                                 const dateString = dateObject.toISOString().split('T')[0];
                                 const newTime = "00:00:00.000+00:00";
-                                const replacedDateString = `${ dateString }T${ newTime } `;
+                                const replacedDateString = `${dateString}T${newTime} `;
                                 let findOrderData = await serviceOrder.findOne({ _id: cart._id, to: cart.toTime, date: replacedDateString })
                                 if (findOrderData) {
                                         await cart.save();
@@ -6220,12 +6220,12 @@ exports.successOrder = async (req, res) => {
                                 let findOrder3 = await coupanModel.findOneAndUpdate({ code: findUserOrder.orderId }, { $set: { orderStatus: "confirmed", paymentStatus: "paid" } }, { new: true });
                                 if (findOrder3) {
                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${ findOrder3.code } `, };
+                                        let mailOptions = { from: 'info@shahinahoja.com', to: findOrder3.email, subject: 'Gift Card Provide by Your friend', text: `Gift Card Provide by Your friend Coupan Code is ${findOrder3.code} `, };
                                         let info = await transporter.sendMail(mailOptions);
                                 }
                         }
                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
-                        let mailOption1 = { from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${ findUserOrder.orderId }, Order Amount: ${ findUserOrder.orderObjPaidAmount } `, };
+                        let mailOption1 = { from: '<do_not_reply@gmail.com>', to: 'info@shahinahoja.com', subject: 'Order Received', text: `You have received a new order, OrderId: ${findUserOrder.orderId}, Order Amount: ${findUserOrder.orderObjPaidAmount} `, };
                         let info1 = await transporter.sendMail(mailOption1);
                         if (info1) {
                                 let deleteCart = await Cart.findOneAndDelete({ user: findUserOrder.userId });
