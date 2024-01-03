@@ -177,4 +177,5 @@ module.exports = (app) => {
         app.put("/api/v1/admin/updateSubAdminProfile/:id", [authJwt.verifyToken], auth.updateSubAdminProfile);
         app.get("/api/v1/admin/getAllSubAdmin", auth.getAllSubAdmin);
         app.put("/api/v1/editServiceIOrders/:id", auth.editServiceIOrders);
+        app.put("/api/v1/editAddOnservicesInOrders/:id", auth.editAddOnservicesInOrders);
 }

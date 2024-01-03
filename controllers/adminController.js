@@ -5226,12 +5226,8 @@ exports.editServiceIOrders = async (req, res, next) => {
                                 const dateString = dateObject.toISOString().split('T')[0];
                                 const newTime = "00:00:00.000+00:00";
                                 const replacedDateString = `${dateString}T${newTime}`;
-                                let findSlot1 = await slot.find({ from: { $lte: cart.fromTime }, to: { $gte: cart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
-                                if (findSlot1.length > 0) {
-                                        for (let i = 0; i < findSlot1.length; i++) {
-                                                let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot1[i]._id }, { $set: { isBooked: true, } }, { new: true });
-                                                console.log(updateSlot);
-                                        }
+                                let findOrderData = await serviceOrder.findOne({ _id: cart._id, to: cart.toTime, date: replacedDateString })
+                                if (findOrderData) {
                                         if (totalTime > 0) {
                                                 var hours2 = Math.floor(totalTime / 60);
                                                 var minutes2 = totalTime % 60;
@@ -5293,7 +5289,287 @@ exports.editServiceIOrders = async (req, res, next) => {
                                         await saveCart.save();
                                         return res.status(200).json({ msg: `added to cart`, data: saveCart });
                                 } else {
-                                        return res.status(400).json({ status: 400, msg: "This Slot already booked or blocked. ", data: {} });
+                                        let findSlot1 = await slot.find({ from: { $lte: cart.fromTime }, to: { $gte: cart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
+                                        if (findSlot1.length > 0) {
+                                                for (let i = 0; i < findSlot1.length; i++) {
+                                                        let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot1[i]._id }, { $set: { isBooked: true, } }, { new: true });
+                                                        console.log(updateSlot);
+                                                }
+                                                if (totalTime > 0) {
+                                                        var hours2 = Math.floor(totalTime / 60);
+                                                        var minutes2 = totalTime % 60;
+                                                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                        cart.timeInMin = timeInMin;
+                                                        await cart.save();
+                                                }
+                                                let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                                                let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                if (saveCart.services.length > 0) {
+                                                        for (const cartProduct of saveCart.services) {
+                                                                if (cartProduct.serviceId.type === "offer") {
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += cartProduct.total;
+                                                                }
+                                                                if (cartProduct.serviceId.type === "Service") {
+                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                let x = 0
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                total += cartProduct.total;
+                                                                                subTotal += cartProduct.subTotal;
+                                                                        } else {
+                                                                                let x = 0
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                total += cartProduct.total;
+                                                                                subTotal += cartProduct.subTotal;
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                                if (saveCart.AddOnservicesSchema.length > 0) {
+                                                        saveCart.AddOnservicesSchema.forEach((cartGift) => {
+                                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                                subTotal += cartGift.subTotal;
+                                                                total += cartGift.total;
+                                                        });
+                                                }
+                                                if (isNaN(membershipDiscount)) {
+                                                        membershipDiscount = 0;
+                                                }
+                                                saveCart.memberShipPer = Number(membershipDiscountPercentage);
+                                                saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                saveCart.offerDiscount = Number(offerDiscount);
+                                                saveCart.subTotal = subTotal;
+                                                saveCart.total = total;
+                                                await saveCart.save();
+                                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
+                                        } else {
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked or blocked. ", data: {} });
+                                        }
+                                }
+                        }
+                }
+        } catch (error) {
+                next(error);
+        }
+}
+exports.editAddOnservicesInOrders = async (req, res, next) => {
+        try {
+                const cart = await serviceOrder.findById({ _id: req.params.id })
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                } else {
+                        const itemIndex = cart.AddOnservicesSchema.findIndex((cartItem) => cartItem.addOnservicesId.toString() === req.body.addOnservicesId);
+                        if (itemIndex === -1) {
+                                return res.status(404).json({ message: "Service Not Found in cart.", status: 404, data: {} });
+                        } else {
+                                let findService = await addOnservices.findById({ _id: req.body.addOnservicesId });
+                                if (!findService) {
+                                        return res.status(404).json({ message: "AddOnservices Not Found", status: 404, data: {} });
+                                }
+                                let discountProvide;
+                                if (req.body.discount > 0) {
+                                        discountProvide = true
+                                } else {
+                                        discountProvide = false
+                                }
+                                if (req.body.price != (null || undefined)) {
+                                        cart.AddOnservicesSchema[itemIndex].price = req.body.price;
+                                } else {
+                                        cart.AddOnservicesSchema[itemIndex].price = cart.AddOnservicesSchema[itemIndex].price;
+                                }
+                                if (req.body.quantity != (null || undefined)) {
+                                        cart.AddOnservicesSchema[itemIndex].quantity = req.body.quantity;
+                                } else {
+                                        cart.AddOnservicesSchema[itemIndex].quantity = cart.AddOnservicesSchema[itemIndex].quantity;
+                                }
+                                if (req.body.totalTime != (null || undefined)) {
+                                        cart.AddOnservicesSchema[itemIndex].totalTime = req.body.totalTime;
+                                        cart.AddOnservicesSchema[itemIndex].totalMin = req.body.totalMin;
+                                } else {
+                                        cart.AddOnservicesSchema[itemIndex].totalTime = cart.AddOnservicesSchema[itemIndex].totalTime;
+                                        cart.AddOnservicesSchema[itemIndex].totalMin = cart.AddOnservicesSchema[itemIndex].totalMin;
+                                }
+                                cart.AddOnservicesSchema[itemIndex].addOnservicesId = req.body.newAddOnservicesId;
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
+                                const d = new Date(req.body.date);
+                                let text = d.toISOString();
+                                cart.date = text;
+                                cart.toTime = x;
+                                cart.teamMember = req.body.teamMember;
+                                let totalTime = 0;
+                                if (cart.toTime != (null || undefined)) {
+                                        if (cart.services.length > 0) {
+                                                for (let i = 0; i < cart.services.length; i++) {
+                                                        totalTime = totalTime + cart.services[i].totalMin;
+                                                }
+                                        }
+                                        if (cart.AddOnservicesSchema.length > 0) {
+                                                for (let i = 0; i < cart.AddOnservicesSchema.length; i++) {
+                                                        totalTime = totalTime + cart.AddOnservicesSchema[i].totalMin;
+                                                }
+                                        }
+                                        var dateTimeString = cart.toTime;
+                                        var dateTimeObject = new Date(dateTimeString);
+                                        let d = dateTimeObject.toISOString().split('T')[0];
+                                        var hours1 = dateTimeObject.getUTCHours();
+                                        var minutes1 = dateTimeObject.getUTCMinutes();
+                                        const hours = parseInt(hours1);
+                                        const minutes = parseInt(minutes1);
+                                        const providedTimeInMinutes = hours * 60 + minutes;
+                                        let fromTimeInMinutes = providedTimeInMinutes + totalTime;
+                                        const fromTime = new Date(d);
+                                        fromTime.setMinutes(fromTimeInMinutes);
+                                        cart.fromTime = fromTime;
+                                }
+                                const dateObject = new Date(cart.date);
+                                const dateString = dateObject.toISOString().split('T')[0];
+                                const newTime = "00:00:00.000+00:00";
+                                const replacedDateString = `${dateString}T${newTime}`;
+                                let findOrderData = await serviceOrder.findOne({ _id: cart._id, to: cart.toTime, date: replacedDateString })
+                                if (findOrderData) {
+                                        if (totalTime > 0) {
+                                                var hours2 = Math.floor(totalTime / 60);
+                                                var minutes2 = totalTime % 60;
+                                                let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                cart.timeInMin = timeInMin;
+                                                await cart.save();
+                                        }
+                                        let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                                        let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                        if (saveCart.services.length > 0) {
+                                                for (const cartProduct of saveCart.services) {
+                                                        if (cartProduct.serviceId.type === "offer") {
+                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                subTotal += cartProduct.subTotal;
+                                                                total += cartProduct.total;
+                                                        }
+                                                        if (cartProduct.serviceId.type === "Service") {
+                                                                if (cartProduct.serviceId.multipleSize == true) {
+                                                                        let x = 0
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        total += cartProduct.total;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                } else {
+                                                                        let x = 0
+                                                                        cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                        membershipDiscount += x;
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                        cartProduct.offerDiscount = 0.00;
+                                                                        offerDiscount += cartProduct.offerDiscount;
+                                                                        total += cartProduct.total;
+                                                                        subTotal += cartProduct.subTotal;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                        if (saveCart.AddOnservicesSchema.length > 0) {
+                                                saveCart.AddOnservicesSchema.forEach((cartGift) => {
+                                                        cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                        cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                        subTotal += cartGift.subTotal;
+                                                        total += cartGift.total;
+                                                });
+                                        }
+                                        if (isNaN(membershipDiscount)) {
+                                                membershipDiscount = 0;
+                                        }
+                                        saveCart.memberShipPer = Number(membershipDiscountPercentage);
+                                        saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                        saveCart.offerDiscount = Number(offerDiscount);
+                                        saveCart.subTotal = subTotal;
+                                        saveCart.total = total;
+                                        await saveCart.save();
+                                        return res.status(200).json({ msg: `added to cart`, data: saveCart });
+                                } else {
+                                        let findSlot1 = await slot.find({ from: { $lte: cart.fromTime }, to: { $gte: cart.toTime }, date: replacedDateString, isBooked: false, slotBlocked: false });
+                                        if (findSlot1.length > 0) {
+                                                for (let i = 0; i < findSlot1.length; i++) {
+                                                        let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot1[i]._id }, { $set: { isBooked: true, } }, { new: true });
+                                                        console.log(updateSlot);
+                                                }
+                                                if (totalTime > 0) {
+                                                        var hours2 = Math.floor(totalTime / 60);
+                                                        var minutes2 = totalTime % 60;
+                                                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                                        cart.timeInMin = timeInMin;
+                                                        await cart.save();
+                                                }
+                                                let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                                                let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                                if (saveCart.services.length > 0) {
+                                                        for (const cartProduct of saveCart.services) {
+                                                                if (cartProduct.serviceId.type === "offer") {
+                                                                        cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                        subTotal += cartProduct.subTotal;
+                                                                        total += cartProduct.total;
+                                                                }
+                                                                if (cartProduct.serviceId.type === "Service") {
+                                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                                let x = 0
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                total += cartProduct.total;
+                                                                                subTotal += cartProduct.subTotal;
+                                                                        } else {
+                                                                                let x = 0
+                                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                                membershipDiscount += x;
+                                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                                cartProduct.offerDiscount = 0.00;
+                                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                                total += cartProduct.total;
+                                                                                subTotal += cartProduct.subTotal;
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                                if (saveCart.AddOnservicesSchema.length > 0) {
+                                                        saveCart.AddOnservicesSchema.forEach((cartGift) => {
+                                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                                subTotal += cartGift.subTotal;
+                                                                total += cartGift.total;
+                                                        });
+                                                }
+                                                if (isNaN(membershipDiscount)) {
+                                                        membershipDiscount = 0;
+                                                }
+                                                saveCart.memberShipPer = Number(membershipDiscountPercentage);
+                                                saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                                saveCart.offerDiscount = Number(offerDiscount);
+                                                saveCart.subTotal = subTotal;
+                                                saveCart.total = total;
+                                                await saveCart.save();
+                                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
+                                        } else {
+                                                return res.status(400).json({ status: 400, msg: "This Slot already booked or blocked. ", data: {} });
+                                        }
                                 }
                         }
                 }
