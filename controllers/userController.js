@@ -819,7 +819,7 @@ exports.getServiceOrderbyId = async (req, res, next) => {
                 if (!orders) {
                         return res.status(404).json({ status: 404, message: "Orders not found", data: {} });
                 }
-                let saveCart = await serviceOrder.findOne({ _id: orders._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                let saveCart = await serviceOrder.findOne({ _id: orders._id }).populate([{ path: "user", }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
                 let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
                 if (saveCart.services.length > 0) {
                         for (const cartProduct of saveCart.services) {
