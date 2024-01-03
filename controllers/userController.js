@@ -874,6 +874,18 @@ exports.getServiceOrderbyId = async (req, res, next) => {
                 const totalTime = totalArray.concat(totalArray1).reduce((total, value) => {
                         return total + value;
                 }, 0);
+                var dateTimeString = saveCart.toTime;
+                var dateTimeObject = new Date(dateTimeString);
+                let d = dateTimeObject.toISOString().split('T')[0];
+                var hours1 = dateTimeObject.getUTCHours();
+                var minutes1 = dateTimeObject.getUTCMinutes();
+                const hours = parseInt(hours1);
+                const minutes = parseInt(minutes1);
+                const providedTimeInMinutes = hours * 60 + minutes;
+                let fromTimeInMinutes = providedTimeInMinutes + totalTime;
+                const fromTime = new Date(d);
+                fromTime.setMinutes(fromTimeInMinutes);
+                saveCart.fromTime = fromTime;
                 saveCart.memberShipPer = Number(membershipDiscountPercentage);
                 saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
                 saveCart.offerDiscount = Number(offerDiscount);
