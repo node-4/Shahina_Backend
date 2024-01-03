@@ -5151,7 +5151,7 @@ exports.getServiceOrdersByuserId = async (req, res, next) => {
                 return res.status(501).send({ status: 501, message: "server error.", data: {}, });
         }
 };
-exports.editServiceIOrders = async (req, res, next) => {
+exports.editServiceInOrders = async (req, res, next) => {
         try {
                 const cart = await serviceOrder.findById({ _id: req.params.id })
                 if (!cart) {
@@ -5571,6 +5571,226 @@ exports.editAddOnservicesInOrders = async (req, res, next) => {
                                                 return res.status(400).json({ status: 400, msg: "This Slot already booked or blocked. ", data: {} });
                                         }
                                 }
+                        }
+                }
+        } catch (error) {
+                next(error);
+        }
+}
+exports.addServiceInOrders = async (req, res, next) => {
+        try {
+                const cart = await serviceOrder.findById({ _id: req.params.id })
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                } else {
+                        const itemIndex = cart.services.findIndex((cartItem) => cartItem.serviceId.toString() === req.body.serviceId);
+                        if (itemIndex === -1) {
+                                let findService = await services.findById({ _id: req.body.serviceId });
+                                if (!findService) {
+                                        return res.status(404).json({ message: "Service Not Found", status: 404, data: {} });
+                                }
+                                let obj = {
+                                        serviceId: req.body.serviceId,
+                                        quantity: req.body.quantity,
+                                        price: req.body.price,
+                                        totalTime: req.body.totalTime,
+                                        totalMin: req.body.totalMin,
+                                };
+                                cart.services.push(obj);
+                                const totalPromises = cart.services.map(async (service) => {
+                                        return service.totalMin * service.quantity;
+                                });
+                                const totalPromises1 = cart.AddOnservicesSchema.map(async (service) => {
+                                        return service.totalMin * service.quantity;
+                                });
+                                const [totalArray, totalArray1] = await Promise.all([Promise.all(totalPromises), Promise.all(totalPromises1)]);
+                                const totalTime = totalArray.concat(totalArray1).reduce((total, value) => {
+                                        return total + value;
+                                }, 0);
+                                const timeArray = req.body.time.split(':');
+                                const hours = parseInt(timeArray[0]);
+                                const minutes = parseInt(timeArray[1]);
+                                const providedTimeInMinutes = hours * 60 + minutes;
+                                let fromTimeInMinutes = providedTimeInMinutes + totalTime + 90;
+                                const d = new Date(req.body.date);
+                                let text = d.toISOString();
+                                const fromTime = new Date(d);
+                                fromTime.setMinutes(fromTimeInMinutes);
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
+                                cart.toTime = x;
+                                cart.fromTime = fromTime;
+                                cart.date = text;
+                                await cart.save();
+                                let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                                let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                if (saveCart.services.length > 0) {
+                                        for (const cartProduct of saveCart.services) {
+                                                if (cartProduct.serviceId.type === "offer") {
+                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
+                                                        offerDiscount += cartProduct.offerDiscount;
+                                                        subTotal += cartProduct.subTotal;
+                                                        total += cartProduct.total;
+                                                }
+                                                if (cartProduct.serviceId.type === "Service") {
+                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                let x = 0
+                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                membershipDiscount += x;
+                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                total += cartProduct.total;
+                                                                subTotal += cartProduct.subTotal;
+                                                        } else {
+                                                                let x = 0
+                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                membershipDiscount += x;
+                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                total += cartProduct.total;
+                                                                subTotal += cartProduct.subTotal;
+                                                        }
+                                                }
+                                        }
+                                }
+                                if (saveCart.AddOnservicesSchema.length > 0) {
+                                        saveCart.AddOnservicesSchema.forEach((cartGift) => {
+                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                subTotal += cartGift.subTotal;
+                                                total += cartGift.total;
+                                        });
+                                }
+                                saveCart.memberShipPer = Number(membershipDiscountPercentage);
+                                saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                saveCart.offerDiscount = Number(offerDiscount);
+                                saveCart.subTotal = subTotal;
+                                saveCart.total = total;
+                                if (totalTime > 0) {
+                                        var hours2 = Math.floor(totalTime / 60);
+                                        var minutes2 = totalTime % 60;
+                                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                        saveCart.timeInMin = timeInMin;
+                                }
+                                await saveCart.save();
+                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
+                        } else {
+                                return res.status(404).json({ message: "Service already in order.", status: 404, data: {} });
+                        }
+                }
+        } catch (error) {
+                next(error);
+        }
+}
+exports.addOnservicesInOrders = async (req, res, next) => {
+        try {
+                const cart = await serviceOrder.findById({ _id: req.params.id })
+                if (!cart) {
+                        return res.status(200).json({ success: false, msg: "Cart is empty", cart: {} });
+                } else {
+                        const itemIndex = cart.AddOnservicesSchema.findIndex((cartItem) => cartItem.addOnservicesId.toString() === req.body.addOnservicesId);
+                        if (itemIndex === -1) {
+                                let findService = await addOnservices.findById({ _id: req.body.addOnservicesId });
+                                if (!findService) {
+                                        return res.status(404).json({ message: "AddOnservices Not Found", status: 404, data: {} });
+                                }
+                                let obj = {
+                                        addOnservicesId: req.body.addOnservicesId,
+                                        quantity: req.body.quantity,
+                                        price: findService.price,
+                                        totalTime: findService.totalTime,
+                                        totalMin: findService.totalMin,
+                                };
+                                cart.AddOnservicesSchema.push(obj);
+                                const totalPromises = cart.services.map(async (service) => {
+                                        return service.totalMin * service.quantity;
+                                });
+                                const totalPromises1 = cart.AddOnservicesSchema.map(async (service) => {
+                                        return service.totalMin * service.quantity;
+                                });
+                                const [totalArray, totalArray1] = await Promise.all([Promise.all(totalPromises), Promise.all(totalPromises1)]);
+                                const totalTime = totalArray.concat(totalArray1).reduce((total, value) => {
+                                        return total + value;
+                                }, 0);
+                                const timeArray = req.body.time.split(':');
+                                const hours = parseInt(timeArray[0]);
+                                const minutes = parseInt(timeArray[1]);
+                                const providedTimeInMinutes = hours * 60 + minutes;
+                                let fromTimeInMinutes = providedTimeInMinutes + totalTime + 90;
+                                const d = new Date(req.body.date);
+                                let text = d.toISOString();
+                                const fromTime = new Date(d);
+                                fromTime.setMinutes(fromTimeInMinutes);
+                                let x = `${req.body.date}T${req.body.time}:00.000Z`;
+                                cart.toTime = x;
+                                cart.fromTime = fromTime;
+                                cart.date = text;
+                                await cart.save();
+                                let saveCart = await serviceOrder.findOne({ _id: cart._id }).populate([{ path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate used per" },]);
+                                let offerDiscount = 0, membershipDiscount = 0, membershipDiscountPercentage = 0, total = 0, subTotal = 0;
+                                if (saveCart.services.length > 0) {
+                                        for (const cartProduct of saveCart.services) {
+                                                if (cartProduct.serviceId.type === "offer") {
+                                                        cartProduct.subTotal = parseFloat((cartProduct.serviceId.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                        cartProduct.offerDiscount = parseFloat(((cartProduct.serviceId.price - cartProduct.price) * cartProduct.quantity).toFixed(2));
+                                                        offerDiscount += cartProduct.offerDiscount;
+                                                        subTotal += cartProduct.subTotal;
+                                                        total += cartProduct.total;
+                                                }
+                                                if (cartProduct.serviceId.type === "Service") {
+                                                        if (cartProduct.serviceId.multipleSize == true) {
+                                                                let x = 0
+                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                membershipDiscount += x;
+                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                total += cartProduct.total;
+                                                                subTotal += cartProduct.subTotal;
+                                                        } else {
+                                                                let x = 0
+                                                                cartProduct.membershipDiscount = parseFloat(x.toFixed(2))
+                                                                membershipDiscount += x;
+                                                                cartProduct.subTotal = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2));
+                                                                cartProduct.total = parseFloat((cartProduct.price * cartProduct.quantity).toFixed(2) - x);
+                                                                cartProduct.offerDiscount = 0.00;
+                                                                offerDiscount += cartProduct.offerDiscount;
+                                                                total += cartProduct.total;
+                                                                subTotal += cartProduct.subTotal;
+                                                        }
+                                                }
+                                        }
+                                }
+                                if (saveCart.AddOnservicesSchema.length > 0) {
+                                        saveCart.AddOnservicesSchema.forEach((cartGift) => {
+                                                cartGift.total = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                cartGift.subTotal = parseFloat((cartGift.price * cartGift.quantity).toFixed(2));
+                                                subTotal += cartGift.subTotal;
+                                                total += cartGift.total;
+                                        });
+                                }
+                                saveCart.memberShipPer = Number(membershipDiscountPercentage);
+                                saveCart.memberShip = parseFloat(membershipDiscount).toFixed(2)
+                                saveCart.offerDiscount = Number(offerDiscount);
+                                saveCart.subTotal = subTotal;
+                                saveCart.total = total;
+                                if (totalTime > 0) {
+                                        var hours2 = Math.floor(totalTime / 60);
+                                        var minutes2 = totalTime % 60;
+                                        let timeInMin = hours2 + "hr" + " " + minutes2 + "min"
+                                        saveCart.timeInMin = timeInMin;
+                                }
+                                await saveCart.save();
+                                return res.status(200).json({ msg: `added to cart`, data: saveCart });
+                        } else {
+                                return res.status(404).json({ message: "Service already in order.", status: 404, data: {} });
                         }
                 }
         } catch (error) {
