@@ -3595,7 +3595,7 @@ exports.noShowUpdate = async (req, res) => {
         try {
                 let findCart = await serviceOrder.findOne({ _id: req.params.id }).populate([{ path: "user", }, { path: "AddOnservicesSchema.addOnservicesId", select: { reviews: 0 } }, { path: "services.serviceId", select: { reviews: 0 } }, { path: "coupon", select: "couponCode discount expirationDate" },]);
                 if (findCart) {
-                        const user = await User.findById({ _id: findCart.user });
+                        const user = await User.findById({ _id: findCart.user._id });
                         if (!user) {
                                 return res.status(404).send({ status: 404, message: "User not found or token expired." });
                         }
