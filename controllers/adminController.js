@@ -5592,9 +5592,9 @@ exports.addServiceInOrders = async (req, res, next) => {
                                 let obj = {
                                         serviceId: req.body.serviceId,
                                         quantity: req.body.quantity,
-                                        price: req.body.price,
-                                        totalTime: req.body.totalTime,
-                                        totalMin: req.body.totalMin,
+                                        price: findService.price,
+                                        totalTime: findService.totalTime,
+                                        totalMin: findService.totalMin,
                                 };
                                 cart.services.push(obj);
                                 const totalPromises = cart.services.map(async (service) => {
