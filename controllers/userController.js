@@ -43,6 +43,7 @@ const fs = require("fs");
 const path = require("path");
 const { getLogger } = require("nodemailer/lib/shared");
 const stripe = require("stripe")('pk_test_51Kr67EJsxpRH9smiVHbxmogutwO92w8dmTUErkRtIsIo0lR7kyfyeVnULRoQlry9byYbS8Uhk5Mq4xegT2bB9n9F00hv3OFGM5'); // shahina test
+const stripe1 = require("stripe")('sk_test_51Kr67EJsxpRH9smipLQrIzDFv69P1b1pPk96ba1A4HJGYJEaR7cpAaU4pkCeAIMT9B46D7amC77I3eNEBTIRF2e800Y7zIPNTS'); // shahina test
 // const stripe = require("stripe")('sk_test_51J0NhySIdiNJWVEcYKjXhXets6lbhBeYQm9aY9r6sXw8whvRamiUKQFly1k0pQjy8zaeYkxopVCdUVWmPo4Nqeex0030Zxmibo'); // varun test
 //  Publish key:- pk_live_51Kr67EJsxpRH9smizUjNERPVsq1hlJBnnJsfCOqNTPL6HKgsG9YTOOcA5yYk38O7Wz2NILGPvIKkxe3rU90iix610049htYt1w
 //  pk_test_51Kr67EJsxpRH9smiVHbxmogutwO92w8dmTUErkRtIsIo0lR7kyfyeVnULRoQlry9byYbS8Uhk5Mq4xegT2bB9n9F00hv3OFGM5
@@ -5104,12 +5105,21 @@ exports.DeletePaymentCard = async (req, res, next) => {
 // };
 exports.savecard = async (req, res, next) => {
         console.log(req.user);
-        const customer = await stripe.customers.create({ email: req.user.email });
-        const intent = await stripe.setupIntents.create({
-                customer: customer.id,
-                automatic_payment_methods: { enabled: true },
-        });
-        return res.json({ client_secret: intent });
+        const customer = await stripe1.customers.list({ email: req.user.email });
+        if (customer.data.length > 0) {
+                const intent = await stripe1.setupIntents.create({
+                        customer: customer.id,
+                        automatic_payment_methods: { enabled: true },
+                });
+                return res.json({ client_secret: intent });
+        } else {
+                const customer = await stripe1.customers.create({ email: req.user.email });
+                const intent = await stripe1.setupIntents.create({
+                        customer: customer.id,
+                        automatic_payment_methods: { enabled: true },
+                });
+                return res.json({ client_secret: intent });
+        }
 };
 exports.savecardlist = async (req, res, next) => {
         const paymentMethods = await stripe.paymentMethods.list({
