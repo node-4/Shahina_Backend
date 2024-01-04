@@ -3581,6 +3581,26 @@ exports.addSuggestionToServiceCart = async (req, res) => {
                 return res.status(500).send({ status: 500, message: "Server error" + error.message });
         }
 };
+exports.editSuggestionInCart = async (req, res) => {
+        try {
+                const findCart = await Cart.findOne({ user: req.params.userId });
+                if (findCart) {
+                        const suggestionIndex = findCart.suggesstion.findIndex((suggestion) => suggestion._id.toString() === req.params.suggesstionId);
+                        if (suggestionIndex !== -1) {
+                                findCart.suggesstion[suggestionIndex].suggesstion = req.body.suggestion;
+                                const updateCart = await findCart.save();
+                                return res.status(200).send({ message: "Suggestion updated in cart.", data: updateCart, });
+                        } else {
+                                return res.status(404).send({ status: 404, message: "Suggestion not found in the cart.", data: [], });
+                        }
+                } else {
+                        return res.status(404).send({ status: 404, message: "Order not found.", data: [], });
+                }
+        } catch (error) {
+                console.error("Error in editSuggestionfromOrder:", error);
+                return res.status(500).send({ status: 500, message: "Server error.", data: {}, });
+        }
+};
 exports.deleteSuggestionfromCart = async (req, res) => {
         try {
                 let findCart = await Cart.findOne({ user: req.params.userId });

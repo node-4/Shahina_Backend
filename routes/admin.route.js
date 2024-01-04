@@ -148,6 +148,7 @@ module.exports = (app) => {
         app.post('/api/v1/admin/addtoCart/addOnservices/:id', [authJwt.verifyToken], auth.addToCartAddOnservices);
         app.post('/api/v1/admin/editAddOnservicesInCart/:id', [authJwt.verifyToken], auth.editAddOnservicesInCart);
         app.put("/api/v1/admin/addSuggestionToServiceCart/:userId", [authJwt.verifyToken], auth.addSuggestionToServiceCart);
+        app.put("/api/v1/admin/editSuggestionInCart/:userId/:suggesstionId", [authJwt.verifyToken], auth.editSuggestionInCart);
         app.put("/api/v1/admin/deleteSuggestionfromCart/:userId/:suggesstionId", [authJwt.verifyToken], auth.deleteSuggestionfromCart);
         app.put("/api/v1/admin/addSuggestionToServiceOrder/:id", [authJwt.verifyToken], auth.addSuggestionToServiceOrder);
         app.put("/api/v1/admin/editSuggestionfromOrder/:id/:suggesstionId", [authJwt.verifyToken], auth.editSuggestionfromOrder);
