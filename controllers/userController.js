@@ -2055,38 +2055,231 @@ exports.checkout = async (req, res) => {
                                                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                                         let mailOptions = {
                                                                                 from: '<do_not_reply@gmail.com>',
-                                                                                to: 'info@shahinahoja.com',
+                                                                                // to: 'info@shahinahoja.com',
+                                                                                to: 'vcjagal1994@gmail.com',
                                                                                 subject: 'Order Received',
                                                                                 text: `You have received a new order`,
-                                                                                html: `
-                                                                                  <p> You have received a new order:</p>
-                                                                                  <p>Order Id: ${saveOrder.orderId}</p>
-                                                                                  <p>Order Amount: ${saveOrder.total}</p>
-                                                                                  <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
-                                                                                  <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
-                                                                                  <p>Appointment details:</p>
-                                                                                  <ul>
-                                                                                    ${findCart.services.map((service, index) => `
-                                                                                      <li>
-                                                                                        Service ${index + 1}:
-                                                                                        <ul>
-                                                                                          <li>Name: ${service.serviceId.name}</li>
-                                                                                          <li>Price: ${service.price}</li>
-                                                                                          <li>Quantity: ${service.quantity}</li>
-                                                                                        </ul>
-                                                                                      </li>
-                                                                                    `).join('')}
-                                                                                  </ul>
-                                                                                  <p>Location</p>
-                                                                                  <p>Shahina Hoja Aesthetics</p>
-                                                                                  <p>905 Watters Creek Boulevard, 141,</p>
-                                                                                  <p> Allen, 75013, Texas, US</p>
-                                                                                  <p>Cancellation policy</p>
-                                                                                  <p>Please avoid cancelling within 48 hours of your appointment.</p>
-                                                                                  <p>Important info.</p>
-                                                                                  <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
-                                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
-                                                                                 `,
+                                                                                html: `<html lang="en">
+                                                                                <head>
+                                                                                  <meta charset="UTF-8" />
+                                                                                  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                                                                                  <title>Email</title>
+                                                                                </head>
+                                                                                <body>
+                                                                                  <div style="width: 100%; height: 100%">
+                                                                                    <div
+                                                                                      style="
+                                                                                        background-color: white;
+                                                                                        max-width: 600px;
+                                                                                        margin: auto;
+                                                                                        border: 1px solid black;
+                                                                                      "
+                                                                                    >
+                                                                                      <div
+                                                                                        style="
+                                                                                          width: 90%;
+                                                                                          margin: auto;
+                                                                                          margin-top: 2rem;
+                                                                                          margin-bottom: 4rem;
+                                                                                        "
+                                                                                      >
+                                                                                        <button
+                                                                                          style="
+                                                                                            color: white;
+                                                                                            border-left: 50%;
+                                                                                            padding: 5px;
+                                                                                            height: 2rem;
+                                                                                            width: 7rem;
+                                                                                            border-radius: 1rem;
+                                                                                            background-color: blueviolet;
+                                                                                            border: none;
+                                                                                            outline: none;
+                                                                                          "
+                                                                                        >
+                                                                                          Confirmed
+                                                                                        </button>
+                                                                                        <div style="margin-top: 2rem">
+                                                                                          <p style="font-size: 30px; font-weight: bold">
+                                                                                            Looking forward to seeing you soon Nisan
+                                                                                          </p>
+                                                                                        </div>
+                                                                                        <p style="margin-top: 1rem">
+                                                                                          This is a friendly reminder about your appointment on
+                                                                                          <span style="color: rgb(153, 74, 228)"
+                                                                                            >Friday 29 December at 12:00pm</span
+                                                                                          >
+                                                                                          with Shahina Hoja Aesthetics.
+                                                                                        </p>
+                                                                                        <div>
+                                                                                        <a href="https://shahina-web.vercel.app/" >
+                                                                                        <button
+                                                                                        style="
+                                                                                          width: 100%;
+                                                                                          padding: 10px;
+                                                                                          background-color: black;
+                                                                                          color: white;
+                                                                                          border: none;
+                                                                                          outline: none;
+                                                                                          cursor: pointer;
+                                                                                          border-radius: 3px;
+                                                                                          font-size: 1rem;
+                                                                                        "
+                                                                                      >
+                                                                                        Get directions
+                                                                                      </button>
+                                                                                        </a>
+                                                                                        <a href="https://shahina-web.vercel.app/" target='_blank'>
+                                                                                        <button
+                                                                                        style="
+                                                                                          width: 100%;
+                                                                                          padding: 10px;
+                                                                                          cursor: pointers;
+                                                                                          outline: none;
+                                                                                          border-radius: 3px;
+                                                                                          cursor: pointer;
+                                                                                          font-size: 1rem;
+                                                                                          margin-top: 1rem;
+                                                                                        "
+                                                                                        
+                                                                                      >
+                                                                                        Manage appointment
+                                                                                      </button>
+                                                                                     </a>
+
+                                                                                     <a href='/google.om' target='_blank'> <button
+                                                                                     style="
+                                                                                       width: 100%;
+                                                                                       padding: 10px;
+                                                                                       cursor: pointers;
+                                                                                       outline: none;
+                                                                                       border-radius: 3px;
+                                                                                       cursor: pointer;
+                                                                                       font-size: 1rem;
+                                                                                       margin-top: 1rem;
+                                                                                     "
+                                                                                     
+                                                                                   >
+                                                                                     Manage appointment
+                                                                                   </button></a>
+                                                                                           </div>
+                                                                                        <!-- bottom main -->
+                                                                                        <div style="margin-top: 1.5rem">
+                                                                                          <h4 style="font-size: 1.5rem; font-weight: bold">
+                                                                                            Appointment details
+                                                                                          </h4>
+                                                                                          <div
+                                                                                            style="
+                                                                                              margin-top: 1rem;
+                                                                                              display: flex;
+                                                                                              justify-content: space-between;
+                                                                                            "
+                                                                                          >
+                                                                                            <div>
+                                                                                              <h5 style="font-weight: bold; font-size: 1rem">
+                                                                                                Glutathione IV
+                                                                                              </h5>
+                                                                                              <p style="color: rgb(131, 120, 120)">15min with Shahina</p>
+                                                                                            </div>
+                                                                                            <p>$99</p>
+                                                                                          </div>
+                                                                                          <hr style="margin-top: 0.5rem; line-height: 7px" />
+                                                                                          <div
+                                                                                            style="
+                                                                                              margin-top: 0.5rem;
+                                                                                              display: flex;
+                                                                                              justify-content: space-between;
+                                                                                            "
+                                                                                          >
+                                                                                            <div>
+                                                                                              <p style="font-weight: bold">Total</p>
+                                                                                            </div>
+                                                                                            <p style="font-weight: bold">$99</p>
+                                                                                          </div>
+                                                                                          <hr style="margin-top: 1rem" />
+                                                                                        </div>
+                                                                              
+                                                                                        <p style="color: rgb(142, 133, 133); margin-top: 0.5rem">
+                                                                                          Booking ref: 544hgt46gh
+                                                                                        </p>
+                                                                              
+                                                                                        <div>
+                                                                                          <h3 style="margin-top: 1rem">Location</h3>
+                                                                                          <div
+                                                                                            style="
+                                                                                              margin-top: 0.5rem;
+                                                                                              display: flex;
+                                                                                              justify-content: space-between;
+                                                                                            "
+                                                                                          >
+                                                                                            <div style="line-height: 20px">
+                                                                                              <h5>Shahine Hoja Aesthetics</h5>
+                                                                                              <p style="color: rgb(100, 28, 162)">
+                                                                                                905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                                              </p>
+                                                                                            </div>
+                                                                                            <img
+                                                                                              src="https://images.unsplash.com/photo-1618641986557-1ecd230959aa?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D"
+                                                                                              style="height: 50px; width: 50px; border-radius: 10px"
+                                                                                            />
+                                                                                          </div>
+                                                                                        </div>
+                                                                              
+                                                                                        <div style="margin-top: 1.5rem; line-height: 20px">
+                                                                                          <h3>Cancellation Policy</h3>
+                                                                                          <p style="margin-top: 1rem">
+                                                                                            Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                                            appointment
+                                                                                          </p>
+                                                                                        </div>
+                                                                              
+                                                                                        <div style="margin-top: 1.5rem; line-height: 20px">
+                                                                                          <h3>Important Info</h3>
+                                                                                          <p style="margin-top: 1rem">
+                                                                                            We are now offering payment plans through cherry. if you're
+                                                                                            interseted , please apply hare appointment
+                                                                                          </p>
+                                                                                          <p style="color: blueviolet; cursor: pointer">
+                                                                                            https:pay.withcherray.com/shahinahoja
+                                                                                          </p>
+                                                                                        </div>
+                                                                                        <p style="margin-top: 2.5rem">
+                                                                                          we send you this because you have booked with shahine hoja Aesthics,
+                                                                                          which partners with for appoinment and payments.
+                                                                                        </p>
+                                                                                      </div>
+                                                                                    </div>
+                                                                                  </div>
+                                                                                </body>
+                                                                              </html>`
+                                                                                // html: `
+                                                                                //   <p> You have received a new order:</p>
+                                                                                //   <p>Order Id: ${saveOrder.orderId}</p>
+                                                                                //   <p>Order Amount: ${saveOrder.total}</p>
+                                                                                //   <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
+                                                                                //   <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
+                                                                                //   <p>Appointment details:</p>
+                                                                                //   <ul>
+                                                                                //     ${findCart.services.map((service, index) => `
+                                                                                //       <li>
+                                                                                //         Service ${index + 1}:
+                                                                                //         <ul>
+                                                                                //           <li>Name: ${service.serviceId.name}</li>
+                                                                                //           <li>Price: ${service.price}</li>
+                                                                                //           <li>Quantity: ${service.quantity}</li>
+                                                                                //         </ul>
+                                                                                //       </li>
+                                                                                //     `).join('')}
+                                                                                //   </ul>
+                                                                                //   <p>Location</p>
+                                                                                //   <p>Shahina Hoja Aesthetics</p>
+                                                                                //   <p>905 Watters Creek Boulevard, 141,</p>
+                                                                                //   <p> Allen, 75013, Texas, US</p>
+                                                                                //   <p>Cancellation policy</p>
+                                                                                //   <p>Please avoid cancelling within 48 hours of your appointment.</p>
+                                                                                //   <p>Important info.</p>
+                                                                                //   <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
+                                                                                //   <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
+                                                                                //  `,
                                                                         };
                                                                         let info1 = await transporter.sendMail(mailOptions);
                                                                         if (info1) {
@@ -2652,38 +2845,231 @@ exports.checkout = async (req, res) => {
                                                                         var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                                         let mailOptions = {
                                                                                 from: '<do_not_reply@gmail.com>',
-                                                                                to: 'info@shahinahoja.com',
+                                                                                // to: 'info@shahinahoja.com',
+                                                                                to: 'vcjagal1994@gmail.com',
                                                                                 subject: 'Order Received',
                                                                                 text: `You have received a new order`,
-                                                                                html: `
-                                                                                  <p> You have received a new order:</p>
-                                                                                  <p>Order Id: ${saveOrder.orderId}</p>
-                                                                                  <p>Order Amount: ${saveOrder.total}</p>
-                                                                                  <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
-                                                                                  <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
-                                                                                  <p>Appointment details:</p>
-                                                                                  <ul>
-                                                                                    ${findCart.services.map((service, index) => `
-                                                                                      <li>
-                                                                                        Service ${index + 1}:
-                                                                                        <ul>
-                                                                                          <li>Name: ${service.serviceId.name}</li>
-                                                                                          <li>Price: ${service.price}</li>
-                                                                                          <li>Quantity: ${service.quantity}</li>
-                                                                                        </ul>
-                                                                                      </li>
-                                                                                    `).join('')}
-                                                                                  </ul>
-                                                                                  <p>Location</p>
-                                                                                  <p>Shahina Hoja Aesthetics</p>
-                                                                                  <p>905 Watters Creek Boulevard, 141,</p>
-                                                                                  <p> Allen, 75013, Texas, US</p>
-                                                                                  <p>Cancellation policy</p>
-                                                                                  <p>Please avoid cancelling within 48 hours of your appointment.</p>
-                                                                                  <p>Important info.</p>
-                                                                                  <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
-                                                                                  <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
-                                                                                `,
+                                                                                html: `<html lang="en">
+                                                                                <head>
+                                                                                  <meta charset="UTF-8" />
+                                                                                  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                                                                                  <title>Email</title>
+                                                                                </head>
+                                                                                <body>
+                                                                                  <div style="width: 100%; height: 100%">
+                                                                                    <div
+                                                                                      style="
+                                                                                        background-color: white;
+                                                                                        max-width: 600px;
+                                                                                        margin: auto;
+                                                                                        border: 1px solid black;
+                                                                                      "
+                                                                                    >
+                                                                                      <div
+                                                                                        style="
+                                                                                          width: 90%;
+                                                                                          margin: auto;
+                                                                                          margin-top: 2rem;
+                                                                                          margin-bottom: 4rem;
+                                                                                        "
+                                                                                      >
+                                                                                        <button
+                                                                                          style="
+                                                                                            color: white;
+                                                                                            border-left: 50%;
+                                                                                            padding: 5px;
+                                                                                            height: 2rem;
+                                                                                            width: 7rem;
+                                                                                            border-radius: 1rem;
+                                                                                            background-color: blueviolet;
+                                                                                            border: none;
+                                                                                            outline: none;
+                                                                                          "
+                                                                                        >
+                                                                                          Confirmed
+                                                                                        </button>
+                                                                                        <div style="margin-top: 2rem">
+                                                                                          <p style="font-size: 30px; font-weight: bold">
+                                                                                            Looking forward to seeing you soon Nisan
+                                                                                          </p>
+                                                                                        </div>
+                                                                                        <p style="margin-top: 1rem">
+                                                                                          This is a friendly reminder about your appointment on
+                                                                                          <span style="color: rgb(153, 74, 228)"
+                                                                                            >Friday 29 December at 12:00pm</span
+                                                                                          >
+                                                                                          with Shahina Hoja Aesthetics.
+                                                                                        </p>
+                                                                                        <div>
+                                                                                        <a href="https://shahina-web.vercel.app/" >
+                                                                                        <button
+                                                                                        style="
+                                                                                          width: 100%;
+                                                                                          padding: 10px;
+                                                                                          background-color: black;
+                                                                                          color: white;
+                                                                                          border: none;
+                                                                                          outline: none;
+                                                                                          cursor: pointer;
+                                                                                          border-radius: 3px;
+                                                                                          font-size: 1rem;
+                                                                                        "
+                                                                                      >
+                                                                                        Get directions
+                                                                                      </button>
+                                                                                        </a>
+                                                                                        <a href="https://shahina-web.vercel.app/" target='_blank'>
+                                                                                        <button
+                                                                                        style="
+                                                                                          width: 100%;
+                                                                                          padding: 10px;
+                                                                                          cursor: pointers;
+                                                                                          outline: none;
+                                                                                          border-radius: 3px;
+                                                                                          cursor: pointer;
+                                                                                          font-size: 1rem;
+                                                                                          margin-top: 1rem;
+                                                                                        "
+                                                                                        
+                                                                                      >
+                                                                                        Manage appointment
+                                                                                      </button>
+                                                                                     </a>
+
+                                                                                     <a href='/google.om' target='_blank'> <button
+                                                                                     style="
+                                                                                       width: 100%;
+                                                                                       padding: 10px;
+                                                                                       cursor: pointers;
+                                                                                       outline: none;
+                                                                                       border-radius: 3px;
+                                                                                       cursor: pointer;
+                                                                                       font-size: 1rem;
+                                                                                       margin-top: 1rem;
+                                                                                     "
+                                                                                     
+                                                                                   >
+                                                                                     Manage appointment
+                                                                                   </button></a>
+                                                                                           </div>
+                                                                                        <!-- bottom main -->
+                                                                                        <div style="margin-top: 1.5rem">
+                                                                                          <h4 style="font-size: 1.5rem; font-weight: bold">
+                                                                                            Appointment details
+                                                                                          </h4>
+                                                                                          <div
+                                                                                            style="
+                                                                                              margin-top: 1rem;
+                                                                                              display: flex;
+                                                                                              justify-content: space-between;
+                                                                                            "
+                                                                                          >
+                                                                                            <div>
+                                                                                              <h5 style="font-weight: bold; font-size: 1rem">
+                                                                                                Glutathione IV
+                                                                                              </h5>
+                                                                                              <p style="color: rgb(131, 120, 120)">15min with Shahina</p>
+                                                                                            </div>
+                                                                                            <p>$99</p>
+                                                                                          </div>
+                                                                                          <hr style="margin-top: 0.5rem; line-height: 7px" />
+                                                                                          <div
+                                                                                            style="
+                                                                                              margin-top: 0.5rem;
+                                                                                              display: flex;
+                                                                                              justify-content: space-between;
+                                                                                            "
+                                                                                          >
+                                                                                            <div>
+                                                                                              <p style="font-weight: bold">Total</p>
+                                                                                            </div>
+                                                                                            <p style="font-weight: bold">$99</p>
+                                                                                          </div>
+                                                                                          <hr style="margin-top: 1rem" />
+                                                                                        </div>
+                                                                              
+                                                                                        <p style="color: rgb(142, 133, 133); margin-top: 0.5rem">
+                                                                                          Booking ref: 544hgt46gh
+                                                                                        </p>
+                                                                              
+                                                                                        <div>
+                                                                                          <h3 style="margin-top: 1rem">Location</h3>
+                                                                                          <div
+                                                                                            style="
+                                                                                              margin-top: 0.5rem;
+                                                                                              display: flex;
+                                                                                              justify-content: space-between;
+                                                                                            "
+                                                                                          >
+                                                                                            <div style="line-height: 20px">
+                                                                                              <h5>Shahine Hoja Aesthetics</h5>
+                                                                                              <p style="color: rgb(100, 28, 162)">
+                                                                                                905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                                              </p>
+                                                                                            </div>
+                                                                                            <img
+                                                                                              src="https://images.unsplash.com/photo-1618641986557-1ecd230959aa?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D"
+                                                                                              style="height: 50px; width: 50px; border-radius: 10px"
+                                                                                            />
+                                                                                          </div>
+                                                                                        </div>
+                                                                              
+                                                                                        <div style="margin-top: 1.5rem; line-height: 20px">
+                                                                                          <h3>Cancellation Policy</h3>
+                                                                                          <p style="margin-top: 1rem">
+                                                                                            Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                                            appointment
+                                                                                          </p>
+                                                                                        </div>
+                                                                              
+                                                                                        <div style="margin-top: 1.5rem; line-height: 20px">
+                                                                                          <h3>Important Info</h3>
+                                                                                          <p style="margin-top: 1rem">
+                                                                                            We are now offering payment plans through cherry. if you're
+                                                                                            interseted , please apply hare appointment
+                                                                                          </p>
+                                                                                          <p style="color: blueviolet; cursor: pointer">
+                                                                                            https:pay.withcherray.com/shahinahoja
+                                                                                          </p>
+                                                                                        </div>
+                                                                                        <p style="margin-top: 2.5rem">
+                                                                                          we send you this because you have booked with shahine hoja Aesthics,
+                                                                                          which partners with for appoinment and payments.
+                                                                                        </p>
+                                                                                      </div>
+                                                                                    </div>
+                                                                                  </div>
+                                                                                </body>
+                                                                              </html>`
+                                                                                // html: `
+                                                                                //   <p> You have received a new order:</p>
+                                                                                //   <p>Order Id: ${saveOrder.orderId}</p>
+                                                                                //   <p>Order Amount: ${saveOrder.total}</p>
+                                                                                //   <p>Hi ${data3.firstName} ${data3.lastName}, your appointment is confirmed</p>
+                                                                                //   <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${saveOrder.date}  at ${saveOrder.toTime}.</p>
+                                                                                //   <p>Appointment details:</p>
+                                                                                //   <ul>
+                                                                                //     ${findCart.services.map((service, index) => `
+                                                                                //       <li>
+                                                                                //         Service ${index + 1}:
+                                                                                //         <ul>
+                                                                                //           <li>Name: ${service.serviceId.name}</li>
+                                                                                //           <li>Price: ${service.price}</li>
+                                                                                //           <li>Quantity: ${service.quantity}</li>
+                                                                                //         </ul>
+                                                                                //       </li>
+                                                                                //     `).join('')}
+                                                                                //   </ul>
+                                                                                //   <p>Location</p>
+                                                                                //   <p>Shahina Hoja Aesthetics</p>
+                                                                                //   <p>905 Watters Creek Boulevard, 141,</p>
+                                                                                //   <p> Allen, 75013, Texas, US</p>
+                                                                                //   <p>Cancellation policy</p>
+                                                                                //   <p>Please avoid cancelling within 48 hours of your appointment.</p>
+                                                                                //   <p>Important info.</p>
+                                                                                //   <p>Your appointment is now confirmed! Are you interested in paying in installments with Cherry payment plans? Get pre-approved today! Applying won't harm your credit! https://pay.withcherry.com/shahinahoja.</p>
+                                                                                //   <p>We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
+                                                                                //  `,
                                                                         };
                                                                         let info1 = await transporter.sendMail(mailOptions);
                                                                         if (info1) {
