@@ -6361,7 +6361,6 @@ async function generateSlots() {
                                 const startTime = new Date(currentDate.getTime());
                                 const endTime = new Date(currentDate.getTime() + 8 * 60 * 60 * 1000);
                                 const halfHour = 15 * 60 * 1000;
-
                                 while (startTime.getTime() < endTime.getTime()) {
                                         const slotEndTime = new Date(startTime.getTime() + halfHour);
                                         let obj = {

@@ -745,7 +745,7 @@ exports.getServiceByTokenFormembership = async (req, res, next) => {
                 for (const service of servicesList) {
                         console.log(service);
                         let membshipPrice = 0;
-                        if (userData.isSubscription == true) {
+                        if ((userData.isSubscription == true) && (userData.subscriptionId != (null || undefined))) {
                                 membshipPrice = 0;
                                 membershipDiscount = (parseFloat(service.price) * parseFloat((userData.subscriptionId.discount / 100).toFixed(2)));
                                 membshipPrice = (parseFloat(service.price) - parseFloat(membershipDiscount).toFixed(2));
