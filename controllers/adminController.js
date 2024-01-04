@@ -2264,7 +2264,7 @@ exports.getServiceOrders = async (req, res) => {
         try {
                 console.log("------------------------");
                 const { search, fromDate, toDate, page, limit } = req.query;
-                let query = { orderStatus: ["confirmed", "adminUnconfirmed"] };
+                let query = { orderStatus: { $in: ["adminUnconfirmed", "confirmed", "cancel"] } };
                 if (search) {
                         query.$or = [
                                 { "orderId": { $regex: req.query.search, $options: "i" }, },
