@@ -3643,41 +3643,127 @@ exports.noShowUpdate = async (req, res) => {
                         }
                         let update1 = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $set: { noShow: true }, }, { new: true });
                         if (update1) {
+                                const inputDate = new Date(update.toTime);
+                                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+                                const formattedDate = inputDate.toLocaleString('en-US', { ...options, timeZone: 'UTC' });
+                                console.log(formattedDate);
                                 var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                 let mailOption1 = {
                                         from: '<do_not_reply@gmail.com>',
                                         to: `${user.email}`,
-                                        subject: 'Order Received',
-                                        text: `You have received a new order`,
-                                        html: `
-                                          <p>You have received a new order:</p>
-                                          <p>Name: ${user.firstName} ${user.lastName}</p>
-                                          <p>Email: ${user.email}</p>
-                                          <p>Contact Number: ${user.phone}</p>
-                                          <p>Order Id: ${findCart.orderId}</p>
-                                          <p>Order Amount: ${findCart.total}</p>
-                                          <p>Service Details:</p>
-                                          <ul>
-                                            ${findCart.services.map((service, index) => `
-                                              <li>
-                                                Service ${index + 1}:
-                                                <ul>
-                                                  <li>Name: ${service.serviceId.name}</li>
-                                                  <li>Price: ${service.price}</li>
-                                                  <li>Quantity: ${service.quantity}</li>
-                                                </ul>
-                                              </li>
-                                            `).join('')
-                                                }
-                                          </ul >
-                                          <p>Location</p>
-                                          <p>Shahina Hoja Aesthetics</p>
-                                          <p>905 Watters Creek Boulevard, 141,</p>
-                                          <p> Allen, 75013, Texas, US</p>
-                                          <p>Cancellation policy</p>
-                                          <p>Please avoid cancelling within 48 hours of your appointment.</p>
-                                          <p>sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
-                        `,
+                                        subject: 'Did not show',
+                                        html: `<!DOCTYPE html> <html lang="en">
+                                          <head>
+                                            <meta charset="UTF-8" />
+                                            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                                            <title>Email</title>
+                                          </head>
+                                          <body>
+                                            <div style="width: 100%; height: 100%">
+                                              <divstyle="background-color: white;max-width: 600px;margin: auto;border: 1px solid black;">
+                                                <div
+                                                  style="width: 90%;margin: auto;margin-top: 2rem;margin-bottom: 4rem;">
+                                                  <h1 style="margin-bottom: 2rem">View message</h1>
+                                                  <button
+                                                    style="
+                                                      color: white;
+                                                      border-left: 50%;
+                                                      padding: 5px;
+                                                      height: 2rem;
+                                                      width: 7rem;
+                                                      border-radius: 1rem;
+                                                      background-color: red;
+                                                      border: none;
+                                                      outline: none;
+                                                    "
+                                                  >
+                                                    Did not show
+                                                  </button>
+                                                  <div style="margin-top: 2rem">
+                                                    <p style="font-size: 30px; font-weight: bold">
+                                                      ${findCart.user.firstName}, you missed your appoinment at Shahine Hoja Aesthetics
+                                                    </p>
+                                                  </div>
+                                                  <p style="margin-top: 1rem">
+                                                    <span style="color: rgb(153, 74, 228)"
+                                                      >${formattedDate}</span
+                                                    >
+                                                  </p>
+                                                  <div>
+                                                    <button
+                                                      style="
+                                                        width: 100%;
+                                                        padding: 10px;
+                                                        background-color: black;
+                                                        color: white;
+                                                        border: none;outline: none;cursor: pointer;border-radius: 3px;font-size: 1rem;
+                                                      "
+                                                    >
+                                                      Rebook your appointment
+                                                    </button>
+                                                  </div>
+                                                  <!-- bottom main -->
+                                                  <div style="margin-top: 1.5rem">
+                                                    <h4 style="font-size: 1.5rem; font-weight: bold">
+                                                      Appointment details
+                                                    </h4>
+                                                    <div style="margin-top: 1rem;display: flex;justify-content: space-between;">
+                                                      <div>
+                                                        <ul>
+                                                          ${findCart.services.map((service, index) => `
+                                                          <h5 style="font-weight: bold; font-size: 1rem">${service.serviceId.name} $ ${service.price}</h5>
+                                                          <p style="color: rgb(131, 120, 120)"> ${service.totalTime} with Shahina</p>
+                                                          `).join('')}
+                                                        </ul>
+                                                      </div>
+                                                    </div>
+                                                    <hr style="margin-top: 0.5rem; line-height: 7px" />
+                                                    <div style="margin-top: 0.5rem;display: flex;justify-content: space-between;">
+                                                      <div>
+                                                        <p style="font-weight: bold">Total</p>
+                                                      </div>
+                                                      <p style="font-weight: bold">$ ${update1.total}</p>
+                                                    </div>
+                                                    <hr style="margin-top: 1rem" />
+                                                  </div>
+                                                  <p style="color: rgb(142, 133, 133); margin-top: 0.5rem">Booking ref: ${update1.orderId}</p>
+                                        
+                                                  <div>
+                                                    <h3 style="margin-top: 1rem">Location</h3>
+                                                    <div
+                                                      style="
+                                                        margin-top: 0.5rem;
+                                                        display: flex;
+                                                        justify-content: space-between;
+                                                      "
+                                                    >
+                                                      <div style="line-height: 0px">
+                                                        <h5>Shahine Hoja Aesthetics</h5>
+                                                        <p style="color: rgb(100, 28, 162)">
+                                                          905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                        </p>
+                                                      </div>
+                                                      <img src="https://res.cloudinary.com/djgrqoefp/image/upload/v1704388341/shahina/contactDetail/lv8rvmn6nbkzbzekiexq.png" style="height: 50px; width: 50px; margin-left:25px; border-radius: 10px" />
+                                                    </div>
+                                                  </div>
+                                        
+                                                  <div style="margin-top: 1.5rem; line-height: 20px">
+                                                    <h3>Cancellation Policy</h3>
+                                                    <p style="margin-top: 1rem">
+                                                      Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                      appointment
+                                                    </p>
+                                                  </div>
+                                        
+                                                  <p style="margin-top: 2.5rem">
+                                                    we send you this because you have booked with shahine hoja Aesthics,
+                                                    which partners with for appoinment and payments.
+                                                  </p>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </body>
+                                        </html>`,
                                 };
                                 let info1 = await transporter.sendMail(mailOption1);
                                 if (info1) {
@@ -3718,42 +3804,103 @@ exports.reSechduleOrder = async (req, res) => {
                         let x = `${req.params.date}T${req.body.time}:00.000Z`
                         let update = await serviceOrder.findByIdAndUpdate({ _id: findCart._id }, { $set: { date: text, toTime: x, fromTime: fromTime, }, }, { new: true });
                         if (update) {
+                                const inputDate = new Date(update.toTime);
+                                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+                                const formattedDate = inputDate.toLocaleString('en-US', { ...options, timeZone: 'UTC' });
+                                console.log(formattedDate);
                                 if (req.body.mailSend != (null || undefined)) {
                                         if (req.body.mailSend == "yes") {
                                                 var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
                                                 let mailOptions = {
                                                         from: '<do_not_reply@gmail.com>',
                                                         to: `${findCart.user.email}`,
-                                                        subject: 'Order Received',
-                                                        text: `You have received a new order`,
-                                                        html: `
-                                                          < p > You have received a new order:</p >
-                                                          <p>Order Id: ${findCart.orderId}</p>
-                                                          <p>Order Amount: ${findCart.total}</p>
-                                                          <p>Hi ${findCart.user.firstName} ${findCart.user.lastName}, your appointment has been rescheduled</p>
-                                                          <p>Your appointment with Shahina Hoja Aesthetics is now booked for ${req.params.date}  at ${req.body.time}.</p>
-                                                          <p>Appointment details:</p>
-                                                          <ul>
-                                                            ${findCart.services.map((service, index) => `
-                                                              <li>
-                                                                Service ${index + 1}:
-                                                                <ul>
-                                                                  <li>Name: ${service.serviceId.name}</li>
-                                                                  <li>Price: ${service.price}</li>
-                                                                  <li>Quantity: ${service.quantity}</li>
-                                                                </ul>
-                                                              </li>
-                                                            `).join('')
-                                                                }
-                                                          </ul >
-                                                          <p>Location</p>
-                                                          <p>Shahina Hoja Aesthetics</p>
-                                                          <p>905 Watters Creek Boulevard, 141,</p>
-                                                          <p> Allen, 75013, Texas, US</p>
-                                                          <p>Cancellation policy</p>
-                                                          <p>Please avoid cancelling within 48 hours of your appointment.</p>
-                                                          <p>sent you this email because you have booked with Shahina Hoja Aesthetics, which partners for appointments and payments.</p>
-                                        `,
+                                                        cc: 'info@shahinahoja.com',
+                                                        subject: 'Appointment has been rescheduled',
+                                                        html: `<!DOCTYPE html>
+                                                        <html lang="en">
+                                                        <head>
+                                                          <meta charset="UTF-8" />
+                                                          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                                                          <title>Email</title>
+                                                        </head>
+                                                        <body>
+                                                          <div style="width: 100%; height: 100%">
+                                                            <divstyle="background-color: white;max-width: 600px;margin: auto;border: 1px solid black;">
+                                                              <divstyle="width: 90%;margin: auto;margin-top: 2rem;margin-bottom: 4rem;">
+                                                                <h1 style="margin-bottom: 2rem">View message</h1>
+                                                                <buttonstyle="color: white;border-left: 50%;padding: 5px;height: 2rem;width: 7rem;border-radius:
+                                                                  1rem;background-color: blueviolet;border: none;outline: none;">Confirmed</button>
+                                                                  <div style="margin-top: 2rem">
+                                                                    <p style="font-size: 30px; font-weight: bold">
+                                                                      Hi ${findCart.user.firstName},your appointment has been rescheduled
+                                                                    </p>
+                                                                  </div>
+                                                                  <p style="margin-top: 1rem">
+                                                                    <span style="color: rgb(153, 74, 228)">${formattedDate}</span>
+                                                                    with shahine hoja Aesthetics
+                                                                  </p>
+                                                                  <div>
+                                                                    <buttonstyle="width: 100%;padding: 10px;cursor: pointers;outline: none;border-radius: 3px;cursor:
+                                                                      pointer;font-size: 1rem;margin-top: 1rem;">Manage appointment</button>
+                                                                  </div>
+                                                                  <div style="margin-top: 1.5rem">
+                                                                    <h4 style="font-size: 1.5rem; font-weight: bold">
+                                                                      Appointment details
+                                                                    </h4>
+                                                                    <div style="margin-top: 1rem;display: flex;justify-content: space-between;">
+                                                                      <div>
+                                                                        <ul>
+                                                                          ${findCart.services.map((service, index) => `
+                                                                          <h5 style="font-weight: bold; font-size: 1rem">${service.serviceId.name} $ ${service.price}</h5>
+                                                                          <p style="color: rgb(131, 120, 120)"> ${service.totalTime} with Shahina</p>
+                                                                          `).join('')}
+                                                                        </ul>
+                                                                      </div>
+                                                                    </div>
+                                                                    <hr style="margin-top: 0.5rem; line-height: 7px" />
+                                                                    <div style="margin-top: 0.5rem;display: flex;justify-content: space-between;">
+                                                                      <div>
+                                                                        <p style="font-weight: bold">Total</p>
+                                                                      </div>
+                                                                      <p style="font-weight: bold">$ ${saveOrder.total}</p>
+                                                                    </div>
+                                                                    <hr style="margin-top: 1rem" />
+                                                                  </div>
+                                                                  <p style="color: rgb(142, 133, 133); margin-top: 0.5rem">Booking ref: ${orderId}</p>
+                                                                  <div>
+                                                                    <h3 style="margin-top: 1rem">Location</h3>
+                                                                    <div style="
+                                                                        margin-top: 0.5rem;
+                                                                        display: flex;
+                                                                        justify-content: space-between;
+                                                                      ">
+                                                                      <div style="line-height: 0px">
+                                                                        <h5>Shahine Hoja Aesthetics</h5>
+                                                                        <p style="color: rgb(100, 28, 162)">
+                                                                          905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                        </p>
+                                                                      </div>
+                                                                      <img
+                                                                        src="https://res.cloudinary.com/djgrqoefp/image/upload/v1704388341/shahina/contactDetail/lv8rvmn6nbkzbzekiexq.png"
+                                                                        style="height: 50px; width: 50px; margin-left:25px; border-radius: 10px" />
+                                                                    </div>
+                                                                  </div>
+                                                                  <div style="margin-top: 1.5rem; line-height: 20px">
+                                                                    <h3>Cancellation Policy</h3>
+                                                                    <p style="margin-top: 1rem">
+                                                                      Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                      appointment
+                                                                    </p>
+                                                                  </div>
+                                                                  <p style="margin-top: 2.5rem">
+                                                                    we send you this because you have booked with shahine hoja Aesthics,
+                                                                    which partners with for appoinment and payments.
+                                                                  </p>
+                                                          </div>
+                                                          </div>
+                                                          </div>
+                                                        </body>
+                                                        </html>`,
                                                 };
                                                 let info1 = await transporter.sendMail(mailOptions);
                                                 if (info1) {
