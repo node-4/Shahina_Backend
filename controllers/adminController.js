@@ -1266,17 +1266,36 @@ exports.paginateServiceSearch = async (req, res) => {
 };
 exports.getAllServices = async (req, res) => {
         try {
-                const findSubscription = await services.find({ type: 'Service' }).lean();
-                if (findSubscription.length == 0) {
+                const findSubscription = await services.find({ type: 'Service', multipleSize: { $ne: true } }).lean();
+                if (findSubscription.length === 0) {
                         return res.status(404).send({ status: 404, message: "Services Not found", data: {} });
                 } else {
-                        return res.status(200).send({ status: 200, message: "Services found successfully.", data: findSubscription });
+                        const uniqueServices = findSubscription.reduce((acc, service) => {
+                                if (!acc.some((s) => s.name === service.name)) {
+                                        acc.push(service);
+                                }
+                                return acc;
+                        }, []);
+                        return res.status(200).send({ status: 200, message: "Services found successfully.", data: uniqueServices });
                 }
         } catch (error) {
                 console.log(error);
                 return res.status(500).json({ status: 500, error: "Internal Server Error" });
         }
 };
+// exports.getAllServices = async (req, res) => {
+//         try {
+//                 const findSubscription = await services.find({ type: 'Service' }).lean();
+//                 if (findSubscription.length == 0) {
+//                         return res.status(404).send({ status: 404, message: "Services Not found", data: {} });
+//                 } else {
+//                         return res.status(200).send({ status: 200, message: "Services found successfully.",data: findSubscription, length : findSubscription.length  });
+//                 }
+//         } catch (error) {
+//                 console.log(error);
+//                 return res.status(500).json({ status: 500, error: "Internal Server Error" });
+//         }
+// };
 exports.getServiceByToken = async (req, res, next) => {
         try {
                 if (req.query.categoryId != (null || undefined)) {
@@ -1487,7 +1506,7 @@ exports.editService = async (req, res) => {
                         req.body.images = images;
                         let totalMin, totalTime;
                         if (req.body.totalTime != (null || undefined)) {
-                                totalMin = convertTimeToMinutes(req.body.totalTime)
+                                let totalMin1 = convertTimeToMinutes(req.body.totalTime);
                                 function convertTimeToMinutes(timeString) {
                                         const regex = /(\d+)\s*hr(?:\s*(\d*)\s*min)?/;
                                         const regex1 = /(\d+)\s*(?:min)?/;
@@ -1510,7 +1529,7 @@ exports.editService = async (req, res) => {
                                         return hours * 60 + minutes;
                                 }
                                 totalTime = req.body.totalTime;
-                                totalMin = req.body.totalMin;
+                                totalMin = totalMin1;
                         } else {
                                 totalTime = data.totalTime;
                                 totalMin = data.totalMin;
@@ -3529,14 +3548,14 @@ exports.slotUnBlocked = async (req, res) => {
                 let x1 = `${req.body.date}T${req.body.to}:00.000Z`
                 console.log({ from: { $gte: new Date(x) } }, { to: { $lte: new Date(x1) } });
                 console.log({ from: { $gte: new Date(x) }, to: { $lte: new Date(x1) }, date: new Date(x2), isBooked: false });
-                let findSlot = await slot.find({ from: { $gte: new Date(x) },  to: { $lte: new Date(x1) }, date: new Date(x2) });
+                let findSlot = await slot.find({ from: { $gte: new Date(x) }, to: { $lte: new Date(x1) }, date: new Date(x2) });
                 if (findSlot.length > 0) {
                         let data = [];
                         for (let i = 0; i < findSlot.length; i++) {
                                 let updateSlot = await slot.findByIdAndUpdate({ _id: findSlot[i]._id }, { $set: { slotBlocked: false, } }, { new: true });
                                 data.push(updateSlot)
                         }
-                        return res.status(200).json({ message: "Slots Blocked  found.", status: 200, data: findSlot, length: findSlot.length});
+                        return res.status(200).json({ message: "Slots Blocked  found.", status: 200, data: findSlot, length: findSlot.length });
                 } else {
                         return res.status(404).json({ message: "Slots not  found.", status: 404, data: {}, });
                 }

@@ -7,6 +7,7 @@ const compression = require("compression");
 const serverless = require("serverless-http");
 const User = require("./models/Auth/userModel");
 const coupanModel = require("./models/Auth/coupan");
+const nodemailer = require("nodemailer");
 const app = express();
 const path = require("path");
 app.use(compression({ threshold: 500 }));
@@ -35,21 +36,57 @@ const createBirthdayRewards = async () => {
                                 const userDay = user.dob.getDate();
                                 if (userMonth === currentMonth && userDay === currentDay + 1) {
                                         if (user.birthDayCreate < Date.now()) {
-                                                const rewardObject = {
-                                                        user: user._id,
-                                                        code: await reffralCode(),
-                                                        title: "BirthDay Reward",
-                                                        description: "Get a discount coupon of worth $50. Your birthday rewards.",
-                                                        discount: 50,
-                                                        per: "Amount",
-                                                        completeVisit: 0,
-                                                        orderStatus: "confirmed",
-                                                        paymentStatus: "paid"
+                                                const expirationDate = new Date();
+                                                expirationDate.setDate(expirationDate.getDate() + 14);
+                                                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                                                const formattedExpirationDate = expirationDate.toLocaleDateString('en-US', options);
+                                                var transporter = nodemailer.createTransport({ service: 'gmail', auth: { "user": "info@shahinahoja.com", "pass": "gganlypsemwqhwlh" } });
+                                                let mailOption1 = {
+                                                        from: '<do_not_reply@gmail.com>',
+                                                        to: `${user.email}`,
+                                                        subject: 'Order Received',
+                                                        text: `You have received a new order`,
+                                                        html: `Hi ${user.firstName}! Happy birthday from Shahina Hoja Aesthetics!
+                                                        Come in this week for a complimentary Glutathione IV.
+                                                        Book Here: https://shahina-web.vercel.app/login
+                                                        Expires ${formattedExpirationDate};`,
                                                 };
-                                                const userCoupon = await coupanModel.create(rewardObject);
-                                                if (userCoupon) {
-                                                        const nextBirthday = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-                                                        const updateResult = await User.findByIdAndUpdate({ _id: user._id }, { $set: { birthDayCreate: nextBirthday } }, { new: true });
+                                                let info1 = await transporter.sendMail(mailOption1);
+                                                if (info1) {
+                                                        const rewardObject = {
+                                                                user: user._id,
+                                                                code: await reffralCode(),
+                                                                title: "BirthDay Reward",
+                                                                description: "Get a discount coupon of worth $50. Your birthday rewards.",
+                                                                discount: 50,
+                                                                per: "Amount",
+                                                                expirationDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+                                                                completeVisit: 0,
+                                                                orderStatus: "confirmed",
+                                                                paymentStatus: "paid"
+                                                        };
+                                                        const userCoupon = await coupanModel.create(rewardObject);
+                                                        if (userCoupon) {
+                                                                const nextBirthday = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+                                                                const updateResult = await User.findByIdAndUpdate({ _id: user._id }, { $set: { birthDayCreate: nextBirthday } }, { new: true });
+                                                        }
+                                                } else {
+                                                        const rewardObject = {
+                                                                user: user._id,
+                                                                code: await reffralCode(),
+                                                                title: "BirthDay Reward",
+                                                                description: "Get a discount coupon of worth $50. Your birthday rewards.",
+                                                                discount: 50,
+                                                                per: "Amount",
+                                                                completeVisit: 0,
+                                                                orderStatus: "confirmed",
+                                                                paymentStatus: "paid"
+                                                        };
+                                                        const userCoupon = await coupanModel.create(rewardObject);
+                                                        if (userCoupon) {
+                                                                const nextBirthday = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+                                                                const updateResult = await User.findByIdAndUpdate({ _id: user._id }, { $set: { birthDayCreate: nextBirthday } }, { new: true });
+                                                        }
                                                 }
                                         }
                                 }
