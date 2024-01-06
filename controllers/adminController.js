@@ -3681,7 +3681,7 @@ exports.noShowUpdate = async (req, res) => {
                                                   </button>
                                                   <div style="margin-top: 2rem">
                                                     <p style="font-size: 30px; font-weight: bold">
-                                                      ${findCart.user.firstName}, you missed your appoinment at Shahine Hoja Aesthetics
+                                                      ${findCart.user.firstName}, you missed your appointment at Shahina Hoja Aesthetics
                                                     </p>
                                                   </div>
                                                   <p style="margin-top: 1rem">
@@ -3740,7 +3740,7 @@ exports.noShowUpdate = async (req, res) => {
                                                       <div style="line-height: 0px">
                                                         <h5>Shahine Hoja Aesthetics</h5>
                                                         <p style="color: rgb(100, 28, 162)">
-                                                          905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                          905 Watters Creek Boulevard ,141 Allen, 75013, Texas, Us
                                                         </p>
                                                       </div>
                                                       <img src="https://res.cloudinary.com/djgrqoefp/image/upload/v1704388341/shahina/contactDetail/lv8rvmn6nbkzbzekiexq.png" style="height: 50px; width: 50px; margin-left:25px; border-radius: 10px" />
@@ -3750,14 +3750,12 @@ exports.noShowUpdate = async (req, res) => {
                                                   <div style="margin-top: 1.5rem; line-height: 20px">
                                                     <h3>Cancellation Policy</h3>
                                                     <p style="margin-top: 1rem">
-                                                      Please avoid cancelation with in <strong>48 hours</strong> of your
-                                                      appointment
+                                                      Please avoid Cancellation with in <strong>48 hours</strong> of your appointment
                                                     </p>
                                                   </div>
                                         
                                                   <p style="margin-top: 2.5rem">
-                                                    we send you this because you have booked with shahine hoja Aesthics,
-                                                    which partners with for appoinment and payments.
+                                                    We sent you this email because you have booked with Shahina Hoja Aesthetics, which partners with appointment and payments.
                                                   </p>
                                                 </div>
                                               </div>
@@ -3877,7 +3875,7 @@ exports.reSechduleOrder = async (req, res) => {
                                                                       <div style="line-height: 0px">
                                                                         <h5>Shahine Hoja Aesthetics</h5>
                                                                         <p style="color: rgb(100, 28, 162)">
-                                                                          905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                          905 Watters Creek Boulevard ,141 Allen, 75013, Texas, Us
                                                                         </p>
                                                                       </div>
                                                                       <img
@@ -3888,7 +3886,7 @@ exports.reSechduleOrder = async (req, res) => {
                                                                   <div style="margin-top: 1.5rem; line-height: 20px">
                                                                     <h3>Cancellation Policy</h3>
                                                                     <p style="margin-top: 1rem">
-                                                                      Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                      Please avoid Cancellation with in <strong>48 hours</strong> of your
                                                                       appointment
                                                                     </p>
                                                                   </div>

@@ -2089,7 +2089,8 @@ exports.checkout = async (req, res) => {
                                                                                                         <div style="line-height: 20px">
                                                                                                             <h5>Shahine Hoja Aesthetics</h5>
                                                                                                             <p style="color: rgb(100, 28, 162)">
-                                                                                                                905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                                                                Shahina Hoja Aesthetics
+905 Watters Creek Boulevard ,141 Allen, 75013, Texas, Us
                                                                                                             </p>
                                                                                                         </div>
                                                                                                         <img src="https://res.cloudinary.com/djgrqoefp/image/upload/v1704388341/shahina/contactDetail/lv8rvmn6nbkzbzekiexq.png"
@@ -2100,7 +2101,7 @@ exports.checkout = async (req, res) => {
                                                                                                 <div style="margin-top: 1.5rem; line-height: 20px">
                                                                                                     <h3>Cancellation Policy</h3>
                                                                                                     <p style="margin-top: 1rem">
-                                                                                                        Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                                                        Please avoid Cancellation with in <strong>48 hours</strong> of your
                                                                                                         appointment
                                                                                                     </p>
                                                                                                 </div>
@@ -2765,7 +2766,8 @@ exports.checkout = async (req, res) => {
                                                                                                         <div style="line-height: 20px">
                                                                                                             <h5>Shahine Hoja Aesthetics</h5>
                                                                                                             <p style="color: rgb(100, 28, 162)">
-                                                                                                                905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                                                                Shahina Hoja Aesthetics
+905 Watters Creek Boulevard ,141 Allen, 75013, Texas, Us
                                                                                                             </p>
                                                                                                         </div>
                                                                                                         <img src="https://res.cloudinary.com/djgrqoefp/image/upload/v1704388341/shahina/contactDetail/lv8rvmn6nbkzbzekiexq.png"
@@ -2776,7 +2778,7 @@ exports.checkout = async (req, res) => {
                                                                                                 <div style="margin-top: 1.5rem; line-height: 20px">
                                                                                                     <h3>Cancellation Policy</h3>
                                                                                                     <p style="margin-top: 1rem">
-                                                                                                        Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                                                        Please avoid Cancellation with in <strong>48 hours</strong> of your
                                                                                                         appointment
                                                                                                     </p>
                                                                                                 </div>
@@ -3696,7 +3698,8 @@ exports.checkoutApp = async (req, res) => {
                                                                                                         <div style="line-height: 20px">
                                                                                                             <h5>Shahine Hoja Aesthetics</h5>
                                                                                                             <p style="color: rgb(100, 28, 162)">
-                                                                                                                905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                                                                Shahina Hoja Aesthetics
+905 Watters Creek Boulevard ,141 Allen, 75013, Texas, Us
                                                                                                             </p>
                                                                                                         </div>
                                                                                                         <img src="https://res.cloudinary.com/djgrqoefp/image/upload/v1704388341/shahina/contactDetail/lv8rvmn6nbkzbzekiexq.png"
@@ -3707,7 +3710,7 @@ exports.checkoutApp = async (req, res) => {
                                                                                                 <div style="margin-top: 1.5rem; line-height: 20px">
                                                                                                     <h3>Cancellation Policy</h3>
                                                                                                     <p style="margin-top: 1rem">
-                                                                                                        Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                                                        Please avoid Cancellation with in <strong>48 hours</strong> of your
                                                                                                         appointment
                                                                                                     </p>
                                                                                                 </div>
@@ -4330,7 +4333,8 @@ exports.checkoutApp = async (req, res) => {
                                                                                                         <div style="line-height: 20px">
                                                                                                             <h5>Shahine Hoja Aesthetics</h5>
                                                                                                             <p style="color: rgb(100, 28, 162)">
-                                                                                                                905 watters Creek Bolevart ,141 alien, 75013, Texas, Us
+                                                                                                                Shahina Hoja Aesthetics
+905 Watters Creek Boulevard ,141 Allen, 75013, Texas, Us
                                                                                                             </p>
                                                                                                         </div>
                                                                                                         <img src="https://res.cloudinary.com/djgrqoefp/image/upload/v1704388341/shahina/contactDetail/lv8rvmn6nbkzbzekiexq.png"
@@ -4341,7 +4345,7 @@ exports.checkoutApp = async (req, res) => {
                                                                                                 <div style="margin-top: 1.5rem; line-height: 20px">
                                                                                                     <h3>Cancellation Policy</h3>
                                                                                                     <p style="margin-top: 1rem">
-                                                                                                        Please avoid cancelation with in <strong>48 hours</strong> of your
+                                                                                                        Please avoid Cancellation with in <strong>48 hours</strong> of your
                                                                                                         appointment
                                                                                                     </p>
                                                                                                 </div>
